@@ -24,3 +24,10 @@ trait HasBaseTimestamps
 {
     //
 }
+
+// Trait sem timestamps, só com um campo custom
+#[Fillable(['custom'])]
+trait HasOnlyCustom
+{
+    //
+}
