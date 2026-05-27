@@ -14,8 +14,8 @@
                     </p>
                     <div class="flex flex-wrap gap-4">
                         <a href="/" class="flex items-center gap-2 rounded-xl bg-[#144226] px-4 py-2.5 text-sm font-semibold text-white transition">
-                            <img src="/img/tshirt.png" alt="Catalog Icon" class="h-5 w-5" />    
-                        <span class="">
+                            <img src="{{ asset('img/tshirt.png') }}" alt="T-shirt" class="h-5 w-5" />    
+                            <span class="">
                                 Ver catalogo
                             </span>
                         </a>
