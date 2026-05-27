@@ -13,6 +13,8 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Color extends Model
 {
     use HasSoftDeleteOnly;
+    
+    //Relação Color-orderItems
     public function order_Items(): HasMany
     {
         return $this->hasMany(Order_item::class, 'color_code', 'code');
