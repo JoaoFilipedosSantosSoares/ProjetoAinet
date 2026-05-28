@@ -2,6 +2,7 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\Order;
 use Illuminate\Http\Request;
 
 class AccountController extends Controller
@@ -19,5 +20,21 @@ class AccountController extends Controller
     public function register()
     {
         return view('account.register.index');
+    }
+
+    public function Encomenda(Request $request)
+    {
+        $search = $request->query('search');
+
+        $query = Order::with(['customer', 'order_Items.tshirt_Image'])
+            ->where('status', 'pending');
+
+        if ($search) {
+            $query->where('id', $search);
+        }
+
+        $orders = $query->orderBy('date', 'asc')->get();
+
+        return view('encomenda.index', compact('orders', 'search'));
     }
 }
