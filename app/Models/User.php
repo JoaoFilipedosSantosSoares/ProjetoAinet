@@ -69,4 +69,13 @@ class User extends Authenticatable
             return asset("storage/photos/anonymous.png");
         }
     }
+
+    public function getGender(): string
+    {
+        return match ($this->gender) {
+            'M' => 'Masculino',
+            'F' => 'Feminino',
+            default => 'Não definido'
+        };
+    }
 }
