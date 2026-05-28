@@ -26,4 +26,10 @@ class Tshirt_image extends Model
     {
         return $this->hasMany(Order_Item::class, 'tshirt_image_id', 'id');
     }
+
+    //Relação Category-Tshirt_image
+    public function category(): BelongsTo
+    {
+        return $this->belongsTo(Category::class, 'category_id', 'id');
+    }
 }

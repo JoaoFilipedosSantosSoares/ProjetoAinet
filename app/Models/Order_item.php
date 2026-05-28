@@ -27,4 +27,11 @@ class Order_item extends Model
     {
         return $this->belongsTo(Tshirt_Image::class, 'tshirt_image_id', 'id');
     }
+
+
+    //Relação Color-Order_Items
+    public function color(): BelongsTo
+    {
+        return $this->belongsTo(Color::class, 'color_code', 'code');
+    }
 }
