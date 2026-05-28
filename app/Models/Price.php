@@ -3,7 +3,6 @@
 namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
-use App\Models\Traits\HasOnlyCustom;
 use Illuminate\Database\Eloquent\Attributes\Fillable;
 use Illuminate\Database\Eloquent\Attributes\Table;
 
@@ -17,5 +16,5 @@ use Illuminate\Database\Eloquent\Attributes\Table;
 #[Table(timestamps: false)]
 class Price extends Model
 {
-    use HasOnlyCustom;
+
 }
