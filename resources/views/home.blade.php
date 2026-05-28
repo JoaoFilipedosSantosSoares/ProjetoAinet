@@ -1,4 +1,4 @@
-@component('layouts.main-content', ['title' => 'Department of Computer Engineering', 'heading' => 'Introduction'])
+@component('layouts.main-content', ['type' => 'home'])
 <div class="flex flex-col">
     <section class="relative overflow-hidden bg-muted/30 py-20 md:py-32">
         <div class="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
