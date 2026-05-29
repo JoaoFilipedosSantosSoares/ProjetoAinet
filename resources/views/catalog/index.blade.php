@@ -1,4 +1,4 @@
-@component('layouts.main-content', ['title' => 'Catálogo de Designs'])
+@component('layouts.main-content', ['type' => 'Catalogo'])
     @php
         $categories = ['Todos', 'Natureza', 'Geek', 'Arte', 'Música'];
         $catalogImages = [

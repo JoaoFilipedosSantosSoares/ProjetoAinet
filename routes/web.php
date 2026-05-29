@@ -6,6 +6,7 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CustomizationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\OrderController;
 
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -15,4 +16,4 @@ Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('/account', [AccountController::class, 'index'])->name('account.index');
 Route::get('/login', [AccountController::class, 'login'])->name('account.login');
 Route::get('/register', [AccountController::class, 'register'])->name('account.register');
-Route::get('/encomenda', [AccountController::class, 'Encomenda'])->name('encomenda.index');
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');

@@ -9,20 +9,26 @@
         </a>
 
         <nav class="hidden items-center gap-2 md:flex">
-            <a href="{{ route('home') }}" class="flex items-center gap-2 rounded-xl bg-[#144226] px-4 py-2.5 text-sm font-semibold text-white transition">
+            <a href="{{ route('home') }}"
+                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition {{ strtolower($active ?? '') === 'home' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
                 <span class="">
                     Inicio
                 </span>
             </a>
 
             <a href="{{ route('catalog.index') }}"
-                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-zinc-600 hover:text-zinc-950 transition">
-            Catalogo
+                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'catalogo' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
+                Catalogo
             </a>
 
             <a href="{{ route('customization.index') }}"
-                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium text-zinc-600 hover:text-zinc-950 transition">
-            Personalizar
+                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'persona' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
+                Personalizar
+            </a>
+            
+            <a href="{{ route('orders.index') }}"
+                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'encomendas' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
+                Encomendas
             </a>
         </nav>
 

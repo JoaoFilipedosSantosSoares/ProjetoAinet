@@ -1,4 +1,4 @@
-@component('layouts.main-content', ['title' => 'Personalizar T-shirt'])
+@component('layouts.main-content', ['type' => 'Persona'])
     @php
         $tshirtColors = [
             ['value' => 'branco', 'label' => 'Branco', 'hex' => '#ffffff'],
