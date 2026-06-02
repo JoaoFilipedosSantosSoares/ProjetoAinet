@@ -35,9 +35,9 @@
             <form action="1" method="POST" class="space-y-3 rounded-3xl">
                 @csrf
                 @method('PATCH')
-                <button type="submit"
-                    class="inline-flex w-full justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700">Marcar
-                    como Concluída</button>
+                <button type="submit" href="{{ route('orders.update', $order->id) }}" class="inline-flex w-full justify-center rounded-2xl bg-emerald-600 px-4 py-3 text-sm font-semibold text-white transition hover:bg-emerald-700">
+                    Marcar como Concluída
+                </button>
             </form>
         </div>
     </div>
