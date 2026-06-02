@@ -50,4 +50,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     });
 });
 
+Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
+Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+/* Route::get('/login', [AccountController::class, 'login'])->name('account.login');
+Route::get('/register', [AccountController::class, 'register'])->name('account.register'); */
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 
