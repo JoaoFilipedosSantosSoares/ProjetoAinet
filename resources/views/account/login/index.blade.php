@@ -31,8 +31,9 @@
                             </div>
                         @endif
 
-                        <form action="{{ $loginUrl }}" method="POST" class="space-y-4">
+                        <form action="{{ route('login') }}" method="POST" class="space-y-4">
                             @csrf
+                            
                             <input type="hidden" name="redirect" value="{{ $redirect }}" />
 
                             <div class="space-y-2">
