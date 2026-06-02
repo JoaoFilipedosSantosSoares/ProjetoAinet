@@ -11,9 +11,6 @@
                 <a href="{{ route('catalog.index') }}"
                     class="rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">Ver
                     Catálogo</a>
-                <a href="{{ route('account.login') }}"
-                    class="rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Alterar
-                    Senha</a>
             </div>
         </div>
 

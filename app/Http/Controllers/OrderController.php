@@ -14,4 +14,10 @@ class OrderController extends Controller
         $allOrders = Order::where('status', '!=', 'closed')->paginate(20);
         return view('orders.index')->with('orders', $allOrders);
     }
+
+    public function update(Request $request, Order $order)
+    {
+        $order->update(['status' => 'pending']);
+        return redirect()->back()->with('success', 'Order updated successfully.');
+    }
 }
