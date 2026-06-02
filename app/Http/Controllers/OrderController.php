@@ -10,8 +10,8 @@ class OrderController extends Controller
 {
     public function index(): View
     {
-       /*  $allOrders = Order::where('status', '=', 'pending')->get(); */
-        $allOrders = Order::where('status', '!=', 'closed')->get();
+       /*  $allOrders = Order::where('status', '=', 'pending')->paginate(20); */
+        $allOrders = Order::where('status', '!=', 'closed')->paginate(20);
         return view('orders.index')->with('orders', $allOrders);
     }
 }
