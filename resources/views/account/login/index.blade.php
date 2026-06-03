@@ -10,40 +10,35 @@
 
                 <div class="p-6">
 
-
-                    <form action="{{ route('login') }}" method="POST" class="se-y-4">
+                    <form action="{{ route('login') }}" method="POST" class="space-y-4">
                         @csrf
 
+                        <flux:input
+                            name="email"
+                            :label="__('Email address')"
+                            :value="old('email')"
+                            type="email"
+                            required
+                            autofocus
+                            autocomplete="email"
+                            placeholder="exemplo@mail.pt"
+                            style="color: #000000 !important;"
+                            class="rounded-lg border border-zinc-400 focus:border-black focus:ring-1 focus:ring-black" />
 
-                        <div class="space-y-2">
-                            <label for="email" class="block text-sm font-medium text-zinc-900">Email</label>
-                            <div class="relative">
-                                <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">✉️</span>
-                                <input
-                                    id="email"
-                                    name="email"
-                                    type="email"
-                                    value="{{ old('email') }}"
-                                    placeholder="o.teu@email.com"
-                                    required
-                                    class="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pl-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                            </div>
-                        </div>
+                        <flux:input
+                            name="password"
+                            :label="__('Password')"
+                            type="password"
+                            required
+                            autocomplete="current-password"
+                            :placeholder="__('Password')"
+                            viewable
+                            style="color: #000000 !important;"
+                            class="mb-6 rounded-lg border border-zinc-400 focus:border-black focus:ring-1 focus:ring-black" />
 
-                        <div class="space-y-2">
-                            <div class="relative">
-                                <flux:input
-                                    name="password"
-                                    :label="__('Password')"
-                                    type="password"
-                                    required
-                                    autocomplete="current-password"
-                                    :placeholder="__('Password')"
-                                    viewable />
-                            </div>
-                        </div>
-
-                        <button type="submit" class="w-full rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Entrar</button>
+                        <button type="submit" class="w-full rounded-md bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                            Entrar
+                        </button>
                     </form>
 
                 </div>
@@ -51,22 +46,4 @@
         </div>
     </div>
 </main>
-
-<script>
-    document.addEventListener('DOMContentLoaded', function() {
-        const passwordInput = document.querySelector('.password-input');
-        const toggleButton = document.querySelector('.password-toggle');
-
-        if (!passwordInput || !toggleButton) {
-            return;
-        }
-
-        toggleButton.addEventListener('click', function() {
-            const isPassword = passwordInput.type === 'password';
-            passwordInput.type = isPassword ? 'text' : 'password';
-            toggleButton.textContent = isPassword ? '🙈' : '👁️';
-            toggleButton.setAttribute('aria-label', isPassword ? 'Esconder palavra-passe' : 'Mostrar palavra-passe');
-        });
-    });
-</script>
 @endcomponent
