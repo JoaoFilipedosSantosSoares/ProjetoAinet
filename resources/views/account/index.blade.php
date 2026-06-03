@@ -27,7 +27,7 @@ $profileShippingAddress = old('shippingAddress', data_get($user, 'shippingAddres
                 </button>
             </form>
             @else
-            <form action="{{ route('login') }}" method="POST" class="space-y-4">
+            <form action="{{ route('account.login') }}" method="POST" class="space-y-4">
                 @csrf
                 <button type="submit" class="w-full rounded-2xl border border-zinc-300  px-4 py-3 text-sm font-semibold text-zinc-900 hover:bg-zinc-100">Entrar</button>
             </form>

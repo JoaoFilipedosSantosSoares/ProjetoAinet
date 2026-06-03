@@ -45,7 +45,7 @@
                 <img src="/img/user.png" alt="Account Icon" class="h-6 w-6" />
             </a>
             @else
-            <a href="{{ route('login') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
+            <a href="{{ route('account.login') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
                 <img src="/img/user.png" alt="Login Icon" class="h-6 w-6" />
             </a>
             @endauth

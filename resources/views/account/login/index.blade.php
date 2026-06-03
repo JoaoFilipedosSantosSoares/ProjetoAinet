@@ -11,7 +11,7 @@
                 <div class="p-6">
 
 
-                    <form action="{{ route('login') }}" method="POST" class="space-y-4">
+                    <form action="{{ route('account.login') }}" method="POST" class="space-y-4">
                         @csrf
 
 
