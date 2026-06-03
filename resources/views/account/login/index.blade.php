@@ -13,8 +13,6 @@
 
                     <form action="{{ route('account.login') }}" method="POST" class="space-y-4">
                         @csrf
-
-
                         <div class="space-y-2">
                             <label for="email" class="block text-sm font-medium text-zinc-900">Email</label>
                             <div class="relative">

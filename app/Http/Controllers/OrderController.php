@@ -8,16 +8,21 @@ use Illuminate\View\View;
 
 class OrderController extends Controller
 {
-    public function index(): View
+    public function index(Request $request): View
     {
-       /*  $allOrders = Order::where('status', '=', 'pending')->paginate(20); */
-        $allOrders = Order::where('status', '!=', 'closed')->paginate(20);
+        $query = Order::where('status', '=', 'pending');
+
+        if ($request->filled('search')) {
+            $query->where('id', '=', $request->search);
+        }
+
+        $allOrders = $query->paginate(10);
         return view('orders.index')->with('orders', $allOrders);
     }
 
-    public function update(Request $request, Order $order)
+    public function update(Order $order)
     {
-        $order->update(['status' => 'pending']);
+        $order->update(['status' => 'closed']);
         return redirect()->back()->with('success', 'Order updated successfully.');
     }
 }

@@ -18,11 +18,13 @@
         <form method="GET" action="{{ route('orders.index') }}"
             class="mb-6 flex flex-col gap-3 sm:flex-row sm:items-center">
             <label class="sr-only" for="search">Pesquisar por ID</label>
-            <input id="search" name="search" type="text" value=""
+            <input id="search" name="search" type="text" value="{{ request('search') }}"
                 placeholder="Pesquisar encomenda por ID"
                 class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20 sm:max-w-md" />
             <button type="submit"
                 class="inline-flex justify-center rounded-2xl bg-zinc-950 px-6 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Pesquisar</button>
+            <a href="{{ route('orders.index') }}"
+                class="inline-flex justify-center rounded-2xl border border-zinc-300 bg-white px-6 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">Limpar</a>
         </form>
 
         <div class="space-y-6">
@@ -30,7 +32,7 @@
         </div>
 
         <div class="mt-6">
-            {{ $orders->links('pagination::tailwind') }}
+            {{ $orders->links() }}
         </div>
     </div>
 </main>
