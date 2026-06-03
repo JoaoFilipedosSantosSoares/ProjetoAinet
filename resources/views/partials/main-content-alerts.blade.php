@@ -5,9 +5,7 @@
             <div>{!! session('alert-msg') !!}</div>
             <x-slot name="controls">
                 <flux:button icon="x-mark" variant="ghost" x-on:click="visible = false" />
-            </x-slot>
-        </flux:callout>
-    @endif
+            </x-slot>       @endif
     @if (!$errors->isEmpty())
         <flux:callout x-data="{ visible: true }" x-show="visible"
                       variant="warning" icon="exclamation-circle"

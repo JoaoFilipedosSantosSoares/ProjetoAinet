@@ -12,8 +12,7 @@ use App\Http\Controllers\OrderController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::get('/login', [AccountController::class, 'login'])->name('account.login');
-Route::get('/register', [AccountController::class, 'register'])->name('account.register');
+
 
 
 Route::middleware(['auth', 'verified'])->group(function () {

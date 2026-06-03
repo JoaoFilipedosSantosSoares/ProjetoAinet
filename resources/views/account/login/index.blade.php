@@ -11,7 +11,7 @@
                 <div class="p-6">
 
 
-                    <form action="{{ route('account.login') }}" method="POST" class="space-y-4">
+                    <form action="{{ route('login') }}" method="POST" class="se-y-4">
                         @csrf
 
 
@@ -31,22 +31,15 @@
                         </div>
 
                         <div class="space-y-2">
-                            <label for="password" class="block text-sm font-medium text-zinc-900">Palavra-passe</label>
                             <div class="relative">
-                                <span class="pointer-events-none absolute left-3 top-1/2 -translate-y-1/2 text-zinc-400">🔒</span>
-                                <input
-                                    id="password"
+                                <flux:input
                                     name="password"
+                                    :label="__('Password')"
                                     type="password"
-                                    placeholder="••••••••"
                                     required
-                                    class="password-input w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pl-10 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                                <button
-                                    type="button"
-                                    class="password-toggle absolute right-3 top-1/2 -translate-y-1/2 text-zinc-500 transition hover:text-zinc-900"
-                                    aria-label="Mostrar palavra-passe">
-                                    👁️
-                                </button>
+                                    autocomplete="current-password"
+                                    :placeholder="__('Password')"
+                                    viewable />
                             </div>
                         </div>
 

@@ -1,3 +1,4 @@
+
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <header class="sticky top-0 z-50 border-b border-zinc-200 bg-[#fbfaf7]">
     <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -45,7 +46,7 @@
                 <img src="/img/user.png" alt="Account Icon" class="h-6 w-6" />
             </a>
             @else
-            <a href="{{ route('account.login') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
+            <a href="{{ route('login') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
                 <img src="/img/user.png" alt="Login Icon" class="h-6 w-6" />
             </a>
             @endauth

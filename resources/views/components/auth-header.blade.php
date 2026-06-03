@@ -3,7 +3,6 @@
     'description',
 ])
 
-{{-- Removido o mb-6 da div principal --}}
 <div class="border-b border-zinc-200 p-6 text-center flex w-full flex-col gap-2">
     <flux:heading size="2xl" class="font-bold text-zinc-950 text-3xl">
         {{ $title }}
