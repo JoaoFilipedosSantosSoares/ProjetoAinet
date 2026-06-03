@@ -25,7 +25,7 @@
                 class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'persona' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
                 Personalizar
             </a>
-            
+
             <a href="{{ route('orders.index') }}"
                 class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'encomendas' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
                 Encomendas
@@ -34,15 +34,21 @@
 
         <div class="flex items-center gap-4">
             <a href="" class="relative p-2 text-zinc-800 hover:text-zinc-950 transition">
-                <img src="/img/online-shopping.png" alt="Catalog Icon" class="h-5 w-5" />    
+                <img src="/img/online-shopping.png" alt="Catalog Icon" class="h-5 w-5" />
                 <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#144226] text-xs font-bold text-white">
                     0
                 </span>
             </a>
 
+            @auth
             <a href="{{ route('account.index') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
-                <img src="/img/user.png" alt="Catalog Icon" class="h-6 w-6" /> 
+                <img src="/img/user.png" alt="Account Icon" class="h-6 w-6" />
             </a>
+            @else
+            <a href="{{ route('login') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
+                <img src="/img/user.png" alt="Login Icon" class="h-6 w-6" />
+            </a>
+            @endauth
         </div>
     </div>
 </header>

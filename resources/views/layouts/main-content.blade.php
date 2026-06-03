@@ -1,4 +1,4 @@
-@component('layouts.app.header', ['title' => $title ?? null, 'active' => $type ?? null])
+@component('layouts.app.header')
     <flux:main>
         @include('partials.main-content-headings')
         @include('partials.main-content-alerts')

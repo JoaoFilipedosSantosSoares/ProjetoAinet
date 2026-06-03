@@ -11,6 +11,7 @@
                 <a href="{{ route('catalog.index') }}"
                     class="rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">Ver
                     Catálogo</a>
+
             </div>
         </div>
 
