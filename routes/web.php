@@ -53,3 +53,5 @@ Route::get('/customization', [CustomizationController::class, 'index'])->name('c
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
+
+Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');

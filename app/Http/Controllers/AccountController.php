@@ -22,6 +22,11 @@ class AccountController extends Controller
         return view('account.register.index');
     }
 
+    public function forgotPassword()
+    {
+        return view('account.login.forgot-password');
+    }
+
     public function Encomenda(Request $request)
     {
         $search = $request->query('search');
