@@ -11,6 +11,7 @@ use App\Http\Controllers\OrderController;
 /* ----- PUBLIC ROUTES ----- */
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
+Route::get('/catalog/{tshirt}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 
 
