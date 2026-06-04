@@ -12,7 +12,14 @@ use App\Http\Controllers\OrderController;
 Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-
+Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
+Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
+Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
+Route::get('/reset-password', function () {
+    return redirect()->route('login')
+        ->withErrors(['email' => 'Link de redefinição inválido ou expirado.']);
+});
 
 
 Route::middleware(['auth', 'verified'])->group(function () {
@@ -24,9 +31,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | CLIENTE
     |--------------------------------------------------------------------------
     */
-    Route::middleware('type:C')->group(function () {
+    Route::middleware('user_type:C')->group(function () {
         Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
-        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index'); // Só as suas encomendas
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     });
 
     /*
@@ -34,7 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | FUNCIONÁRIO + ADMIN
     |--------------------------------------------------------------------------
     */
-    Route::middleware('type:F')->group(function () {
+    Route::middleware('user_type:F')->group(function () {
         // Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     });
 
@@ -44,14 +51,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('type:A')->group(function () {
+    Route::middleware('user_type:A')->group(function () {
 
     });
 });
 
-Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 
 
-Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
+

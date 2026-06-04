@@ -13,10 +13,10 @@ return [
     |
     */
 
-    'reset' => 'Your password has been reset.',
+    'reset' => 'Password foi trocada',
     'sent' => 'Foi enviado um email para trocar a Password.',
-    'throttled' => 'Please wait before retrying.',
-    'token' => 'This password reset token is invalid.',
-    'user' => "We can't find a user with that email address.",
+    'throttled' => 'Tente novamente mais tarde',
+    'token' => 'Token para trocar a Password expriou',
+    'user' => "Utilizador não encontrado na base de dados",
 
 ];

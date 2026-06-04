@@ -13,6 +13,8 @@ use Illuminate\Support\ServiceProvider;
 use Illuminate\Support\Str;
 use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
+use Illuminate\Auth\Notifications\ResetPassword;
+use Illuminate\Notifications\Messages\MailMessage;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -43,9 +45,40 @@ class FortifyServiceProvider extends ServiceProvider
             return view('account.register.index');
         });
 
-        Fortify::resetPasswordView(function ($request) {
-            return view('auth.reset-password', ['request' => $request]);
+        Fortify::resetPasswordView(function (Request $request) {
+
+            if (!$request->route('token') || !$request->has('email')) {
+                return redirect()->route('login')
+                    ->withErrors(['email' => 'Link de redefinição inválido ou expirado.']);
+            }
+
+            return view('account.login.reset-password', [
+                'request' => $request,
+                'token' => $request->route('token'),
+            ]);
         });
+
+
+
+
+        ResetPassword::toMailUsing(function (object $notifiable, string $token) {
+            $url = url(route('password.reset', [
+                'token' => $token,
+                'email' => $notifiable->getEmailForPasswordReset(),
+            ], false));
+
+            $expireTime = config('auth.passwords.' . config('auth.defaults.passwords') . '.expire');
+
+            return (new MailMessage)
+                ->subject('Recuperação de Password - ' . config('app.name'))
+                ->greeting('Olá!')
+                ->line('Recebemos um pedido para redefinir a password da tua conta.')
+                ->action('Redefinir Password', $url)
+                ->line('Este link de recuperação vai expirar em ' . $expireTime . ' minutos.')
+                ->line('Se não pediste isto, podes ignorar este e-mail em segurança.')
+                ->salutation('Cumprimentos, Equipa do ' . config('app.name'));
+        });
+
 
         RateLimiter::for('login', function (Request $request) {
             $throttleKey = Str::transliterate(Str::lower($request->input(Fortify::username())) . '|' . $request->ip());
