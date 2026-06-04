@@ -26,20 +26,4 @@ class AccountController extends Controller
     {
         return view('account.login.forgot-password');
     }
-
-    public function Encomenda(Request $request)
-    {
-        $search = $request->query('search');
-
-        $query = Order::with(['customer', 'order_Items.tshirt_Image'])
-            ->where('status', 'pending');
-
-        if ($search) {
-            $query->where('id', $search);
-        }
-
-        $orders = $query->orderBy('date', 'asc')->get();
-
-        return view('encomenda.index', compact('orders', 'search'));
-    }
 }
