@@ -1,4 +1,4 @@
-@component('layouts.main-content', ['type' => 'Catalogo'])
+@component('layouts.main-content')
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
     <div class="text-center">
         <h1 class="text-3xl font-bold tracking-tight md:text-4xl">Catálogo de Designs</h1>

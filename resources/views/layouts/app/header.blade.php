@@ -1,4 +1,3 @@
-@vite(['resources/css/app.css', 'resources/js/app.js'])
 <header class="sticky top-0 z-50 border-b border-zinc-200 bg-[#fbfaf7]">
     <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
 
@@ -10,7 +9,7 @@
 
         <nav class="hidden items-center gap-2 md:flex">
             <a href="{{ route('home') }}"
-                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-semibold text-zinc-600 transition hover:text-zinc-950">
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
                 <span>Inicio</span>
             </a>
 
