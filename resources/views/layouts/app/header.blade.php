@@ -31,7 +31,7 @@
         </nav>
 
         <div class="flex items-center gap-4">
-            <a href="" class="relative p-2 text-zinc-800 hover:text-zinc-950 transition">
+            <a href="{{ route('cart.index') }}" class="relative p-2 text-zinc-800 hover:text-zinc-950 transition">
                 <img src="/img/online-shopping.png" alt="Catalog Icon" class="h-5 w-5" />
                 <span class="absolute -top-1 -right-1 flex h-5 w-5 items-center justify-center rounded-full bg-[#144226] text-xs font-bold text-white">
                     0
