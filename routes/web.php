@@ -14,7 +14,6 @@ Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index
 Route::get('/catalog/{tshirt}', [CatalogController::class, 'show'])->name('catalog.show');
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
 Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
-Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
 Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
 Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
 Route::get('/reset-password', function () {
@@ -32,7 +31,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | CLIENTE
     |--------------------------------------------------------------------------
     */
-    Route::middleware('user_type:C')->group(function () {
+    Route::middleware('can:cliente')->group(function () {
         Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     });
@@ -42,7 +41,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | FUNCIONÁRIO + ADMIN
     |--------------------------------------------------------------------------
     */
-    Route::middleware('user_type:F')->group(function () {
+    Route::middleware('can:employee')->group(function () {
         // Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
     });
 
@@ -52,7 +51,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
 
-    Route::middleware('user_type:A')->group(function () {
+    Route::middleware('can:admin')->group(function () {
 
     });
 });
