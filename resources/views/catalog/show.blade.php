@@ -1,21 +1,4 @@
 @component('layouts.main-content', ['type' => 'Persona'])
-@php
-    $tshirtColors = [
-        ['value' => 'branco', 'label' => 'Branco', 'hex' => '#ffffff'],
-        ['value' => 'preto', 'label' => 'Preto', 'hex' => '#111827'],
-        ['value' => 'vermelho', 'label' => 'Vermelho', 'hex' => '#ef4444'],
-        ['value' => 'azul', 'label' => 'Azul', 'hex' => '#3b82f6'],
-        ['value' => 'verde', 'label' => 'Verde', 'hex' => '#22c55e'],
-    ];
-
-    $tshirtSizes = [
-        ['value' => 'S', 'label' => 'S'],
-        ['value' => 'M', 'label' => 'M'],
-        ['value' => 'L', 'label' => 'L'],
-        ['value' => 'XL', 'label' => 'XL'],
-    ];
-@endphp
-
 <main class="min-h-screen bg-background">
     <div class="container mx-auto px-4 py-12">
         <div class="mb-8 text-center">
@@ -28,10 +11,13 @@
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="product-card group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md"
                         data-category="{{ $tshirt->category->name ?? 'Sem Categoria' }}" data-id="{{ $tshirt->id }}">
-                        <div class="relative aspect-square overflow-hidden bg-zinc-100">
+                        <div class="relative aspect-square overflow-hidden bg-zinc-100 flex items-center justify-center">
+                            <img id="tshirt-base-preview" src="{{ asset('storage/tshirt_base/' . $selectedColor->code . '.jpg') }}"
+                                alt="T-shirt Base"
+                                class="absolute inset-0 h-full w-full object-contain" />
                             <img src="{{ asset('storage/tshirt_images/' . $tshirt->image_url) }}"
                                 alt="{{ $tshirt->name }}"
-                                class="h-full w-full object-contain transition group-hover:scale-105" />
+                                class="relative z-10 h-[50%] w-[50%] object-contain transition group-hover:scale-105" />
                         </div>
                         <div class="p-4">
                             <p class="text-xs uppercase tracking-widest text-muted-foreground">
@@ -49,15 +35,15 @@
                         <div>
                             <label class="mb-2 block text-sm font-medium text-zinc-900">Cor da T-Shirt</label>
                             <div class="flex flex-wrap gap-2">
-                                @foreach ($tshirtColors as $color)
-                                    <button type="button"
-                                        class="color-option h-10 w-10 rounded-full border-2 border-border transition-all duration-200"
-                                        data-value="{{ $color['value'] }}" data-hex="{{ $color['hex'] }}"
-                                        title="{{ $color['label'] }}"
-                                        style="background-color: {{ $color['hex'] }}"></button>
+                                @foreach ($colours as $color)
+                                    <a href="{{ route('catalog.show', ['tshirt' => $tshirt, 'color' => $color->code]) }}"
+                                        class="color-option h-10 w-10 rounded-full border-2 transition-all duration-200 {{ ($selectedColor->code ?? '') === $color->code ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2' : 'border-border' }}"
+                                        data-value="{{ $color->name }}" data-hex="{{ $color->code }}"
+                                        title="{{ $color->name }}"
+                                        style="background-color: #{{ $color->code }}"></a>
                                 @endforeach
                             </div>
-                            <p id="selected-color-label" class="mt-2 text-sm text-muted-foreground">Branco</p>
+                            <p id="selected-color-label" class="mt-2 text-sm text-muted-foreground">{{ $selectedColor->name ?? 'Selecione uma cor' }}</p>
                         </div>
 
                         <div>
@@ -65,9 +51,10 @@
                                 class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
                             <select id="size-select"
                                 class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
-                                @foreach ($tshirtSizes as $size)
-                                    <option value="{{ $size['value'] }}">{{ $size['label'] }}</option>
-                                @endforeach
+                                    <option value="s">S</option>
+                                    <option value="m">M</option>
+                                    <option value="l">L</option>
+                                    <option value="xl">XL</option>
                             </select>
                         </div>
 
