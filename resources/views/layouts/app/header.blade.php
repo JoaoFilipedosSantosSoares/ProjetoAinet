@@ -1,4 +1,3 @@
-
 @vite(['resources/css/app.css', 'resources/js/app.js'])
 <header class="sticky top-0 z-50 border-b border-zinc-200 bg-[#fbfaf7]">
     <div class="mx-auto flex h-20 max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
@@ -11,24 +10,22 @@
 
         <nav class="hidden items-center gap-2 md:flex">
             <a href="{{ route('home') }}"
-                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-semibold transition {{ strtolower($active ?? '') === 'home' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
-                <span class="">
-                    Inicio
-                </span>
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-semibold text-zinc-600 transition hover:text-zinc-950">
+                <span>Inicio</span>
             </a>
 
             <a href="{{ route('catalog.index') }}"
-                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'catalogo' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
                 Catalogo
             </a>
 
             <a href="{{ route('customization.index') }}"
-                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'persona' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
                 Personalizar
             </a>
 
             <a href="{{ route('orders.index') }}"
-                class="flex items-center gap-2 rounded-xl px-4 py-2.5 text-sm font-medium transition {{ strtolower($active ?? '') === 'encomendas' ? 'bg-[#144226] text-white' : 'bg-transparent text-zinc-600 hover:text-zinc-950' }}">
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
                 Encomendas
             </a>
         </nav>

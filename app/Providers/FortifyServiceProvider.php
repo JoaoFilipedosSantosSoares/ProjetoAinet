@@ -15,6 +15,7 @@ use Laravel\Fortify\Actions\RedirectIfTwoFactorAuthenticatable;
 use Laravel\Fortify\Fortify;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Auth\Notifications\VerifyEmail;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -45,6 +46,9 @@ class FortifyServiceProvider extends ServiceProvider
             return view('account.register.index');
         });
 
+        Fortify::verifyEmailView(function () {
+            return view('account.register.verify-email');
+        });
         Fortify::resetPasswordView(function (Request $request) {
 
             if (!$request->route('token') || !$request->has('email')) {
@@ -59,6 +63,15 @@ class FortifyServiceProvider extends ServiceProvider
         });
 
 
+        VerifyEmail::toMailUsing(function (object $notifiable, string $url) {
+            return (new MailMessage)
+                ->subject('FunShirt - Confirma o teu endereço de e-mail')
+                ->greeting('Olá, ' . $notifiable->name . '!')
+                ->line('Obrigado por criares conta na FunShirt. Para começares a encomendar as tuas t-shirts personalizadas, precisamos apenas que confirmes o teu e-mail.')
+                ->action('Verificar Conta', $url)
+                ->line('Se não criaste nenhuma conta no nosso website, podes ignorar este e-mail com segurança.')
+                ->salutation('A equipa da FunShirt!');
+        });
 
 
         ResetPassword::toMailUsing(function (object $notifiable, string $token) {
