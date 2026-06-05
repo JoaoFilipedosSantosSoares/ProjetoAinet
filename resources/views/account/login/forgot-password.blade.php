@@ -1,5 +1,5 @@
 @extends('layouts.auth-layout', [
-    'title' => 'Esqueceu a Password?',
+    'title' => 'Trocar a Password?',
     'description' => 'Escreva um email para receber um link para trocar a Password'
 ])
 

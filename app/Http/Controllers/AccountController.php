@@ -76,7 +76,7 @@ class AccountController extends Controller implements HasMiddleware
         $request->validate([
             'name'  => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed', // Só valida se ele quiser mudar a pass
+            'password' => 'nullable|string|min:8|confirmed', 
         ]);
 
         DB::transaction(function () use ($request, $user) {

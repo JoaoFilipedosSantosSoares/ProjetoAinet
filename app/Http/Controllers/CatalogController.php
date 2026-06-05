@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tshirt_image;
+use App\Models\Color;
 use Illuminate\Http\Request;
 
 class CatalogController extends Controller
@@ -35,17 +36,26 @@ class CatalogController extends Controller
             'imageUrl' => $t->image_url,
         ]);
 
+        
+
         return view('catalog.index', [
             'tshirts' => $tshirts,
             'categories' => $categories,
             'catalogImages' => $catalogImages,
+            
         ]);
     }
 
-    public function show(Tshirt_image $tshirt)
+    public function show(Tshirt_image $tshirt, Request $request)
     {
+        $colours = Color::all();
+        $selectedColorCode = $request->query('color');
+        $selectedColor = $colours->where('code', $selectedColorCode)->first() ?? $colours->first();
+
         return view('catalog.show', [
             'tshirt' => $tshirt,
+            'colours' => $colours,
+            'selectedColor' => $selectedColor,
         ]);
     }
 }

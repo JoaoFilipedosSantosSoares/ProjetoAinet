@@ -24,9 +24,7 @@
                 class="rounded-lg border border-zinc-400 focus:border-black focus:ring-1 focus:ring-black bg-zinc-50 cursor-not-allowed" />
         </div>
 
-        {{-- Bloco das Passwords --}}
         <div>
-            {{-- Nova Password --}}
             <div class="mb-4">
                 <label for="password" class="block text-base font-medium text-black mb-1.5">
                     {{ __('Nova Password') }}
@@ -44,7 +42,6 @@
                     class="rounded-lg border border-zinc-400 focus:border-black focus:ring-1 focus:ring-black" />
             </div>
 
-            {{-- Confirme Password --}}
             <div class="mb-2">
                 <label for="password_confirmation" class="block text-base font-medium text-black mb-1.5">
                     {{ __('Confirme Password') }}
@@ -62,7 +59,6 @@
                     class="rounded-lg border border-zinc-400 focus:border-black focus:ring-1 focus:ring-black" />
             </div>
 
-            {{-- Mensagem de Erro de Validação da Password --}}
             @error('password')
                 <p class="mt-1 text-sm text-red-600 font-medium">{{ $message }}</p>
             @enderror
