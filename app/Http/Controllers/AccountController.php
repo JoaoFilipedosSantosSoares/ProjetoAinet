@@ -9,6 +9,7 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Hash;
 use Illuminate\Support\Facades\DB;
+use App\Models\Order;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -59,7 +60,20 @@ class AccountController extends Controller implements HasMiddleware
 
     public function index()
     {
-        return view('account.index');
+        $user = Auth::user();
+        $orders = null;
+        
+        // Se o utilizador logado for um Cliente ('C'), carregamos o seu histórico
+        if ($user->user_type === 'C') {
+
+            $orders = Order::where('customer_id', $user->id)
+                ->orderBy('date', 'desc')
+                ->paginate(10)
+                ->withQueryString();
+        }
+
+        // Passamos os dados usando o compact() que o teu professor tanto usa no index
+        return view('account.index', compact('user', 'orders'));
     }
 
     public function editProfile(): View

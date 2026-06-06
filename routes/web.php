@@ -10,30 +10,38 @@ use App\Http\Controllers\OrderController;
 
 /* ----- PUBLIC ROUTES ----- */
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Catálogo de T-Shirts
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/catalog/{tshirt}', [CatalogController::class, 'show'])->name('catalog.show');
+
+// Carrinho de Compras
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
-Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
-Route::get('/reset-password', function () {
-    return redirect()->route('login')
-        ->withErrors(['email' => 'Link de redefinição inválido ou expirado.']);
+
+/* ----- GUEST ROUTES ----- */
+Route::middleware(['guest'])->group(function () {
+    Route::get('/login', [AccountController::class, 'login'])->name('login');
+    Route::get('/register', [AccountController::class, 'register'])->name('register');
+    Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
+    
+    Route::get('/reset-password', function () {
+        return redirect()->route('login')
+            ->withErrors(['email' => 'Link de redefinição inválido ou expirado.']);
+    });
 });
 
-
+/* ----- AUTHENTICATED ROUTES ----- */
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+    Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
     
-
      /*
     |--------------------------------------------------------------------------
     | CLIENTE
     |--------------------------------------------------------------------------
     */
     Route::middleware('can:cliente')->group(function () {
-        Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
-        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+
     });
 
     /*
@@ -42,7 +50,11 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('can:employee')->group(function () {
-        // Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+        Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
+
+        // Não feito
+        Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
     });
 
     /*
@@ -52,7 +64,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
 
     Route::middleware('can:admin')->group(function () {
-
+        // Route::get('/admin/users', [AccountController::class, 'adminUsers'])->name('account.adminUsers');
+        // Route::post('/admin/users/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
+        // Route::delete('/admin/users/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
     });
 });
 

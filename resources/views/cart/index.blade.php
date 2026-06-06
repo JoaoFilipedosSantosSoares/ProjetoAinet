@@ -49,8 +49,8 @@
                 <h1 class="mb-2 text-2xl font-bold text-foreground">O teu carrinho está vazio</h1>
                 <p class="mb-6 text-muted-foreground">Adiciona algumas t-shirts incríveis ao teu carrinho!</p>
                 <div class="flex flex-wrap justify-center gap-4">
-                    <a href="/catalogo" class="rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Ver Catálogo</a>
-                    <a href="/personalizar" class="rounded-2xl border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">Criar T-Shirt</a>
+                    <a href="/catalog" class="rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Ver Catálogo</a>
+                    <a href="/customization" class="rounded-2xl border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">Criar T-Shirt</a>
                 </div>
             </div>
 

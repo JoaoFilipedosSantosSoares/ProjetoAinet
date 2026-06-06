@@ -22,11 +22,14 @@
                 class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
                 Personalizar
             </a>
-
-            <a href="{{ route('orders.index') }}"
-                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
-                Encomendas
-            </a>
+            @auth
+                @cannot('cliente')
+                    <a href="{{ route('orders.index') }}"
+                        class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
+                        Encomendas
+                    </a>
+                @endcannot
+            @endauth
         </nav>
 
         <div class="flex items-center gap-4">

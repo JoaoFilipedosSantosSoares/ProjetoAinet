@@ -20,42 +20,40 @@ class OrderController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            // Só entra no index se passar no viewAny da OrderPolicy
+            // Apenas Funcionários/Admins podem listar todas as encomendas
             new Middleware('can:viewAny,App\Models\Order', only: ['index']),
             
-            // Só entra no formulário ou na confirmação se passar no create da OrderPolicy
-            new Middleware('can:create,App\Models\Order', only: ['checkout', 'confirm']),
-            
-            // Só entra no show se passar no método view da OrderPolicy para a $order específica
+            // Apenas quem tem permissão pode ver os detalhes de uma encomenda da logística
             new Middleware('can:view,order', only: ['show']),
             
-            // Só entra no updateStatus se passar no método update da OrderPolicy para a $order específica
-            new Middleware('can:update,order', only: ['updateStatus']),
+            // Apenas quem tem permissão (Funcionários) pode alterar o estado no update
+            new Middleware('can:update,order', only: ['update']),
         ];
     }
 
     public function index(Request $request): View
     {
         $filterBySearch = $request->query('search');
-        $user = Auth::user();
+        $filterByStatus = $request->query('status'); // Permite filtrar por pendente, em processamento, etc.
         
         $ordersQuery = Order::query();
 
-        if ($user->user_type === 'C') {
-            $ordersQuery->where('customer_id', $user->id);
+        if ($filterByStatus !== null) {
+            $ordersQuery->where('status', $filterByStatus);
         }
 
         if ($filterBySearch !== null) {
             $ordersQuery->where('id', '=', $filterBySearch);
         }
 
+        // Padrão do professor: paginação com query string e carregamento de relações
         $orders = $ordersQuery
             ->with('customer.user')
             ->orderBy('date', 'desc')
             ->paginate(20)
             ->withQueryString();
 
-        return view('orders.index', compact('orders', 'filterBySearch'));
+        return view('orders.index', compact('orders', 'filterBySearch', 'filterByStatus'));
     }
 
     public function show(Order $order): View
@@ -180,6 +178,7 @@ class OrderController extends Controller implements HasMiddleware
             'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
         ]);
 
+        // Regra de negócio: impede alterar se já estiver cancelada ou enviada
         if (in_array($order->status, ['cancelado', 'enviado'])) {
             return redirect()->back()
                 ->with('alert-type', 'warning')
