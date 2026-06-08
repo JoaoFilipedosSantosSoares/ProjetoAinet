@@ -48,13 +48,14 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         ])->validateWithBag('updateProfileInformation');
 
         if (request()->hasFile('photo')) {
-            if ($user->photo_url) {
-                Storage::disk('public')->delete($user->photo_url);
+            if ($user->photo_url && $user->photo_url !== 'anonymous.png') {
+                Storage::disk('public')->delete('photos/' . $user->photo_url);
             }
+            $fileName = request()->file('photo')->getClientOriginalName();
 
-            $path = request()->file('photo')->store('', 'public');
+            request()->file('photo')->storeAs('photos', $fileName, 'public');
 
-            $input['photo_url'] = $path;
+            $input['photo_url'] = $fileName;
         }
 
         $this->saveCustomerData($user, $input);
