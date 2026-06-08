@@ -11,7 +11,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
-#[Fillable(['id', 'nif', 'address', 'default_payment_type', 'default_payment_ref'])]
+#[Fillable(['id', 'nif', 'address', 'default_payment_type', 'default_payment_ref','photo_url'])]
 #[Table(keyType: 'int', incrementing: false, timestamps: false)]
 class Customer extends Model
 {
