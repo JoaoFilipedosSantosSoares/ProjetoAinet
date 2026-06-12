@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Order;
 use App\Models\Order_Item;
+use App\Models\Price;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -22,10 +23,10 @@ class OrderController extends Controller implements HasMiddleware
         return [
             // Apenas Funcionários/Admins podem listar todas as encomendas
             new Middleware('can:viewAny,App\Models\Order', only: ['index']),
-            
+
             // Apenas quem tem permissão pode ver os detalhes de uma encomenda da logística
             new Middleware('can:view,order', only: ['show']),
-            
+
             // Apenas quem tem permissão (Funcionários) pode alterar o estado no update
             new Middleware('can:update,order', only: ['update']),
         ];
@@ -35,7 +36,7 @@ class OrderController extends Controller implements HasMiddleware
     {
         $filterBySearch = $request->query('search');
         $filterByStatus = $request->query('status'); // Permite filtrar por pendente, em processamento, etc.
-        
+
         $ordersQuery = Order::query();
 
         if ($filterByStatus !== null) {
@@ -59,7 +60,7 @@ class OrderController extends Controller implements HasMiddleware
     public function show(Order $order): View
     {
         $order->load('orderItems.tshirtImage', 'customer.user');
-        
+
         return view('orders.show')->with('order', $order);
     }
 
@@ -77,24 +78,104 @@ class OrderController extends Controller implements HasMiddleware
         return redirect()->back()->with('success', 'Estado atualizado.');
     }
 
-    public function checkout(): View|RedirectResponse
+    public function storeCheckout(Request $request): RedirectResponse
     {
+        // 1. Validar apenas as notas (uma vez que o pagamento foi removido)
+        $request->validate([
+            'notes' => 'nullable|string|max:1000',
+        ]);
+
         $cart = session()->get('cart', []);
-        
         if (empty($cart)) {
             return redirect()->route('cart.index')
                 ->with('alert-type', 'warning')
                 ->with('alert-msg', 'O seu carrinho está vazio.');
         }
 
-        $totalPrice = 0;
-        foreach ($cart as $item) {
-            $totalPrice += $item['subtotal'];
+        // 2. Obter o cliente autenticado e as suas informações obrigatórias
+        $user = Auth::user();
+        $customer = $user->customer;
+
+        if (!$customer) {
+            return redirect()->route('cart.index')
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Não foi possível associar a encomenda a um perfil de cliente válido.');
         }
 
-        return view('orders.checkout')
-            ->with('cart', $cart)
-            ->with('totalPrice', $totalPrice);
+        // 3. Obter as regras de preço guardadas na base de dados
+        $rules = Price::first();
+
+        // 4. Processar e estruturar as linhas do carrinho calculando os preços reais
+        $totalPrice = 0;
+        $calculatedItems = [];
+
+        foreach ($cart as $item) {
+            // Verifica o gatilho qty_discount definido pelo administrador para atribuir o preço unitário
+            if ($item['quantity'] >= ($rules->qty_discount ?? 10)) {
+                $unitPrice = $item['isCatalogImage'] 
+                    ? ($rules->unit_price_catalog_discount ?? 20.00) 
+                    : ($rules->unit_price_own_discount ?? 40.00);
+            } else {
+                $unitPrice = $item['isCatalogImage'] 
+                    ? ($rules->unit_price_catalog ?? 25.00) 
+                    : ($rules->unit_price_own ?? 50.00);
+            }
+
+            $subTotal = $unitPrice * $item['quantity'];
+            $totalPrice += $subTotal;
+
+            $calculatedItems[] = [
+                'tshirt_image_id' => $item['tshirt_image_id'],
+                'color_code'      => $item['color'],
+                'size'            => $item['size'],
+                'quantity'        => $item['quantity'],
+                'unit_price'      => $unitPrice,
+                'sub_total'       => $subTotal
+            ];
+        }
+
+        $newOrderId = DB::transaction(function () use ($request, $customer, $calculatedItems, $totalPrice) {
+            
+            // Grava a ordem principal injetando o NIF e a Morada associados ao cliente
+            $orderId = DB::table('orders')->insertGetId([
+                'customer_id'   => $customer->id,
+                'status'        => 'pending', // ALTERADO PARA 'pending' para passar na CHECK constraint do SQLite
+                'date'          => now()->toDateString(),
+                'total_price'   => $totalPrice,
+                'notes'         => $request->notes,
+                'nif'           => $customer->nif ?? '999999999',
+                'address'       => $customer->address ?? 'Morada não especificada',
+                'payment_type'  => $customer->default_payment_type ?? null,
+                'payment_ref'   => $customer->default_payment_ref ?? null,
+                'created_at'    => now(),
+                'updated_at'    => now(),
+            ]);
+
+            // Grava cada um dos sub-itens atrelados a esta encomenda
+            foreach ($calculatedItems as $calcItem) {
+                DB::table('order_items')->insert([
+                    'order_id'        => $orderId,
+                    'tshirt_image_id' => $calcItem['tshirt_image_id'],
+                    'color_code'      => $calcItem['color_code'],
+                    'size'            => $calcItem['size'],
+                    'qty'             => $calcItem['quantity'], 
+                    'unit_price'      => $calcItem['unit_price'],
+                    'sub_total'       => $calcItem['sub_total']
+                ]);
+            }
+
+            return $orderId;
+        });
+
+        // 6. Limpar a sessão do carrinho
+        session()->forget('cart');
+
+        $url = route('orders.show', ['order' => $newOrderId]);
+        $htmlMessage = "A encomenda <a href='$url'><u>#{$newOrderId}</u></a> foi submetida com sucesso e encontra-se no estado <b>pendente</b>!";
+
+        return redirect()->route('orders.index')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', $htmlMessage);
     }
 
     // NÃO TENHO A CERTEZA SE ISTO ESTÁ CORRETO
@@ -102,8 +183,8 @@ class OrderController extends Controller implements HasMiddleware
     {
         $request->validate([
             'payment_type' => 'required|in:VISA,MC,PAYPAL,MBWAY',
-            'payment_ref'  => 'required|string',
-            'notes'        => 'nullable|string|max:1000',
+            'payment_ref' => 'required|string',
+            'notes' => 'nullable|string|max:1000',
         ]);
 
         $cart = session()->get('cart', []);
@@ -130,7 +211,7 @@ class OrderController extends Controller implements HasMiddleware
 
         try {
             $response = Http::post('https://ainet-payments-api.vercel.app/api/payments', $paymentPayload);
-            
+
             if ($response->failed()) {
                 $errorMessage = $response->json()['message'] ?? 'O pagamento foi recusado pela entidade bancária.';
                 return redirect()->back()->withInput()->withErrors(['payment' => $errorMessage]);
@@ -141,22 +222,22 @@ class OrderController extends Controller implements HasMiddleware
 
         $newOrder = DB::transaction(function () use ($request, $cart, $totalPrice) {
             $order = Order::create([
-                'customer_id'  => Auth::user()->customer->id, // Mantido exatamente o teu original
-                'status'       => 'pago',
-                'date'         => now()->toDateString(),
-                'total_price'  => $totalPrice,
-                'notes'        => $request->notes,
+                'customer_id' => Auth::user()->customer->id, // Mantido exatamente o teu original
+                'status' => 'pago',
+                'date' => now()->toDateString(),
+                'total_price' => $totalPrice,
+                'notes' => $request->notes,
             ]);
 
             foreach ($cart as $item) {
                 Order_Item::create([
-                    'order_id'        => $order->id,
+                    'order_id' => $order->id,
                     'tshirt_image_id' => $item['image_id'],
-                    'color_code'      => $item['color_code'],
-                    'size'            => $item['size'],
-                    'qty'             => $item['qty'],
-                    'unit_price'      => $item['unit_price'],
-                    'sub_total'       => $item['subtotal']
+                    'color_code' => $item['color_code'],
+                    'size' => $item['size'],
+                    'qty' => $item['qty'],
+                    'unit_price' => $item['unit_price'],
+                    'sub_total' => $item['subtotal']
                 ]);
             }
 
@@ -167,7 +248,7 @@ class OrderController extends Controller implements HasMiddleware
 
         $url = route('orders.show', ['order' => $newOrder]);
         $htmlMessage = "A encomenda <a href='$url'><u>#{$newOrder->id}</u></a> foi submetida e paga com sucesso!";
-        
+
         return redirect()->route('orders.index')
             ->with('alert-type', 'success')
             ->with('alert-msg', $htmlMessage);

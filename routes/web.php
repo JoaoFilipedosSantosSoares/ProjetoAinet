@@ -57,6 +57,10 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Personalização de T-Shirts
         Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
         Route::post('/customization/upload', [CustomizationController::class, 'upload'])->name('customization.upload');
+
+        // Encomendas
+        Route::post('/encomendas/checkout', [OrderController::class, 'storeCheckout'])
+        ->name('orders.storeCheckout');
     });
 
     /*

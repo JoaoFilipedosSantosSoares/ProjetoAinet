@@ -4,6 +4,7 @@ namespace App\Http\Controllers;
 
 use App\Models\Tshirt_Image;
 use App\Models\Color;
+use App\Models\Price;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -45,22 +46,51 @@ class CustomizationController extends Controller implements HasMiddleware
         $selectedColorCode = $request->query('color');
         $selectedColor = $colours->where('code', $selectedColorCode)->first() ?? $colours->first();
 
-        // 3. NOVA LÓGICA SEM JAVASCRIPT: Verificar se veio um design selecionado por link
+        // 3. Verificar se veio um design selecionado por link
         $selectedDesignId = $request->query('design');
         if ($selectedDesignId) {
-            // Se o utilizador clicou num design do catálogo, esse passa a ser o $tshirt de preview
             $chosenImage = Tshirt_Image::find($selectedDesignId);
             if ($chosenImage) {
                 $tshirt = $chosenImage;
             }
         }
 
-        return view('customization.index', [
-            'myImages' => $myImages,
-            'colours' => $colours,
-            'selectedColor' => $selectedColor,
-            'tshirt' => $tshirt,
-        ]);
+        // 4. CÁLCULO DE PREÇOS NO SERVIDOR (SEM JAVASCRIPT)
+        $quantity = (int) $request->query('quantity', 1);
+        if ($quantity < 1) {
+            $quantity = 1;
+        }
+
+        $priceRules = Price::first();
+
+        // Valores de salvaguarda caso a tabela esteja vazia
+        $basePrice = $priceRules ? $priceRules->unit_price_own : 50.00;
+        $discountPrice = $priceRules ? $priceRules->unit_price_own_discount : 40.00;
+        $qtyTrigger = $priceRules ? $priceRules->qty_discount : 5;
+
+        $hasDiscount = false;
+        $unitPrice = $basePrice;
+
+        // Aplicar a regra de desconto por quantidade para imagens próprias (Own)
+        if ($quantity >= $qtyTrigger) {
+            $unitPrice = $discountPrice;
+            $hasDiscount = true;
+        }
+
+        $totalPrice = $unitPrice * $quantity;
+
+        return view('customization.index', compact(
+            'myImages',
+            'colours',
+            'selectedColor',
+            'tshirt',
+            'priceRules',
+            'quantity',
+            'unitPrice',
+            'basePrice',
+            'totalPrice',
+            'hasDiscount'
+        ));
     }
 
     public function upload(Request $request)

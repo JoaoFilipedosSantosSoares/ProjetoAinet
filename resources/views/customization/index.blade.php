@@ -95,13 +95,14 @@
 
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="p-6 space-y-6">
+                        
+                        {{-- 1. SELEÇÃO DE CORES (Links atualizados para manter design e quantidade) --}}
                         <div>
                             <label class="mb-2 block text-sm font-medium text-zinc-900">Cor da T-Shirt</label>
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($colours as $color)
-                                    <a href="{{ route('customization.index', ['tshirt' => $tshirt, 'color' => $color->code, 'design' => request('design')]) }}"
+                                    <a href="{{ route('customization.index', ['tshirt' => $tshirt, 'color' => $color->code, 'design' => request('design'), 'quantity' => $quantity]) }}"
                                         class="color-option h-10 w-10 rounded-full border-2 transition-all duration-200 {{ ($selectedColor->code ?? '') === $color->code ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2' : 'border-border' }}"
-                                        data-value="{{ $color->name }}" data-hex="{{ $color->code }}"
                                         title="{{ $color->name }}" style="background-color: #{{ $color->code }}"></a>
                                 @endforeach
                             </div>
@@ -110,49 +111,84 @@
                             </p>
                         </div>
 
-                        <div>
-                            <label for="size-select"
-                                class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
-                            <select id="size-select"
-                                class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
-                                <option value="s">S</option>
-                                <option value="m">M</option>
-                                <option value="l">L</option>
-                                <option value="xl">XL</option>
-                            </select>
-                        </div>
+                        {{-- Formulário auxiliar para recalcular preços no servidor --}}
+                        <form method="GET" action="{{ url()->current() }}" class="space-y-6">
+                            {{-- Preservar os parâmetros atuais da URL ao clicar em "Calcular" --}}
+                            <input type="hidden" name="color" value="{{ $selectedColor->code ?? '' }}">
+                            <input type="hidden" name="design" value="{{ request('design') }}">
 
-                        <div>
-                            <label for="quantity-input"
-                                class="mb-2 block text-sm font-medium text-zinc-900">Quantidade</label>
-                            <input id="quantity-input" type="number" min="1" value="1"
-                                class="w-24 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                            <p id="discount-label" class="mt-2 hidden text-sm text-primary">Desconto de quantidade
-                                aplicado!</p>
-                        </div>
+                            {{-- 2. QUANTIDADE E BOTÃO CALCULAR --}}
+                            <div>
+                                <label Lifor="quantity-input" class="mb-2 block text-sm font-medium text-zinc-900">Quantidade</label>
+                                <div class="flex gap-2">
+                                    <input id="quantity-input" type="number" name="quantity" min="1" value="{{ $quantity }}"
+                                        class="w-24 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                                    
+                                    <button type="submit" class="rounded-2xl border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100">
+                                        Calcular
+                                    </button>
+                                </div>
+                                
+                                @if($hasDiscount)
+                                    <p class="mt-2 text-sm text-emerald-600 font-medium">
+                                        Desconto de quantidade aplicado!
+                                    </p>
+                                @endif
+                            </div>
+                        </form>
 
+                        {{-- 3. EXIBIÇÃO DOS PREÇOS DINÂMICOS DO PHP --}}
                         <div class="rounded-3xl bg-muted p-4">
                             <div class="flex items-center justify-between text-sm text-zinc-600">
                                 <span>Preço unitário:</span>
-                                <span id="unit-price" class="font-medium">25.00€</span>
+                                <span class="font-medium">{{ number_format($unitPrice, 2) }}€</span>
                             </div>
-                            <div id="unit-price-original"
-                                class="mt-2 hidden text-sm text-muted-foreground line-through">25.00€</div>
+                            
+                            @if($hasDiscount)
+                                <div class="mt-2 text-sm text-muted-foreground line-through">
+                                    {{ number_format($basePrice, 2) }}€
+                                </div>
+                            @endif
+                            
                             <div class="mt-3 flex items-center justify-between border-t border-zinc-200 pt-3">
                                 <span class="font-medium">Total:</span>
-                                <span id="total-price" class="text-xl font-bold text-primary">25.00€</span>
+                                <span class="text-xl font-bold text-[#144226]">{{ number_format($totalPrice, 2) }}€</span>
                             </div>
                         </div>
 
-                        <div class="space-y-3">
-                            <button id="add-to-cart-btn" type="button"
-                                class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-                                {{ $tshirt->image_url ? '' : 'disabled' }}>
-                                Adicionar ao Carrinho
-                            </button>
-                            <p id="added-message" class="hidden text-center text-sm font-medium text-emerald-600">
-                                Adicionado ao carrinho!</p>
-                        </div>
+                        {{-- 4. FORMULÁRIO DE ENVIO PARA O CARRINHO --}}
+                        <form method="POST" action="{{ route('cart.add') }}">
+                            @csrf
+                            <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id ?? '' }}">
+                            <input type="hidden" name="color" value="{{ $selectedColor->code ?? '' }}">
+                            <input type="hidden" name="quantity" value="{{ $quantity }}">
+
+                            <div class="mb-4">
+                                <label for="size-select" class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
+                                <select id="size-select" name="size"
+                                    class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                                    <option value="S">S</option>
+                                    <option value="M" selected>M</option>
+                                    <option value="L">L</option>
+                                    <option value="XL">XL</option>
+                                </select>
+                            </div>
+
+                            <div class="space-y-3">
+                                <button type="submit"
+                                    class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                    {{ ($tshirt && $tshirt->image_url) ? '' : 'disabled' }}>
+                                    Adicionar ao Carrinho
+                                </button>
+                                
+                                @if(session('success'))
+                                    <p class="text-center text-sm font-medium text-emerald-600">
+                                        {{ session('success') }}
+                                    </p>
+                                @endif
+                            </div>
+                        </form>
+
                     </div>
                 </div>
             </div>
