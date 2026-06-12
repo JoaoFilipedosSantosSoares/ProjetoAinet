@@ -37,22 +37,22 @@
                 </div>
                 <div class="relative">
                     <div class="grid grid-cols-2 gap-4">
-                        <div class="relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg">
-                            <img src="{{ asset('storage/tshirt_images/00002_2EWdICoA7j.png') }}" alt="Featured 1"
-                                class="object-contain w-full h-full transition-transform duration-300 hover:scale-105" />
-                        </div>
-                        <div class="relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg translate-y-8">
-                            <img src="{{ asset('storage/tshirt_images/00004_iOV69Hbsyr.png') }}" alt="Featured 2"
-                                class="object-contain w-full h-full transition-transform duration-300 hover:scale-105" />
-                        </div>
-                        <div class="relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg">
-                            <img src="{{ asset('storage/tshirt_images/00005_tSAK1qD1mr.png') }}" alt="Featured 3"
-                                class="object-contain w-full h-full transition-transform duration-300 hover:scale-105" />
-                        </div>
-                        <div class="relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg translate-y-8">
-                            <img src="{{ asset('storage/tshirt_images/00007_rxOzQzWLgw.png') }}" alt="Featured 4"
-                                class="object-contain w-full h-full transition-transform duration-300 hover:scale-105" />
-                        </div>
+                        @foreach ($featuredImages as $index => $image)
+                            <div class="relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg {{ $index % 2 !== 0 ? 'translate-y-8' : '' }}">
+                                <a href="{{ route('catalog.show', ['tshirt' => $image->id]) }}" title="Ver {{ $image->name }}">
+                                    <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" 
+                                         alt="{{ $image->name }}"
+                                         class="object-contain w-full h-full transition-transform duration-300 hover:scale-105" />
+                                </a>
+                            </div>
+                        @endforeach
+
+                        {{-- Fallback caso a base de dados ainda não tenha imagens públicas --}}
+                        @if($featuredImages->isEmpty())
+                            <div class="col-span-2 text-center py-12 text-muted-foreground bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
+                                Sem imagens disponíveis no catálogo de momento.
+                            </div>
+                        @endif
                     </div>
                 </div>
             </div>
