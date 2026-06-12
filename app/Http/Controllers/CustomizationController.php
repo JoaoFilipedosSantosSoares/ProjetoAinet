@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\Tshirt_Image;
+use App\Models\Color;
 use Illuminate\Http\Request;
 use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
@@ -21,43 +22,56 @@ class CustomizationController extends Controller implements HasMiddleware
             // Apenas Clientes autenticados e verificados podem mexer nas suas personalizações
             new Middleware('auth'),
             new Middleware('verified'),
-            
+
             // Regra fina da Policy: Garante que o cliente só apaga as SUAS próprias imagens
             new Middleware('can:delete,tshirtImage', only: ['destroy']),
         ];
     }
 
-    public function index()
+    public function index(Request $request, Tshirt_image $tshirt)
     {
         $user = Auth::user();
-
         $customerId = $user->customer ? $user->customer->id : null;
 
-        $myImages = Tshirt_Image::query()
-            ->where('shared', 0)
-            ->orderBy('id', 'desc');
-
+        // 1. Listagem das minhas imagens
+        $myImages = Tshirt_Image::query()->orderBy('id', 'desc');
         if ($user->user_type === 'C') {
-            // Se for cliente, vê apenas as suas próprias imagens privadas
             $myImages->where('customer_id', $customerId);
-        } else {
-            $myImages->where('customer_id', $user->id); 
         }
-
         $myImages = $myImages->paginate(12)->withQueryString();
 
-        return view('customization.index', compact('myImages'));
+        // 2. Gestão das Cores
+        $colours = Color::all();
+        $selectedColorCode = $request->query('color');
+        $selectedColor = $colours->where('code', $selectedColorCode)->first() ?? $colours->first();
+
+        // 3. NOVA LÓGICA SEM JAVASCRIPT: Verificar se veio um design selecionado por link
+        $selectedDesignId = $request->query('design');
+        if ($selectedDesignId) {
+            // Se o utilizador clicou num design do catálogo, esse passa a ser o $tshirt de preview
+            $chosenImage = Tshirt_Image::find($selectedDesignId);
+            if ($chosenImage) {
+                $tshirt = $chosenImage;
+            }
+        }
+
+        return view('customization.index', [
+            'myImages' => $myImages,
+            'colours' => $colours,
+            'selectedColor' => $selectedColor,
+            'tshirt' => $tshirt,
+        ]);
     }
     public function store(Request $request): RedirectResponse
     {
         $request->validate([
-            'name'        => 'required|string|max:255',
+            'name' => 'required|string|max:255',
             'description' => 'nullable|string|max:1000',
-            'image_file'  => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
+            'image_file' => 'required|image|mimes:jpeg,png,jpg,gif|max:4096',
         ]);
 
         $user = Auth::user();
-        
+
         // Se for cliente, usa o ID de Cliente. Se for Admin/Staff, usa o ID de utilizador temporariamente para não quebrar a BD
         $customerId = $user->customer ? $user->customer->id : $user->id;
 
@@ -80,7 +94,7 @@ class CustomizationController extends Controller implements HasMiddleware
         });
 
         $htmlMessage = "A imagem personalizada <b>{$tshirtImage->name}</b> foi enviada com sucesso!";
-        
+
         return redirect()->route('customization.index')
             ->with('alert-type', 'success')
             ->with('alert-msg', $htmlMessage);
