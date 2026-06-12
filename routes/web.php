@@ -6,6 +6,8 @@ use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CustomizationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AccountController;
+use App\Http\Controllers\ClientController;
+use App\Http\Controllers\ClintController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TshirtImageController;
 
@@ -87,6 +89,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::get('/staff/{user}', [AccountController::class, 'show'])->name('staff.show');
         Route::put('/staff/{user}', [AccountController::class, 'update'])->name('staff.update');
+
+        Route::get('/clients/index', [ClientController::class, 'index'])->name('clients.index');
     });
 
     Route::get('/account', function () {

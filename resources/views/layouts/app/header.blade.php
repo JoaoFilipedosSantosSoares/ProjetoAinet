@@ -39,6 +39,12 @@
                 Staff
             </a>
             @endcannot
+            @can('admin')
+            <a href="{{ route('clients.index') }}"
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
+                Clientes
+            </a>
+            @endcan
             @endauth
         </nav>
 

@@ -62,6 +62,11 @@ class AccountController extends Controller implements HasMiddleware
 
     public function show(User $user)
     {
+        if ($user->user_type === 'C') {
+            return redirect()
+                ->route('staff.index')
+                ->with('error', 'Acesso negado: O utilizador selecionado não é um membro de staff.');
+        }
         return view('staff.show', compact('user'));
     }
 
@@ -221,7 +226,7 @@ class AccountController extends Controller implements HasMiddleware
 
         $users = $usersQuery
             ->orderBy('name')
-            ->paginate(10)
+            ->paginate(15)
             ->withQueryString();
 
         // RETORNO: Encaminha para a view correta de listagem de staff
