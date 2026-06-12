@@ -20,7 +20,7 @@ class CartController extends Controller
     }
 
 
-    public function add(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'tshirt_image_id' => 'required|exists:tshirt_images,id',

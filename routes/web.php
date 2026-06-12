@@ -5,12 +5,20 @@ use App\Http\Controllers\HomeController;
 use App\Http\Controllers\CatalogController;
 use App\Http\Controllers\CustomizationController;
 use App\Http\Controllers\CartController;
-use App\Http\Controllers\AccountController;
 use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TshirtImageController;
 
-/* ----- PUBLIC ROUTES ----- */
+// Todos os teus controladores bem divididos
+use App\Http\Controllers\AuthController;
+use App\Http\Controllers\AccountController;
+use App\Http\Controllers\StaffController;
+use App\Http\Controllers\ManagementController;
 
+/*
+|--------------------------------------------------------------------------
+| PUBLIC ROUTES
+|--------------------------------------------------------------------------
+*/
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Catálogo de T-Shirts
@@ -18,12 +26,15 @@ Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index
 Route::get('/catalog/{tshirt}', [CatalogController::class, 'show'])->name('catalog.show');
 
 
-
-/* ----- GUEST ROUTES ----- */
+/*
+|--------------------------------------------------------------------------
+| GUEST ROUTES (Corrigido: Aponta para o AuthController)
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['guest'])->group(function () {
-    Route::get('/login', [AccountController::class, 'login'])->name('login');
-    Route::get('/register', [AccountController::class, 'register'])->name('register');
-    Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
+    Route::get('/login', [AuthController::class, 'login'])->name('login');
+    Route::get('/register', [AuthController::class, 'register'])->name('register');
+    Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
 
     Route::get('/reset-password', function () {
         return redirect()->route('login')
@@ -31,13 +42,21 @@ Route::middleware(['guest'])->group(function () {
     });
 });
 
-/* ----- AUTHENTICATED ROUTES ----- */
+
+/*
+|--------------------------------------------------------------------------
+| AUTHENTICATED ROUTES
+|--------------------------------------------------------------------------
+*/
 Route::middleware(['auth', 'verified'])->group(function () {
-
-
-    //vai buscar a imagem da tshirt no private
+    
+    // Vai buscar a imagem da tshirt no private
     Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
         ->name('tshirt_images.show');
+
+    // Perfil Comum: Qualquer user logado pode editar o seu próprio perfil
+    Route::get('/profile', [AccountController::class, 'editProfile'])->name('profile.edit');
+    Route::put('/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
 
     /*
     |--------------------------------------------------------------------------
@@ -49,7 +68,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         // Carrinho de Compras
         Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-        Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
         Route::post('/cart/update/{itemId}', [CartController::class, 'update'])->name('cart.update');
         Route::post('/cart/remove/{itemId}', [CartController::class, 'remove'])->name('cart.remove');
         Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
@@ -66,8 +85,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware('can:employee')->group(function () {
         Route::get('/orders', [OrderController::class, 'index'])->name('orders.index');
-
-        // Não feito
         Route::get('/orders/{order}', [OrderController::class, 'show'])->name('orders.show');
         Route::patch('/orders/{order}', [OrderController::class, 'update'])->name('orders.update');
     });
@@ -77,19 +94,20 @@ Route::middleware(['auth', 'verified'])->group(function () {
     | ADMIN
     |--------------------------------------------------------------------------
     */
-
     Route::middleware('can:admin')->group(function () {
-        Route::post('/staff/store', [AccountController::class, 'store'])->name('staff.store');
-        Route::get('/staff/create', [AccountController::class, 'create'])->name('staff.add');
-        Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');
-        Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
-        Route::delete('/staff/index/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
+        
+        // --- GESTÃO DE EQUIPA (StaffController) ---
+        Route::get('/staff/index', [StaffController::class, 'index'])->name('staff.index');
+        Route::get('/staff/create', [StaffController::class, 'create'])->name('staff.add');
+        Route::post('/staff/store', [StaffController::class, 'store'])->name('staff.store');
+        Route::get('/staff/{user}', [StaffController::class, 'show'])->name('staff.show');
+        Route::put('/staff/{user}', [StaffController::class, 'update'])->name('staff.update');
 
-        Route::get('/staff/{user}', [AccountController::class, 'show'])->name('staff.show');
-        Route::put('/staff/{user}', [AccountController::class, 'update'])->name('staff.update');
-    });
+        // Bloquear e Eliminar Staff
+        Route::post('/staff/index/{user}/block', [StaffController::class, 'toggleBlock'])->name('account.block');
+        Route::delete('/staff/index/{user}', [StaffController::class, 'destroy'])->name('account.destroy');
 
-    Route::get('/account', function () {
-        return redirect()->route('home');
+        // --- GESTÃO GLOBAL DA LOJA (ManagementController) ---
+        Route::get('/staff/gestao', [ManagementController::class, 'index'])->name('staff.gestao');
     });
 });
