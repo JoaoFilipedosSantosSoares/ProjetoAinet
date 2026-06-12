@@ -19,8 +19,10 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-4">
                 @foreach ($order->order_items as $item)
                     <div class="mb-4">
-                        @if ($item->tshirt_image?->image_url)
+                        @if ($item->tshirt_image?->image_url && $item->tshirt_image->customer_id == null)
                             <img src="{{ asset('storage/tshirt_images/' . $item->tshirt_image->image_url) }}" alt="T-shirt" class="mb-2 h-32 w-32 rounded-lg object-cover" />
+                        @elseif ($item->tshirt_image?->image_url && $item->tshirt_image->customer_id == $order->customer_id)
+                            <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}" alt="T-shirt" class="mb-2 h-32 w-32 rounded-lg object-cover" />
                         @endif
                         <p class="mt-1 text-sm text-muted-foreground">Tamanho: {{ $item->size }} · Quantidade: {{ $item->quantity }} · P. unitário: {{ $item->unit_price }}€</p>
                     </div>
