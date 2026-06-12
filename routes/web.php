@@ -28,7 +28,7 @@ Route::get('/catalog/{tshirt}', [CatalogController::class, 'show'])->name('catal
 
 /*
 |--------------------------------------------------------------------------
-| GUEST ROUTES (Corrigido: Aponta para o AuthController)
+| GUEST ROUTES 
 |--------------------------------------------------------------------------
 */
 Route::middleware(['guest'])->group(function () {
@@ -100,6 +100,21 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware('can:admin')->group(function () {
         
+        // --- GESTÃO GLOBAL DA LOJA (ManagementController) ---
+        Route::get('/staff/gestao', [ManagementController::class, 'index'])->name('staff.gestao');
+
+        Route::get('/staff/gestao/create', [ManagementController::class, 'create'])->name('staff.gestao.create');
+        Route::post('/staff/gestao/store', [ManagementController::class, 'store'])->name('staff.gestao.store');
+        Route::get('/staff/gestao/{tshirtImage}/edit', [ManagementController::class, 'edit'])->name('staff.gestao.edit');
+        Route::put('/staff/gestao/{tshirtImage}', [ManagementController::class, 'update'])->name('staff.gestao.update');
+        Route::delete('/staff/gestao/{tshirtImage}', [ManagementController::class, 'destroy'])->name('staff.gestao.destroy');
+
+        Route::post('/staff/gestao/categoria', [ManagementController::class, 'storeCategory'])->name('staff.gestao.storeCategory');
+        Route::delete('/staff/gestao/categoria/{category}', [ManagementController::class, 'destroyCategory'])->name('staff.gestao.destroyCategory');
+
+        Route::post('/staff/gestao/cor', [ManagementController::class, 'storeColor'])->name('staff.gestao.storeColor');
+        Route::delete('/staff/gestao/cor/{color}', [ManagementController::class, 'destroyColor'])->name('staff.gestao.destroyColor');
+
         // --- GESTÃO DE EQUIPA (StaffController) ---
         Route::get('/staff/index', [StaffController::class, 'index'])->name('staff.index');
         Route::get('/staff/create', [StaffController::class, 'create'])->name('staff.add');
@@ -110,8 +125,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Bloquear e Eliminar Staff
         Route::post('/staff/index/{user}/block', [StaffController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [StaffController::class, 'destroy'])->name('account.destroy');
-
-        // --- GESTÃO GLOBAL DA LOJA (ManagementController) ---
-        Route::get('/staff/gestao', [ManagementController::class, 'index'])->name('staff.gestao');
     });
+    
 });

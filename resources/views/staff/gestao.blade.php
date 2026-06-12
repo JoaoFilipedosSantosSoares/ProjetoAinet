@@ -14,37 +14,31 @@
             <p class="text-xs text-zinc-500">Define o valor base de venda e as tranches de desconto aplicadas no carrinho.</p>
         </div>
 
-        {{-- COMENTADO: Form de Preços --}}
-        {{-- <form method="POST" action="#" class="grid gap-6 md:grid-cols-3"> --}}
-        {{-- @csrf --}}
-        {{-- @method('PUT') --}}
         <div class="grid gap-6 md:grid-cols-3">
-            
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Unitário Catalogo (€)</label>
                 <input type="number" step="0.01" name="unit_price_catalog" value="{{ $prices->unit_price_catalog ?? '25.00' }}" 
-                    class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                    class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none" disabled>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Unitário Personalizada (€)</label>
                 <input type="number" step="0.01" name="unit_price_own" value="{{ $prices->unit_price_own ?? '30.00' }}" 
-                    class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                    class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none" disabled>
             </div>
 
             <div>
                 <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Quantidade p/ Desconto (Unidades)</label>
                 <input type="number" name="qty_discount" value="{{ $prices->qty_discount ?? '5' }}" 
-                    class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                    class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none" disabled>
             </div>
 
             <div class="md:col-span-3 flex justify-end">
-                <button type="button" class="rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition shadow-sm">
-                    Salvar Alterações de Preço
+                <button type="button" class="rounded-xl bg-zinc-400 px-4 py-2.5 text-sm font-semibold text-white cursor-not-allowed shadow-sm" disabled>
+                    Salvar Alterações de Preço (Bloqueado)
                 </button>
             </div>
         </div>
-        {{-- </form> --}}
     </div>
 
     {{-- Grelha de Duas Colunas: 1. Categorias | 2. Cores --}}
@@ -60,17 +54,15 @@
                     </div>
                 </div>
 
-                {{-- COMENTADO: Form Criar Categoria --}}
-                {{-- <form method="POST" action="#" class="mb-4 flex gap-2"> --}}
-                {{-- @csrf --}}
-                <div class="mb-4 flex gap-2">
-                    <input type="text" name="name" placeholder="Nova categoria (ex: Desporto)..." 
+                {{-- FORM ATIVADO: Criar Categoria --}}
+                <form method="POST" action="{{ route('staff.gestao.storeCategory') }}" class="mb-4 flex gap-2">
+                    @csrf
+                    <input type="text" name="name" required placeholder="Nova categoria (ex: Desporto)..." 
                         class="flex-1 rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
-                    <button type="button" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
+                    <button type="submit" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
                         +
                     </button>
-                </div>
-                {{-- </form> --}}
+                </form>
 
                 <div class="overflow-hidden rounded-xl border border-zinc-200 max-h-64 overflow-y-auto">
                     <table class="w-full border-collapse text-left text-sm text-zinc-500">
@@ -79,14 +71,14 @@
                             <tr class="hover:bg-zinc-50 transition">
                                 <td class="px-4 py-3 font-medium text-zinc-900">{{ $category->name }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    {{-- COMENTADO: Form Eliminar Categoria --}}
-                                    {{-- <form method="POST" action="#" class="inline" onsubmit="return confirm('Eliminar esta categoria?');"> --}}
-                                    {{-- @csrf --}}
-                                    {{-- @method('DELETE') --}}
-                                    <button type="button" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 transition shadow-sm">
-                                        <img src="/img/close.png" alt="Eliminar" class="h-3 w-3" />
-                                    </button>
-                                    {{-- </form> --}}
+                                    {{-- FORM ATIVADO: Eliminar Categoria --}}
+                                    <form method="POST" action="{{ route('staff.gestao.destroyCategory', $category) }}" class="inline" onsubmit="return confirm('Eliminar esta categoria?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 transition shadow-sm">
+                                            <img src="/img/close.png" alt="Eliminar" class="h-3 w-3" />
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @empty
@@ -110,17 +102,15 @@
                     </div>
                 </div>
 
-                {{-- COMENTADO: Form Criar Cor --}}
-                {{-- <form method="POST" action="#" class="mb-4 grid grid-cols-3 gap-2"> --}}
-                {{-- @csrf --}}
-                <div class="mb-4 grid grid-cols-3 gap-2">
-                    <input type="text" name="code" placeholder="Código (ex: FFF)" class="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
-                    <input type="text" name="name" placeholder="Nome (ex: Branco)" class="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
-                    <button type="button" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
+                {{-- FORM ATIVADO: Criar Cor --}}
+                <form method="POST" action="{{ route('staff.gestao.storeColor') }}" class="mb-4 grid grid-cols-3 gap-2">
+                    @csrf
+                    <input type="text" name="code" required max="6" placeholder="Código (ex: FFFFFF)" class="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                    <input type="text" name="name" required placeholder="Nome (ex: Branco)" class="rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                    <button type="submit" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
                         + Cor
                     </button>
-                </div>
-                {{-- </form> --}}
+                </form>
 
                 <div class="overflow-hidden rounded-xl border border-zinc-200 max-h-64 overflow-y-auto">
                     <table class="w-full border-collapse text-left text-sm text-zinc-500">
@@ -133,14 +123,14 @@
                                 </td>
                                 <td class="px-4 py-3 text-xs text-zinc-400">#{{ $color->code }}</td>
                                 <td class="px-4 py-3 text-right">
-                                    {{-- COMENTADO: Form Eliminar Cor --}}
-                                    {{-- <form method="POST" action="#" class="inline" onsubmit="return confirm('Eliminar esta cor?');"> --}}
-                                    {{-- @csrf --}}
-                                    {{-- @method('DELETE') --}}
-                                    <button type="button" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 transition shadow-sm">
-                                        <img src="/img/close.png" alt="Eliminar" class="h-3 w-3" />
-                                    </button>
-                                    {{-- </form> --}}
+                                    {{-- FORM ATIVADO: Eliminar Cor --}}
+                                    <form method="POST" action="{{ route('staff.gestao.destroyColor', $color) }}" class="inline" onsubmit="return confirm('Eliminar esta cor?');">
+                                        @csrf
+                                        @method('DELETE')
+                                        <button type="submit" class="inline-flex h-7 w-7 items-center justify-center rounded-lg border border-red-100 bg-red-50 hover:bg-red-100 transition shadow-sm">
+                                            <img src="/img/close.png" alt="Eliminar" class="h-3 w-3" />
+                                        </button>
+                                    </form>
                                 </td>
                             </tr>
                             @empty
@@ -163,19 +153,17 @@
             <p class="text-sm text-zinc-500">Imagens públicas partilhadas disponíveis para todos os clientes comprarem.</p>
         </div>
         <div>
-            {{-- COMENTADO: Link para criar nova imagem --}}
-            {{-- <a href="{{ route('management.catalog.create') }}" class="..."> --}}
-            <button type="button" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
-                + Nova Imagem Catálogo
-            </button>
-            {{-- </a> --}}
+            {{-- LINK ATIVADO: Criar nova imagem --}}
+            <a href="{{ route('staff.gestao.create') }}">
+                <button type="button" class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
+                    + Nova Imagem Catálogo
+                </button>
+            </a>
         </div>
     </div>
 
-    {{-- Filtro de Catálogo --}}
-    {{-- COMENTADO: Form de Filtragem do Catálogo --}}
-    {{-- <form method="GET" action="#" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200"> --}}
-    <div class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
+    {{-- FORM ATIVADO: Filtragem e Pesquisa do Catálogo --}}
+    <form method="GET" action="{{ route('staff.gestao') }}" class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
         <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
             <div class="relative flex-1">
                 <input type="text" name="search" value="{{ request('search') }}" placeholder="Pesquisar imagem por nome ou descrição..."
@@ -193,12 +181,16 @@
         </div>
 
         <div class="flex items-center gap-2">
-            <button type="button" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
+            <button type="submit" class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
                 Filtrar Catálogo
             </button>
+            @if(request('search') || request('category_id'))
+                <a href="{{ route('staff.gestao') }}" class="rounded-xl bg-zinc-200 px-4 py-2 text-sm font-medium text-zinc-700 hover:bg-zinc-300 transition">
+                    Limpar
+                </a>
+            @endif
         </div>
-    </div>
-    {{-- </form> --}}
+    </form>
 
     {{-- Tabela do Catálogo --}}
     <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
@@ -218,7 +210,6 @@
                         
                         <td class="whitespace-nowrap px-6 py-4 font-medium text-zinc-900">
                             <div class="flex items-center gap-4">
-                                {{-- Corrigido: Aponta exatamente para o mesmo caminho do teu catálogo público --}}
                                 <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" 
                                     alt="{{ $image->name }}" 
                                     class="h-12 w-12 rounded-xl border border-zinc-200 bg-zinc-100 object-contain" />
@@ -238,21 +229,21 @@
 
                         <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end gap-2">
-                                {{-- COMENTADO: Botão Editar Metadados --}}
-                                {{-- <a href="#" class="..."> --}}
-                                <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white transition hover:bg-zinc-100 shadow-sm" title="Editar informações">
-                                    <img src="/img/edit.png" alt="Editar" class="h-4 w-4" />
-                                </button>
-                                {{-- </a> --}}
+                                {{-- LINK ATIVADO: Editar Imagem --}}
+                                <a href="{{ route('staff.gestao.edit', $image) }}">
+                                    <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white transition hover:bg-zinc-100 shadow-sm" title="Editar informações">
+                                        <img src="/img/edit.png" alt="Editar" class="h-4 w-4" />
+                                    </button>
+                                </a>
 
-                                {{-- COMENTADO: Form Eliminar Imagem do Catálogo --}}
-                                {{-- <form method="POST" action="#" class="inline" onsubmit="return confirm('Eliminar estampa?');"> --}}
-                                {{-- @csrf --}}
-                                {{-- @method('DELETE') --}}
-                                <button type="button" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 transition hover:bg-red-100 shadow-sm" title="Eliminar Estampa">
-                                    <img src="/img/close.png" alt="Eliminar" class="h-4 w-4" />
-                                </button>
-                                {{-- </form> --}}
+                                {{-- FORM ATIVADO: Eliminar Imagem do Catálogo --}}
+                                <form method="POST" action="{{ route('staff.gestao.destroy', $image) }}" class="inline" onsubmit="return confirm('Eliminar estampa?');">
+                                    @csrf
+                                    @method('DELETE')
+                                    <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-red-100 bg-red-50 transition hover:bg-red-100 shadow-sm" title="Eliminar Estampa">
+                                        <img src="/img/close.png" alt="Eliminar" class="h-4 w-4" />
+                                    </button>
+                                </form>
                             </div>
                         </td>
                     </tr>
