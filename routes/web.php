@@ -105,6 +105,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // --- GESTÃO GLOBAL DA LOJA (ManagementController) ---
         Route::get('/staff/gestao', [ManagementController::class, 'index'])->name('staff.gestao');
 
+        Route::put('/staff/gestao/precos', [ManagementController::class, 'updatePrices'])->name('staff.gestao.updatePrices');
+
         Route::get('/staff/gestao/create', [ManagementController::class, 'create'])->name('staff.gestao.create');
         Route::post('/staff/gestao/store', [ManagementController::class, 'store'])->name('staff.gestao.store');
         Route::get('/staff/gestao/{tshirtImage}/edit', [ManagementController::class, 'edit'])->name('staff.gestao.edit');
