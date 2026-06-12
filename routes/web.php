@@ -10,6 +10,7 @@ use App\Http\Controllers\OrderController;
 use App\Http\Controllers\TshirtImageController;
 
 /* ----- PUBLIC ROUTES ----- */
+
 Route::get('/', [HomeController::class, 'index'])->name('home');
 
 // Catálogo de T-Shirts
@@ -24,7 +25,7 @@ Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AccountController::class, 'login'])->name('login');
     Route::get('/register', [AccountController::class, 'register'])->name('register');
     Route::get('/forgot-password', [AccountController::class, 'forgotPassword'])->name('password.request');
-    
+
     Route::get('/reset-password', function () {
         return redirect()->route('login')
             ->withErrors(['email' => 'Link de redefinição inválido ou expirado.']);
@@ -33,7 +34,6 @@ Route::middleware(['guest'])->group(function () {
 
 /* ----- AUTHENTICATED ROUTES ----- */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/account', [AccountController::class, 'index'])->name('account.index');
     Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
     Route::post('/customization/upload', [CustomizationController::class, 'upload'])->name('customization.upload');
     
@@ -47,7 +47,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('can:cliente')->group(function () {
-
+        Route::get('/account', [AccountController::class, 'index'])->name('account.index');
     });
 
     /*
@@ -70,12 +70,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
 
     Route::middleware('can:admin')->group(function () {
+        Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');        
         // Route::get('/admin/users', [AccountController::class, 'adminUsers'])->name('account.adminUsers');
-        // Route::post('/admin/users/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
-        // Route::delete('/admin/users/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
+        Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
+        Route::delete('/staff/index/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
     });
 });
-
-
-
-

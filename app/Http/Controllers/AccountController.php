@@ -62,7 +62,7 @@ class AccountController extends Controller implements HasMiddleware
     {
         $user = Auth::user();
         $orders = null;
-        
+
         // Se o utilizador logado for um Cliente ('C'), carregamos o seu histórico
         if ($user->user_type === 'C') {
 
@@ -90,7 +90,7 @@ class AccountController extends Controller implements HasMiddleware
         $request->validate([
             'name'  => 'required|string|max:255',
             'email' => 'required|string|email|max:255|unique:users,email,' . $user->id,
-            'password' => 'nullable|string|min:8|confirmed', 
+            'password' => 'nullable|string|min:8|confirmed',
         ]);
 
         DB::transaction(function () use ($request, $user) {
@@ -118,31 +118,32 @@ class AccountController extends Controller implements HasMiddleware
     {
         $filterByType = $request->query('type');
         $filterBySearch = $request->query('search');
-        
-        $usersQuery = User::query();
+
+        // CORREÇÃO: Filtra para trazer apenas Admins ('A') e Funcionários ('F')
+        $usersQuery = User::where('user_type', '!=', 'C');
 
         if ($filterByType !== null) {
             $usersQuery->where('user_type', $filterByType);
         }
 
         if ($filterBySearch !== null) {
-            $usersQuery->where(function($q) use ($filterBySearch) {
+            $usersQuery->where(function ($q) use ($filterBySearch) {
                 $q->where('name', 'like', "%$filterBySearch%")
-                  ->orWhere('email', 'like', "%$filterBySearch%");
+                    ->orWhere('email', 'like', "%$filterBySearch%");
             });
         }
 
         $users = $usersQuery
             ->orderBy('name')
-            ->paginate(20)
+            ->paginate(10)
             ->withQueryString();
 
-        return view('account.admin.users', compact('users', 'filterByType', 'filterBySearch'));
+        // RETORNO: Encaminha para a view correta de listagem de staff
+        return view('staff.index', compact('users', 'filterByType', 'filterBySearch'));
     }
 
     public function toggleBlock(User $user): RedirectResponse
     {
-        // Inverte o estado atual do campo blocked (0 vira 1, e 1 vira 0)
         DB::transaction(function () use ($user) {
             $user->blocked = !$user->blocked;
             $user->save();
@@ -150,7 +151,7 @@ class AccountController extends Controller implements HasMiddleware
 
         $status = $user->blocked ? 'bloqueado' : 'desbloqueado';
         $htmlMessage = "Utilizador <b>{$user->name}</b> foi {$status} com sucesso!";
-        
+
         return redirect()->back()
             ->with('alert-type', 'success')
             ->with('alert-msg', $htmlMessage);
@@ -160,21 +161,20 @@ class AccountController extends Controller implements HasMiddleware
     {
         try {
             DB::transaction(function () use ($user) {
-                // Se o cliente tiver relações pesadas que impeçam a remoção direta na BD SQLite,
-                // segue a mesma estrutura de proteção por catch do professor
                 $user->delete();
             });
 
             $alertType = 'success';
             $alertMsg = "O utilizador <b>{$user->name}</b> foi eliminado com sucesso!";
-            
-            return redirect()->route('account.adminUsers')
+
+            // CORREÇÃO: Redireciona para o nome correto da nova rota
+            return redirect()->route('staff.index')
                 ->with('alert-type', $alertType)
                 ->with('alert-msg', $alertMsg);
         } catch (\Exception $error) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
-                ->with('alert-msg', "Não foi possível eliminar o utilizador porque existem registos associados (ex: encomendas).");
+                ->with('alert-msg', "Não foi possível eliminar o utilizador porque existem registos associados.");
         }
     }
 }

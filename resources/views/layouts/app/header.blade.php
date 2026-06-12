@@ -23,12 +23,18 @@
                 Personalizar
             </a>
             @auth
-                @cannot('cliente')
-                    <a href="{{ route('orders.index') }}"
-                        class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
-                        Encomendas
-                    </a>
-                @endcannot
+            @cannot('cliente')
+            <a href="{{ route('orders.index') }}"
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
+                Encomendas
+            </a>
+            @endcannot
+            @cannot('cliente')
+            <a href="{{ route('staff.index') }}"
+                class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
+                Staff
+            </a>
+            @endcannot
             @endauth
         </nav>
 
@@ -41,9 +47,18 @@
             </a>
 
             @auth
+            @can('cliente')
             <a href="{{ route('account.index') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
                 <img src="/img/user.png" alt="Account Icon" class="h-6 w-6" />
             </a>
+            @else
+            <form method="POST" action="{{ route('logout') }}" class="inline-block">
+                @csrf
+                <button type="submit" class="p-2 text-zinc-800 hover:text-zinc-950 transition outline-none border-0 bg-transparent cursor-pointer flex items-center justify-center">
+                    <img src="/img/logout.png" alt="Logout Icon" class="h-6 w-6" />
+                </button>
+            </form>
+            @endcan
             @else
             <a href="{{ route('login') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
                 <img src="/img/user.png" alt="Login Icon" class="h-6 w-6" />

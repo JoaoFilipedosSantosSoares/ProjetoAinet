@@ -64,7 +64,6 @@
                             </div>
                         </div>
 
-                        {{-- Grid de Inputs Reutilizáveis --}}
                         <div class="grid gap-6 md:grid-cols-2">
 
                             <x-profile-input
