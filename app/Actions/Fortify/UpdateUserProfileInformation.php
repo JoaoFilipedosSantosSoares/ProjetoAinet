@@ -4,7 +4,7 @@ namespace App\Actions\Fortify;
 
 use App\Models\User;
 use Illuminate\Support\Facades\Validator;
-use Illuminate\Support\Facades\Storage; // Importado para gerir o upload e apagar fotos antigas
+use Illuminate\Support\Facades\Storage;
 use Illuminate\Validation\Rule;
 use Laravel\Fortify\Contracts\UpdatesUserProfileInformation;
 
@@ -49,13 +49,17 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         if (request()->hasFile('photo')) {
             if ($user->photo_url && $user->photo_url !== 'anonymous.png') {
-                Storage::disk('public')->delete('photos/' . $user->photo_url);
+                if (Storage::disk('public')->exists('photos/' . $user->photo_url)) {
+                    Storage::disk('public')->delete('photos/' . $user->photo_url);
+                }
             }
-            $fileName = request()->file('photo')->getClientOriginalName();
+            $extension = request()->file('photo')->getClientOriginalExtension();
 
-            request()->file('photo')->storeAs('photos', $fileName, 'public');
+            $newFileName = 'profilePicUser' . $user->id . '.' . $extension;
 
-            $input['photo_url'] = $fileName;
+            request()->file('photo')->storeAs('photos', $newFileName, 'public');
+
+            $input['photo_url'] = $newFileName;
         }
 
         $this->saveCustomerData($user, $input);
@@ -74,11 +78,11 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
         if (!empty($input['paymentMethod'])) {
             $methodLower = strtolower(trim($input['paymentMethod']));
             if ($methodLower === 'mbway' || $methodLower === 'mb way') {
-                $paymentType = 'MB WAY'; 
+                $paymentType = 'MB WAY';
             } elseif ($methodLower === 'paypal') {
-                $paymentType = 'PayPal'; 
+                $paymentType = 'PayPal';
             } elseif ($methodLower === 'visa') {
-                $paymentType = 'Visa';   
+                $paymentType = 'Visa';
             }
         }
 

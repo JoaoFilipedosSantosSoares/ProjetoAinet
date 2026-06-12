@@ -38,7 +38,7 @@
                 <div class="relative">
                     <div class="grid grid-cols-2 gap-4">
                         @foreach ($featuredImages as $index => $image)
-                            <div class="relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg {{ $index % 2 !== 0 ? 'translate-y-8' : '' }}">
+                            <div class="bg-zinc-100 relative aspect-square overflow-hidden rounded-2xl bg-card shadow-lg {{ $index % 2 !== 0 ? 'translate-y-8' : '' }}">
                                 <a href="{{ route('catalog.show', ['tshirt' => $image->id]) }}" title="Ver {{ $image->name }}">
                                     <img src="{{ asset('storage/tshirt_images/' . $image->image_url) }}" 
                                          alt="{{ $image->name }}"
@@ -47,7 +47,6 @@
                             </div>
                         @endforeach
 
-                        {{-- Fallback caso a base de dados ainda não tenha imagens públicas --}}
                         @if($featuredImages->isEmpty())
                             <div class="col-span-2 text-center py-12 text-muted-foreground bg-zinc-50 rounded-2xl border border-dashed border-zinc-200">
                                 Sem imagens disponíveis no catálogo de momento.

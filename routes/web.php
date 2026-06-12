@@ -33,20 +33,20 @@ Route::middleware(['guest'])->group(function () {
 
 /* ----- AUTHENTICATED ROUTES ----- */
 Route::middleware(['auth', 'verified'])->group(function () {
-    
-    
+
+
     //vai buscar a imagem da tshirt no private
     Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
         ->name('tshirt_images.show');
-    
-     /*
+
+    /*
     |--------------------------------------------------------------------------
     | CLIENTE
     |--------------------------------------------------------------------------
     */
     Route::middleware('can:cliente')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
-        
+
         // Carrinho de Compras
         Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
         Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
@@ -83,9 +83,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
 
     Route::middleware('can:admin')->group(function () {
-        Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');        
-        // Route::get('/admin/users', [AccountController::class, 'adminUsers'])->name('account.adminUsers');
+        Route::post('/staff/store', [AccountController::class, 'store'])->name('staff.store');
+        Route::get('/staff/create', [AccountController::class, 'create'])->name('staff.add');
+        Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');
         Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
+
+        Route::get('/staff/{user}', [AccountController::class, 'show'])->name('staff.show');
+        Route::put('/staff/{user}', [AccountController::class, 'update'])->name('staff.update');
+    });
+
+    Route::get('/account', function () {
+        return redirect()->route('home');
     });
 });

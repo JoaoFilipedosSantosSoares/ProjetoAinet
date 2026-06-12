@@ -7,7 +7,6 @@
         </div>
 
         <div class="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2">
-            {{-- COLUNA DA ESQUERDA: Vista do Produto --}}
             <div class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="product-card overflow-hidden rounded-2xl bg-white shadow-sm">
