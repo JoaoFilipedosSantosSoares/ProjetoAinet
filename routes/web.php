@@ -35,12 +35,12 @@ Route::middleware(['guest'])->group(function () {
 /* ----- AUTHENTICATED ROUTES ----- */
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
-    
+
     //vai buscar a imagem da tshirt no private
     Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
         ->name('tshirt_images.show');
-    
-     /*
+
+    /*
     |--------------------------------------------------------------------------
     | CLIENTE
     |--------------------------------------------------------------------------
@@ -69,9 +69,13 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
 
     Route::middleware('can:admin')->group(function () {
-        Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');        
+        Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');
         // Route::get('/admin/users', [AccountController::class, 'adminUsers'])->name('account.adminUsers');
         Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
+    });
+
+    Route::get('/account', function () {
+        return redirect()->route('home');
     });
 });
