@@ -12,7 +12,7 @@ use App\Models\Tshirt_Image;
 #[Fillable([
     'order_id',
     'tshirt_image_id',
-    'color_code', // ADICIONADO: Faltava no teu código
+    'color_code', 
     'size',
     'qty',
     'unit_price',

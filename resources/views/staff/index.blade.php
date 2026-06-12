@@ -1,16 +1,16 @@
 @component('layouts.main-content')
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 
-    {{-- Elemento do Topo --}}
     <div class="mb-8 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h1 class="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">Gestão de Equipa</h1>
             <p class="mt-2 text-sm text-zinc-600">Lista completa de todos os trabalhadores da FunShirt.</p>
         </div>
         <div>
-            <button class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
+            <a href="{{ route('staff.add') }}"
+                class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
                 + Adicionar Membro
-            </button>
+            </a>
         </div>
     </div>
 

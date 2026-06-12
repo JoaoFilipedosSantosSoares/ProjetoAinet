@@ -16,6 +16,9 @@ use Laravel\Fortify\Fortify;
 use Illuminate\Auth\Notifications\ResetPassword;
 use Illuminate\Notifications\Messages\MailMessage;
 use Illuminate\Auth\Notifications\VerifyEmail;
+use App\Models\User;
+use Illuminate\Support\Facades\Hash;
+use Illuminate\Validation\ValidationException;
 
 class FortifyServiceProvider extends ServiceProvider
 {
@@ -61,6 +64,25 @@ class FortifyServiceProvider extends ServiceProvider
                 'token' => $request->route('token'),
             ]);
         });
+
+        if (class_exists(Fortify::class)) {
+            Fortify::authenticateUsing(function (Request $request) {
+                $user = User::where('email', $request->email)->first();
+
+                if ($user && Hash::check($request->password, $user->password)) {
+
+                    // VERIFICAÇÃO DO BLOQUEIO
+                    if ($user->blocked == 1) {
+                        // Atira o erro diretamente para a caixinha do email no formulário
+                        throw ValidationException::withMessages([
+                            'email' => ['A sua conta encontra-se bloqueada. Contacte o administrador.'],
+                        ]);
+                    }
+
+                    return $user;
+                }
+            });
+        }
 
 
         VerifyEmail::toMailUsing(function (object $notifiable, string $url) {

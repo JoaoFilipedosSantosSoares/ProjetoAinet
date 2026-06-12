@@ -53,6 +53,44 @@ class AccountController extends Controller implements HasMiddleware
     {
         return view('account.login.forgot-password');
     }
+    public function create()
+    {
+        return view('staff.new');
+    }
+
+    public function store(Request $request)
+    {
+        // 1. Validação dos dados que vêm do formulário
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+            'email' => 'required|string|email|max:255|unique:users',
+            'password' => 'required|string|min:8',
+            'user_type' => 'required|in:A,F',
+            'gender' => 'required|in:M,F', // Garante que o género vem como M ou F
+        ], [
+            'email.unique' => 'Este e-mail já está registado na plataforma.',
+            'password.min' => 'A password provisória deve ter pelo menos 8 caracteres.',
+            'user_type.in' => 'O cargo selecionado é inválido.',
+            'gender.in' => 'O género selecionado é inválido.',
+        ]);
+
+        // 2. Gravação na base de dados SQLite
+        User::create([
+            'name' => $validated['name'],
+            'email' => $validated['email'],
+            'password' => Hash::make($validated['password']),
+            'user_type' => $validated['user_type'],
+            'gender' => $validated['gender'], // Grava o género escolhido no form
+            'email_verified_at' => now(),
+            'blocked' => 0,
+        ]);
+
+        // 3. Redirecionamento com mensagem de sucesso
+        return redirect()
+            ->route('staff.index')
+            ->with('success', 'Membro de staff adicionado com sucesso!');
+    }
+
 
     // ===========================================================================
     // =============================AREA AUTENTICADA==============================
