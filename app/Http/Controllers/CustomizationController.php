@@ -62,6 +62,45 @@ class CustomizationController extends Controller implements HasMiddleware
             'tshirt' => $tshirt,
         ]);
     }
+
+    public function upload(Request $request)
+    {
+        // 1. Validação do ficheiro
+        $request->validate([
+            'photo' => ['required', 'image', 'mimes:jpg,jpeg,png,webp', 'max:2048'],
+        ], [
+            'photo.image' => 'O ficheiro selecionado tem de ser uma imagem.',
+            'photo.max' => 'A foto não pode ter mais do que 2MB.',
+        ]);
+
+        $user = Auth::user();
+        $file = $request->file('photo');
+
+        // Gerar o nome do ficheiro
+        $fileName = time() . '_' . $file->getClientOriginalName();
+
+        // 2. SOLUÇÃO COMPATÍVEL: Mover diretamente para a pasta privada do sistema
+        // Isto vai colocar o ficheiro exatamente em: storage/app/private/tshirt_images_private/
+        $destinationPath = storage_path('app/private/tshirt_images_private');
+
+        $file->move($destinationPath, $fileName);
+
+        // 3. Criar o registo na Base de Dados
+        $newDesign = Tshirt_Image::create([
+            'customer_id' => $user->customer ? $user->customer->id : null,
+            'category_id' => null,
+            'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
+            'image_url' => $fileName,
+            'description' => 'Design carregado pelo utilizador.',
+        ]);
+
+        // 4. Redirecionar
+        return redirect()->route('customization.index', [
+            'design' => $newDesign->id,
+            'color' => $request->input('color')
+        ]);
+    }
+
     public function store(Request $request): RedirectResponse
     {
         $request->validate([

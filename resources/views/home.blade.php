@@ -13,13 +13,13 @@
                         Qualidade premium, precos acessiveis.
                     </p>
                     <div class="flex flex-wrap gap-4">
-                        <a href="/" class="flex items-center gap-2 rounded-xl bg-[#144226] px-4 py-2.5 text-sm font-semibold text-white transition">
+                        <a href="{{ route('catalog.index') }}" class="flex items-center gap-2 rounded-xl bg-[#144226] px-4 py-2.5 text-sm font-semibold text-white transition">
                             <img src="/img/tshirt.png" alt="Catalog Icon" class="h-5 w-5" />    
                         <span class="">
                                 Ver catalogo
                             </span>
                         </a>
-                        <a href="/personalizar"
+                        <a href="{{ route('customization.index') }}"
                             class="inline-flex items-center gap-2 rounded-md border border-border bg-transparent px-4 py-2 text-sm font-semibold text-muted-foreground hover:bg-muted/30">
                             <!-- Upload icon -->
                             <svg class="h-5 w-5" viewBox="0 0 24 24" fill="none" xmlns="http://www.w3.org/2000/svg"
