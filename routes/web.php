@@ -7,6 +7,7 @@ use App\Http\Controllers\CustomizationController;
 use App\Http\Controllers\CartController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\OrderController;
+use App\Http\Controllers\TshirtImageController;
 
 /* ----- PUBLIC ROUTES ----- */
 Route::get('/', [HomeController::class, 'index'])->name('home');
@@ -34,6 +35,10 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/account', [AccountController::class, 'index'])->name('account.index');
     Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
+    
+    //vai buscar a imagem da tshirt no private
+    Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
+        ->name('tshirt_images.show');
     
      /*
     |--------------------------------------------------------------------------
