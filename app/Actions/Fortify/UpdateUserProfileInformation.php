@@ -24,15 +24,15 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             'nif' => ['nullable', 'digits:9'],
             'morada' => ['nullable', 'string', 'max:255'],
 
-            'paymentMethod' => ['nullable', Rule::in(['MBway', 'Paypal', 'Visa'])],
+            'paymentMethod' => ['nullable', Rule::in(['MB WAY', 'PayPal', 'Visa'])],
 
             'paymentRef' => [
                 'nullable',
-                Rule::requiredIf(isset($input['paymentMethod']) && $input['paymentMethod'] === 'MBway'),
-                isset($input['paymentMethod']) && $input['paymentMethod'] === 'MBway' ? 'regex:/^9[1236][0-9]{7}$/' : '',
+                Rule::requiredIf(isset($input['paymentMethod']) && $input['paymentMethod'] === 'MB WAY'),
+                isset($input['paymentMethod']) && $input['paymentMethod'] === 'MB WAY' ? 'regex:/^9[1236][0-9]{7}$/' : '',
 
-                Rule::requiredIf(isset($input['paymentMethod']) && $input['paymentMethod'] === 'Paypal'),
-                isset($input['paymentMethod']) && $input['paymentMethod'] === 'Paypal' ? 'email' : '',
+                Rule::requiredIf(isset($input['paymentMethod']) && $input['paymentMethod'] === 'PayPal'),
+                isset($input['paymentMethod']) && $input['paymentMethod'] === 'PayPal' ? 'email' : '',
 
                 Rule::requiredIf(isset($input['paymentMethod']) && $input['paymentMethod'] === 'Visa'),
                 isset($input['paymentMethod']) && $input['paymentMethod'] === 'Visa' ? 'digits:16' : '',
@@ -72,21 +72,22 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
 
         $paymentType = null;
         if (!empty($input['paymentMethod'])) {
-            $methodLower = strtolower($input['paymentMethod']);
-
-            if ($methodLower === 'mbway') {
-                $paymentType = 'MBway';
+            $methodLower = strtolower(trim($input['paymentMethod']));
+            if ($methodLower === 'mbway' || $methodLower === 'mb way') {
+                $paymentType = 'MB WAY'; 
             } elseif ($methodLower === 'paypal') {
-                $paymentType = 'PayPal'; // <--- Tenta com o P maiúsculo se a BD exigir, ou 'paypal' se for tudo minúsculas
+                $paymentType = 'PayPal'; 
             } elseif ($methodLower === 'visa') {
-                $paymentType = 'Visa';
+                $paymentType = 'Visa';   
             }
         }
+
+
         $user->customer->forceFill([
             'nif' => $input['nif'] ?? null,
             'address' => $input['morada'] ?? null,
             'default_payment_type' => $paymentType,
-            'default_payment_ref' => $paymentType,
+            'default_payment_ref' => $input['paymentRef'] ?? null,
         ])->save();
 
         $userData = [

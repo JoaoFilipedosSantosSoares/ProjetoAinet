@@ -41,16 +41,11 @@
                         @csrf
                         @method('PUT')
 
-                        {{-- Secção da Foto de Perfil --}}
                         <div class="mb-8 border-b border-zinc-100 pb-6">
                             <label class="block text-sm font-medium text-zinc-900 mb-4">Foto de Perfil</label>
                             <div class="flex items-center gap-6">
                                 <div class="relative h-24 w-24 overflow-hidden rounded-full border border-zinc-200 bg-zinc-100">
-                                    @if(auth()->user()->photo_url)
-                                    <img src="{{ auth()->user()->photo_full_url }}" alt="Foto de perfil" class="h-full w-full object-cover">
-                                    @else
-                                    <div class="flex h-full w-full items-center justify-center text-zinc-400"></div>
-                                    @endif
+                                    <img src="{{ auth()->user()->getPhotoFullUrlAttribute() }}" alt="Foto de perfil" class="h-full w-full object-cover">
                                 </div>
 
                                 <div class="space-y-1">
@@ -71,26 +66,25 @@
 
                         {{-- Grid de Inputs Reutilizáveis --}}
                         <div class="grid gap-6 md:grid-cols-2">
-                            
-                            <x-profile-input 
-                                label="Nome Completo" 
-                                name="name" 
+
+                            <x-profile-input
+                                label="Nome Completo"
+                                name="name"
                                 :value="old('name', auth()->user()->name)" />
 
-                            <x-profile-input 
-                                label="Email" 
-                                name="email" 
-                                :value="auth()->user()->email" 
+                            <x-profile-input
+                                label="Email"
+                                name="email"
+                                :value="auth()->user()->email"
                                 readonly="true" />
 
-                            <x-profile-input 
-                                label="NIF" 
-                                name="nif" 
-                                :value="old('nif', auth()->user()->customer?->nif)" 
-                                placeholder="123456789" 
+                            <x-profile-input
+                                label="NIF"
+                                name="nif"
+                                :value="old('nif', auth()->user()->customer?->nif)"
+                                placeholder="123456789"
                                 maxlength="9" />
 
-                            {{-- O Select mantém-se nativo por ter uma estrutura diferente com options --}}
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-zinc-900">Método de Pagamento</label>
                                 <div class="relative">
@@ -98,9 +92,10 @@
                                         name="paymentMethod"
                                         data-editable="true"
                                         class="profile-input w-full appearance-none rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+
                                         <option value="" disabled {{ empty(auth()->user()->customer?->default_payment_type) ? 'selected' : '' }}>Selecione um método</option>
-                                        <option value="MBway" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'MBway' ? 'selected' : '' }}>MBway</option>
-                                        <option value="Paypal" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'Paypal' ? 'selected' : '' }}>Paypal</option>
+                                        <option value="MB WAY" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'MB WAY' ? 'selected' : '' }}>MB WAY</option>
+                                        <option value="PayPal" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'PayPal' ? 'selected' : '' }}>PayPal</option>
                                         <option value="Visa" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'Visa' ? 'selected' : '' }}>Visa</option>
                                     </select>
 
@@ -115,16 +110,16 @@
                                 @enderror
                             </div>
 
-                            <x-profile-input 
-                                label="Referência de Pagamento" 
-                                name="paymentRef" 
-                                :value="old('paymentRef', auth()->user()->customer?->default_payment_ref)" 
+                            <x-profile-input
+                                label="Referência de Pagamento"
+                                name="paymentRef"
+                                :value="old('paymentRef', auth()->user()->customer?->default_payment_ref)"
                                 placeholder="Nº Telemóvel (MB WAY), Email (PayPal) ou Cartão (VISA)" />
 
-                            <x-profile-input 
-                                label="Morada de Envio" 
-                                name="morada" 
-                                :value="old('morada', auth()->user()->customer?->address)" 
+                            <x-profile-input
+                                label="Morada de Envio"
+                                name="morada"
+                                :value="old('morada', auth()->user()->customer?->address)"
                                 placeholder="Rua, número, código postal, cidade" />
 
                         </div>
