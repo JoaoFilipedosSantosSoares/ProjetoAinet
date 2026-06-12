@@ -10,6 +10,8 @@ use Illuminate\View\View;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Support\Facades\DB;
+use App\Models\Price;
+
 class ManagementController extends Controller
 {
     public function index(Request $request): View
@@ -20,6 +22,8 @@ class ManagementController extends Controller
         $categories = Category::orderBy('name')->get();
         $colors = Color::orderBy('name')->get();
 
+        $prices = Price::first();
+
         $catalogQuery = Tshirt_Image::whereNull('customer_id');
 
         if ($filterByCategory !== null) {
@@ -29,7 +33,7 @@ class ManagementController extends Controller
         if ($filterBySearch !== null) {
             $catalogQuery->where(function ($q) use ($filterBySearch) {
                 $q->where('name', 'like', "%$filterBySearch%")
-                ->orWhere('description', 'like', "%$filterBySearch%");
+                    ->orWhere('description', 'like', "%$filterBySearch%");
             });
         }
 
@@ -38,13 +42,16 @@ class ManagementController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        return view('staff.gestao' , compact('catalogImages', 'categories', 'colors', 'filterByCategory', 'filterBySearch'));
+        return view('staff.gestao', compact('catalogImages', 'categories', 'colors', 'prices', 'filterByCategory', 'filterBySearch'));
     }
 
     public function create(): View
     {
         $categories = Category::orderBy('name')->get();
-        return view('staff.gestao_create', compact('categories'));
+        // Enviamos um objeto vazio para o formulário saber que é uma CRIAÇÃO
+        $tshirtImage = new Tshirt_Image();
+
+        return view('staff.imagem_form', compact('categories', 'tshirtImage'));
     }
 
     public function store(Request $request): RedirectResponse
@@ -63,34 +70,39 @@ class ManagementController extends Controller
         ]);
 
         DB::transaction(function () use ($request, $validated) {
-            $tshirtImage = Tshirt_Image::create([
+            // 1. Ir buscar a extensão do ficheiro enviado
+            $extension = $request->file('image_file')->getClientOriginalExtension();
+
+            // 2. Gerar um nome único e seguro antes de inserir na BD (ex: catalogImage_64cf3a1b.png)
+            $newFileName = 'catalogImage_' . uniqid() . '.' . $extension;
+
+            // 3. Fazer o upload do ficheiro para a pasta storage/app/public/tshirt_images
+            $request->file('image_file')->storeAs('tshirt_images', $newFileName, 'public');
+
+            // 4. Criar o registo na Base de Dados JÁ COM o image_url preenchido
+            Tshirt_Image::create([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'category_id' => $validated['category_id'],
-                'customer_id' => null,
+                'image_url' => $newFileName, // <-- Agora a BD já recebe o campo obrigatório!
+                'customer_id' => null,       // Nulo porque é para o catálogo global
             ]);
-
-            $extension = $request->file('image_file')->getClientOriginalExtension();
-            $newFileName = 'catalogImage_' . $tshirtImage->id . '.' . $extension;
-            
-            $request->file('image_file')->storeAs('tshirt_images', $newFileName, 'public');
-
-            $tshirtImage->image_url = $newFileName;
-            $tshirtImage->save();
         });
 
-        return redirect()->route('staff.gestao')->with('alert-type', 'success')->with('alert-msg', 'Nova imagem adicionada ao catálogo!');
+        return redirect()->route('staff.gestao')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Nova imagem adicionada ao catálogo!');
     }
-
     public function edit(Tshirt_Image $tshirtImage): View
     {
-        // Garante que o admin não está a tentar editar uma imagem privada de um cliente por este URL
         if ($tshirtImage->customer_id !== null) {
-            abort(403, 'Não pode editar imagens privadas de clientes por aqui.');
+            abort(403, 'Não pode editar imagens privadas.');
         }
 
         $categories = Category::orderBy('name')->get();
-        return view('staff.gestao_edit', compact('tshirtImage', 'categories'));
+
+        // Enviamos o formulário para a mesma view, mas com o objeto preenchido
+        return view('staff.imagem_form', compact('categories', 'tshirtImage'));
     }
 
     public function update(Request $request, Tshirt_Image $tshirtImage): RedirectResponse
@@ -142,7 +154,7 @@ class ManagementController extends Controller
                 if ($tshirtImage->image_url && Storage::disk('public')->exists('tshirt_images/' . $tshirtImage->image_url)) {
                     Storage::disk('public')->delete('tshirt_images/' . $tshirtImage->image_url);
                 }
-                
+
                 // 2. Apagar o registo da BD
                 $tshirtImage->delete();
             });
@@ -150,12 +162,48 @@ class ManagementController extends Controller
             return redirect()->route('staff.gestao')
                 ->with('alert-type', 'success')
                 ->with('alert-msg', "A imagem <b>{$tshirtImage->name}</b> foi removida do catálogo.");
-
         } catch (\Exception $error) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', "Não foi possível eliminar a imagem porque já existem encomendas associadas a ela.");
         }
+    }
+
+    public function updatePrices(Request $request): RedirectResponse
+    {
+        $validated = $request->validate([
+            'unit_price_catalog' => 'required|numeric|min:0',
+            'unit_price_own' => 'required|numeric|min:0',
+            'qty_discount' => 'required|integer|min:1',
+        ], [
+            'unit_price_catalog.required' => 'O preço do catálogo é obrigatório.',
+            'unit_price_own.required' => 'O preço da t-shirt personalizada é obrigatório.',
+            'qty_discount.required' => 'A quantidade para desconto é obrigatória.',
+            'qty_discount.integer' => 'A quantidade deve ser um número inteiro.',
+        ]);
+
+        // Busca as configurações atuais (ou cria uma se a tabela estiver vazia)
+        $prices = Price::first();
+
+        if (!$prices) {
+            $prices = new Price();
+        }
+
+        // Atualiza os valores vindos do formulário
+        $prices->unit_price_catalog = $validated['unit_price_catalog'];
+        $prices->unit_price_own = $validated['unit_price_own'];
+        $prices->qty_discount = $validated['qty_discount'];
+
+        // Como a tua tabela tem campos NOT NULL para os descontos, 
+        // se não os estás a usar neste form, damos-lhes um valor padrão ou mantemos o que estava:
+        $prices->unit_price_catalog_discount = $prices->unit_price_catalog_discount ?? 0;
+        $prices->unit_price_own_discount = $prices->unit_price_own_discount ?? 0;
+
+        $prices->save();
+
+        return redirect()->route('staff.gestao')
+            ->with('alert-type', 'success')
+            ->with('alert-msg', 'Preços e regras de desconto atualizados com sucesso!');
     }
 
     /*
@@ -191,7 +239,6 @@ class ManagementController extends Controller
             return redirect()->route('staff.gestao')
                 ->with('alert-type', 'success')
                 ->with('alert-msg', "A categoria <b>{$category->name}</b> foi eliminada com sucesso!");
-
         } catch (\Exception $error) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
@@ -207,24 +254,41 @@ class ManagementController extends Controller
     public function storeColor(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|size:6|unique:colors,code', // Código HEX sem o # (ex: FFFFFF)
-            'name' => 'required|string|max:255|unique:colors,name',
+            // Limpa espaços e garante que o código fica guardado em maiúsculas/minúsculas limpas
+            'code' => 'required|string|max:6|unique:colors,code',
+            'name' => 'required|string|max:255',
+            'tshirt_image' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
         ], [
-            'code.required' => 'O código hexadecimal da cor é obrigatório.',
-            'code.size' => 'O código da cor deve ter exatamente 6 caracteres (ex: FF0000).',
-            'code.unique' => 'Já existe uma cor com esse código.',
+            'code.required' => 'O código HEX é obrigatório.',
+            'code.unique' => 'Já existe uma cor registada com esse código HEX.',
             'name.required' => 'O nome da cor é obrigatório.',
-            'name.unique' => 'Já existe uma cor com esse nome.',
+            'tshirt_image.required' => 'O upload da imagem da t-shirt base é obrigatório.',
+            'tshirt_image.max' => 'A imagem da t-shirt não pode ter mais do que 2MB.',
         ]);
 
-        Color::create([
-            'code' => strtoupper($validated['code']),
-            'name' => $validated['name']
-        ]);
+        try {
+            DB::transaction(function () use ($request, $validated) {
+                $fileName = strtolower($validated['code']) . '.jpg';
 
-        return redirect()->route('staff.gestao')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', 'Nova cor adicionada com sucesso!');
+                $request->file('tshirt_image')->storeAs('tshirt_base', $fileName, 'public');
+
+                Color::create([
+                    'code' => strtoupper($validated['code']),
+                    'name' => $validated['name'],
+                    // Se na tua BD a coluna se chamar 'image_url', adicionas aqui:
+                    // 'image_url' => $fileName,
+                ]);
+            });
+
+            return redirect()->route('staff.gestao')
+                ->with('alert-type', 'success')
+                ->with('alert-msg', "A cor <b>{$validated['name']}</b> e a respetiva t-shirt base foram adicionadas com sucesso!");
+        } catch (\Exception $error) {
+            return redirect()->back()
+                ->withInput()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Ocorreu um erro ao salvar a cor. Certifique-se de que os dados são válidos.');
+        }
     }
 
     public function destroyColor(Color $color): RedirectResponse
@@ -237,7 +301,6 @@ class ManagementController extends Controller
             return redirect()->route('staff.gestao')
                 ->with('alert-type', 'success')
                 ->with('alert-msg', "A cor <b>{$color->name}</b> foi removida do catálogo.");
-
         } catch (\Exception $error) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
