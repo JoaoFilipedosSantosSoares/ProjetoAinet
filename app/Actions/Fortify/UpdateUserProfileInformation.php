@@ -70,11 +70,23 @@ class UpdateUserProfileInformation implements UpdatesUserProfileInformation
             $user->load('customer');
         }
 
+        $paymentType = null;
+        if (!empty($input['paymentMethod'])) {
+            $methodLower = strtolower($input['paymentMethod']);
+
+            if ($methodLower === 'mbway') {
+                $paymentType = 'MBway';
+            } elseif ($methodLower === 'paypal') {
+                $paymentType = 'PayPal'; // <--- Tenta com o P maiúsculo se a BD exigir, ou 'paypal' se for tudo minúsculas
+            } elseif ($methodLower === 'visa') {
+                $paymentType = 'Visa';
+            }
+        }
         $user->customer->forceFill([
             'nif' => $input['nif'] ?? null,
             'address' => $input['morada'] ?? null,
-            'default_payment_type' => $input['paymentMethod'] ?? null,
-            'default_payment_ref' => $input['paymentRef'] ?? null,
+            'default_payment_type' => $paymentType,
+            'default_payment_ref' => $paymentType,
         ])->save();
 
         $userData = [

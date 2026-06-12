@@ -99,9 +99,9 @@
                                         data-editable="true"
                                         class="profile-input w-full appearance-none rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
                                         <option value="" disabled {{ empty(auth()->user()->customer?->default_payment_type) ? 'selected' : '' }}>Selecione um método</option>
-                                        <option value="MBway" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'MBway' ? 'selected' : '' }}>MB WAY</option>
-                                        <option value="Paypal" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'Paypal' ? 'selected' : '' }}>PAYPAL</option>
-                                        <option value="Visa" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'Visa' ? 'selected' : '' }}>VISA</option>
+                                        <option value="MBway" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'MBway' ? 'selected' : '' }}>MBway</option>
+                                        <option value="Paypal" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'Paypal' ? 'selected' : '' }}>Paypal</option>
+                                        <option value="Visa" {{ old('paymentMethod', auth()->user()->customer?->default_payment_type) == 'Visa' ? 'selected' : '' }}>Visa</option>
                                     </select>
 
                                     <div class="pointer-events-none absolute inset-y-0 right-4 flex items-center text-zinc-500">
