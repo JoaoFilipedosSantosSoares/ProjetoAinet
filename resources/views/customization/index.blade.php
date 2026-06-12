@@ -9,43 +9,36 @@
         <div class="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2">
             <div class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+                    <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="p-6">
                         <h2 class="mb-4 text-lg font-semibold">Carrega a tua imagem</h2>
-                        <div id="upload-dropzone"
-                            class="flex min-h-75 cursor-pointer flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted transition-colors duration-200 hover:border-primary/50 hover:bg-muted/70">
-                            <svg class="mb-4 h-12 w-12 text-muted-foreground" viewBox="0 0 24 24" fill="none"
-                                aria-hidden="true">
-                                <path d="M12 3v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                                <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                                <path d="M21 21H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round"
-                                    stroke-linejoin="round" />
-                            </svg>
-                            <p class="mb-2 text-center font-medium text-foreground">Arrasta e larga a tua imagem aqui
-                            </p>
-                            <p class="mb-4 text-center text-sm text-muted-foreground">ou clica para selecionar</p>
-                            <button id="upload-button" type="button"
-                                class="inline-flex items-center gap-2 rounded-lg border border-border px-4 py-2 text-sm font-semibold text-foreground transition hover:border-primary/70">
-                                Escolher ficheiro
-                            </button>
-                        </div>
-                        <input id="upload-input" type="file" accept="image/*" class="hidden" />
-                        <div id="upload-preview" class="relative mt-6 hidden">
-                            <div class="relative aspect-square overflow-hidden rounded-3xl bg-zinc-100">
-                                <img id="preview-image" src="" alt="Imagem carregada"
-                                    class="hidden object-contain w-full h-full" />
-                                <div id="preview-placeholder"
-                                    class="flex h-full items-center justify-center rounded-3xl border-2 border-dashed border-black/20">
-                                    <p class="text-center text-sm text-black/40">A tua imagem aparece aqui</p>
-                                </div>
+                        
+                        {{-- Ação aponta para uma rota do teu controlador que vai processar e guardar a imagem temporariamente/no catálogo --}}
+                        <form action="{{ route('customization.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            @csrf
+                            {{-- Preservar a cor e o design selecionados ao fazer upload --}}
+                            <input type="hidden" name="color" value="{{ request('color') }}">
+                            
+                            <div class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted p-6">
+                                <svg class="mb-4 h-12 w-12 text-muted-foreground" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+                                    <path d="M12 3v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                    <path d="M21 21H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                </svg>
+                                
+                                <input type="file" name="photo" id="upload-input" accept="image/*" 
+                                    class="text-sm text-zinc-500 file:mr-4 file:rounded-2xl file:border-0 file:bg-zinc-950 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white file:transition hover:file:bg-zinc-800" required />
+                                
+                                <p class="text-xs text-muted-foreground mt-2">PNG, JPG ou WEBP até 2MB.</p>
                             </div>
-                            <button id="remove-image" type="button"
-                                class="absolute right-3 top-3 inline-flex h-10 w-10 items-center justify-center rounded-full bg-white text-zinc-700 shadow hover:bg-zinc-100">
-                                ×
+
+                            <button type="submit" class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                                Carregar Imagem
                             </button>
-                        </div>
+                        </form>
                     </div>
+                </div>
+                    
                 </div>
                 <div>
                     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="product-grid">
@@ -86,9 +79,13 @@
                             <img id="tshirt-base-preview"
                                 src="{{ asset('storage/tshirt_base/' . $selectedColor->code . '.jpg') }}"
                                 alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain" />
-                            <img src="{{ route('tshirt_images.show', ['filename' => $tshirt->image_url]) }}"
-                                alt="{{ $tshirt->name }}"
-                                class="relative z-10 h-[40%] w-[40%] object-contain transition group-hover:scale-105" />
+                            @if ($tshirt && $tshirt->image_url)
+                                <img src="{{ route('tshirt_images.show', ['filename' => $tshirt->image_url]) }}"
+                                    alt="{{ $tshirt->name }}"
+                                    class="relative z-10 h-[40%] w-[40%] object-contain transition group-hover:scale-105" />
+                            @else
+                                <span class="absolute z-10 text-xs text-black bg-white/80 px-2 py-1 rounded-md shadow-sm">Introduza uma imagem</span>
+                            @endif
                         </div>
                         <div class="p-4">
                             <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->name }}</h3>

@@ -35,6 +35,7 @@ Route::middleware(['guest'])->group(function () {
 Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/account', [AccountController::class, 'index'])->name('account.index');
     Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
+    Route::post('/customization/upload', [CustomizationController::class, 'upload'])->name('customization.upload');
     
     //vai buscar a imagem da tshirt no private
     Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
