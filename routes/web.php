@@ -84,6 +84,9 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/staff/index', [AccountController::class, 'adminUsers'])->name('staff.index');
         Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [AccountController::class, 'destroy'])->name('account.destroy');
+
+        Route::get('/staff/{user}', [AccountController::class, 'show'])->name('staff.show');
+        Route::put('/staff/{user}', [AccountController::class, 'update'])->name('staff.update');
     });
 
     Route::get('/account', function () {

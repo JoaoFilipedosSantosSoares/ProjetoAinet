@@ -82,7 +82,11 @@
 
                         <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                             <div class="flex items-center justify-end gap-2">
-
+                                <a href="{{ route('staff.show', $user) }}"
+                                    class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white transition hover:bg-zinc-100 shadow-sm"
+                                    title="Ver/Editar Perfil de {{ $user->name }}">
+                                    <img src="/img/edit.png" alt="Editar" class="h-4 w-4" />
+                                </a>
                                 <form method="POST" action="/staff/index/{{ $user->id }}/block" class="inline">
                                     @csrf
                                     <button type="submit" class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white transition hover:bg-zinc-100 shadow-sm"
