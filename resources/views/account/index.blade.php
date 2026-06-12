@@ -1,11 +1,4 @@
 @component('layouts.main-content')
-@php
-$accountUpdateUrl = \Illuminate\Support\Facades\Route::has('account.update') ? route('account.update') : url('/conta');
-$hasUpdateRoute = \Illuminate\Support\Facades\Route::has('account.update');
-$profileName = old('name', data_get($user, 'name', ''));
-$profileNif = old('nif', data_get($user, 'nif', ''));
-$profileShippingAddress = old('shippingAddress', data_get($user, 'shippingAddress', ''));
-@endphp
 
 <main class="min-h-screen bg-background">
     <div class="container mx-auto px-4 py-12">
@@ -31,12 +24,11 @@ $profileShippingAddress = old('shippingAddress', data_get($user, 'shippingAddres
             @endif
 
             <section id="profile-panel" class="space-y-6">
-
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
                         <div>
                             <h2 class="text-xl font-semibold text-foreground">Informações Pessoais</h2>
-                            <p class="text-muted-foreground">Os teus dados e preferences para futuras encomendas</p>
+                            <p class="text-muted-foreground">Os teus dados e preferências para futuras encomendas</p>
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <button type="submit" form="profile-form" class="rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
@@ -44,22 +36,20 @@ $profileShippingAddress = old('shippingAddress', data_get($user, 'shippingAddres
                             </button>
                         </div>
                     </div>
+
                     <form id="profile-form" action="{{ route('user-profile-information.update') }}" method="POST" enctype="multipart/form-data" class="space-y-6 p-6">
                         @csrf
                         @method('PUT')
 
+                        {{-- Secção da Foto de Perfil --}}
                         <div class="mb-8 border-b border-zinc-100 pb-6">
                             <label class="block text-sm font-medium text-zinc-900 mb-4">Foto de Perfil</label>
                             <div class="flex items-center gap-6">
                                 <div class="relative h-24 w-24 overflow-hidden rounded-full border border-zinc-200 bg-zinc-100">
                                     @if(auth()->user()->photo_url)
-                                    <img src="{{ auth()->user()->getPhotoFullUrlAttribute() }}" alt="Foto de perfil" class="h-full w-full object-cover">
+                                    <img src="{{ auth()->user()->photo_full_url }}" alt="Foto de perfil" class="h-full w-full object-cover">
                                     @else
-                                    <div class="flex h-full w-full items-center justify-center text-zinc-400">
-                                        <svg class="h-12 w-12" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                            <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 7a4 4 0 11-8 0 4 4 0 018 0zM12 14a7 7 0 00-7 7h14a7 7 0 00-7-7z" />
-                                        </svg>
-                                    </div>
+                                    <div class="flex h-full w-full items-center justify-center text-zinc-400"></div>
                                     @endif
                                 </div>
 
@@ -79,55 +69,28 @@ $profileShippingAddress = old('shippingAddress', data_get($user, 'shippingAddres
                             </div>
                         </div>
 
+                        {{-- Grid de Inputs Reutilizáveis --}}
                         <div class="grid gap-6 md:grid-cols-2">
-                        </div>
+                            
+                            <x-profile-input 
+                                label="Nome Completo" 
+                                name="name" 
+                                :value="old('name', auth()->user()->name)" />
 
-                        <div class="grid gap-6 md:grid-cols-2">
+                            <x-profile-input 
+                                label="Email" 
+                                name="email" 
+                                :value="auth()->user()->email" 
+                                readonly="true" />
 
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-zinc-900">Nome Completo</label>
-                                <div class="relative">
-                                    <input
-                                        type="text"
-                                        name="name"
-                                        value="{{ old('name', auth()->user()->name) }}"
-                                        data-editable="true"
-                                        class="profile-input w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                                </div>
-                                @error('name', 'updateProfileInformation')
-                                <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
+                            <x-profile-input 
+                                label="NIF" 
+                                name="nif" 
+                                :value="old('nif', auth()->user()->customer?->nif)" 
+                                placeholder="123456789" 
+                                maxlength="9" />
 
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-zinc-900">Email</label>
-                                <input
-                                    type="text"
-                                    name="email"
-                                    value="{{ old('name', auth()->user()->email) }}"
-                                    readonly
-                                    data-editable="true"
-                                    class="profile-input w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                                <p class="text-xs text-muted-foreground">O email não pode ser alterado</p>
-                            </div>
-
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-zinc-900">NIF</label>
-                                <div class="relative">
-                                    <input
-                                        type="text"
-                                        name="nif"
-                                        value="{{ old('nif', auth()->user()->customer?->nif) }}"
-                                        data-editable="true"
-                                        maxlength="9"
-                                        class="profile-input w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                        placeholder="123456789" />
-                                </div>
-                                @error('nif', 'updateProfileInformation')
-                                <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
-
+                            {{-- O Select mantém-se nativo por ter uma estrutura diferente com options --}}
                             <div class="space-y-2">
                                 <label class="block text-sm font-medium text-zinc-900">Método de Pagamento</label>
                                 <div class="relative">
@@ -152,37 +115,18 @@ $profileShippingAddress = old('shippingAddress', data_get($user, 'shippingAddres
                                 @enderror
                             </div>
 
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-zinc-900">Referência de Pagamento</label>
-                                <div class="relative">
-                                    <input
-                                        type="text"
-                                        name="paymentRef"
-                                        value="{{ old('paymentRef', auth()->user()->customer?->default_payment_ref) }}"
-                                        data-editable="true"
-                                        class="profile-input w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                        placeholder="Nº Telemóvel (MB WAY), Email (PayPal) ou Cartão (VISA)" />
-                                </div>
-                                @error('paymentRef', 'updateProfileInformation')
-                                <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
+                            <x-profile-input 
+                                label="Referência de Pagamento" 
+                                name="paymentRef" 
+                                :value="old('paymentRef', auth()->user()->customer?->default_payment_ref)" 
+                                placeholder="Nº Telemóvel (MB WAY), Email (PayPal) ou Cartão (VISA)" />
 
-                            <div class="space-y-2">
-                                <label class="block text-sm font-medium text-zinc-900">Morada de Envio</label>
-                                <div class="relative">
-                                    <input
-                                        type="text"
-                                        name="morada"
-                                        value="{{ old('shippingAddress', auth()->user()->customer?->address) }}"
-                                        data-editable="true"
-                                        class="profile-input w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 pr-10 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"
-                                        placeholder="Rua, número, código postal, cidade" />
-                                </div>
-                                @error('shippingAddress', 'updateProfileInformation')
-                                <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
-                                @enderror
-                            </div>
+                            <x-profile-input 
+                                label="Morada de Envio" 
+                                name="morada" 
+                                :value="old('morada', auth()->user()->customer?->address)" 
+                                placeholder="Rua, número, código postal, cidade" />
+
                         </div>
                     </form>
                 </div>
