@@ -2,7 +2,7 @@
 <main class="min-h-screen bg-background">
     <div class="container mx-auto px-4 py-12">
         <div class="mb-8 text-center">
-            <h1 class="mb-2 text-3xl font-bold text-foreground">Personalização</h1>
+            <h1 class="mb-2 text-3xl font-bold text-foreground">Tshit</h1>
             <p class="text-muted-foreground">Escolha as opções e adicione o seu produto ao carrinho</p>
         </div>
 
@@ -46,7 +46,7 @@
                         </div>
 
                         {{-- FORMULÁRIO ÚNICO POST PARA A SESSÃO DO CARRINHO --}}
-                        <form action="{{ route('cart.add') }}" method="POST" class="space-y-6">
+                        <form action="{{ route('cart.store') }}" method="POST" class="space-y-6">
                             @csrf
                             <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id }}">
                             <input type="hidden" name="color" value="{{ $selectedColor->code }}">
@@ -76,12 +76,22 @@
                             </div>
 
                             <div class="space-y-3">
-                                <button type="submit" class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                                <button type="submit" 
+                                    class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                                    {{ (isset($tshirt) && $tshirt->image_url) ? '' : 'disabled' }}
+                                    {{ auth()->check() && (auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A') ? 'disabled' : '' }}>
                                     Adicionar ao Carrinho
                                 </button>
+
+                                @auth
+                                    @if(auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A')
+                                        <p class="text-center text-xs text-red-500 mt-1">
+                                            Contas de funcionários/admins não podem efetuar compras.
+                                        </p>
+                                    @endif
+                                @endauth
                             </div>
                         </form>
-
                     </div>
                 </div>
             </div>

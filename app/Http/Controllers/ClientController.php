@@ -6,6 +6,7 @@ use App\Models\User;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\View\View;
+use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
@@ -55,49 +56,34 @@ class ClientController extends Controller
         return view('clients.show', compact('user'));
     }
 
-    /**
-     * Bloqueia ou desbloqueia a conta de um cliente.
-     */
-    public function toggleBlock(User $user)
-    {
-        if ($user->user_type !== 'C') {
-            return redirect()->route('clients.index')
-                ->with('error', 'Ação inválida.');
-        }
-
-        // Inverte o estado de bloqueio (ajusta o nome da coluna conforme a tua BD, ex: 'blocked' ou 'active')
-        $user->blocked = !$user->blocked;
-        $user->save();
-
-        $status = $user->blocked ? 'bloqueado' : 'desbloqueado';
-
-        return redirect()->back()
-            ->with('success', "O cliente {$user->name} foi {$status} com sucesso.");
-    }
-
-    /**
-     * Remove o cliente do sistema (com Soft Delete ou Force Delete).
-     */
     public function destroy(User $user)
     {
         if ($user->user_type !== 'C') {
-            return redirect()->route('clients.index')
-                ->with('error', 'Ação inválida.');
+            return redirect()->route('clients.index')->with('error', 'Ação inválida.');
         }
 
-        // Se usares Soft Deletes e quiseres libertar o e-mail para não dar erro se ele se quiser registar de novo:
-        $user->email = $user->email . '//deleted//' . now()->timestamp;
+        $customerRecord = $user->customer;
+        $fileName = $user->photo_url;
 
-        if ($user->customer) {
-            $user->customer->nif = null; // Liberta o NIF para não bloquear futuros registos
-            $user->customer->save();
+        $hasHistory = $customerRecord && (
+            $customerRecord->orders()->exists() ||
+            $customerRecord->tshirt_images()->exists()
+        );
+
+        if ($hasHistory) {
+            if ($customerRecord) {
+                $customerRecord->nif = null;
+                $customerRecord->delete();
+            }
+            $user->delete();
+        } else {
+            $customerRecord?->forceDelete();
+            $user->forceDelete();
         }
-        $user->save();
 
-        // Faz o Soft Delete (ou ->forceDelete() se quiseres apagar de vez)
-        $user->delete();
-
-        return redirect()->route('clients.index')
-            ->with('success', 'Conta de cliente eliminada com sucesso.');
+        if ($fileName && Storage::disk('public')->exists('photos/' . $fileName)) {
+            Storage::disk('public')->delete('photos/' . $fileName);
+        }
+        return redirect()->route('clients.index')->with('success', "Cliente " . $user->name . " apagado(a).");
     }
 }

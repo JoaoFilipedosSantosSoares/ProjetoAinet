@@ -1,16 +1,25 @@
 @component('layouts.main-content', ['title' => 'Carrinho'])
     @php
         $userIsAuthenticated = auth()->check();
-        
-        // Helper inline para calcular o preço consoante as regras do teu negócio
-        function calculateItemPrice($isCatalog, $quantity) {
-            if (!$isCatalog) {
-                return $quantity >= 5 ? 40.00 : 50.00;
-            }
-            return $quantity >= 5 ? 20.00 : 25.00;
-        }
-
         $grandTotal = 0;
+
+        // Função anónima para calcular o preço com base no objeto de regras vindo do Model Prices
+        $calculateItemPrice = function($isCatalog, $quantity, $rules) {
+            // Fallback preventivo caso a tabela prices esteja totalmente vazia
+            if (!$rules) {
+                if ($quantity >= 5) {
+                    return $isCatalog ? 20.00 : 40.00;
+                }
+                return $isCatalog ? 25.00 : 50.00;
+            }
+
+            // Lógica do Desconto de Quantidade por Item específico
+            if ($quantity >= $rules->qty_discount) {
+                return $isCatalog ? $rules->unit_price_catalog_discount : $rules->unit_price_own_discount;
+            }
+
+            return $isCatalog ? $rules->unit_price_catalog : $rules->unit_price_own;
+        };
     @endphp
 
     <main class="min-h-screen bg-background">
@@ -51,7 +60,7 @@
                     <div class="space-y-4 lg:col-span-2">
                         @foreach ($cartItems as $item)
                             @php
-                                $unitPrice = calculateItemPrice($item['isCatalogImage'], $item['quantity']);
+                                $unitPrice = $calculateItemPrice($item['isCatalogImage'], $item['quantity'], $priceRules);
                                 $itemTotal = $unitPrice * $item['quantity'];
                                 $grandTotal += $itemTotal;
                             @endphp
@@ -148,7 +157,7 @@
                             <div class="space-y-3">
                                 @foreach($cartItems as $item)
                                     @php
-                                        $unitPrice = calculateItemPrice($item['isCatalogImage'], $item['quantity']);
+                                        $unitPrice = $calculateItemPrice($item['isCatalogImage'], $item['quantity'], $priceRules);
                                     @endphp
                                     <div class="flex justify-between text-sm text-muted-foreground">
                                         <span>{{ $item['imageName'] }} (x{{ $item['quantity'] }})</span>
@@ -165,18 +174,33 @@
                                 <p class="mt-1 text-xs text-muted-foreground">Portes de envio calculados no checkout</p>
                             </div>
                             
-                            @if ($userIsAuthenticated)
-                                <a href="/checkout" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
-                                    Finalizar Compra
-                                </a>
-                            @else
-                                <div class="space-y-4">
-                                    <a href="/entrar?redirect=/checkout" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
-                                        Entrar para Finalizar
-                                    </a>
-                                    <p class="text-center text-sm text-muted-foreground">Não tens conta? <a href="/registar?redirect=/checkout" class="text-primary hover:underline">Regista-te aqui</a></p>
-                                </div>
-                            @endif
+                            <div class="mt-6 space-y-4">
+    @if ($userIsAuthenticated)
+        {{-- Formulário Direto de Compra sem interrupção de ecrãs de pagamento externos --}}
+        <form method="POST" action="{{ route('orders.storeCheckout') }}" class="space-y-4">
+            @csrf
+            
+            <div>
+                <label for="order-notes" class="mb-2 block text-sm font-medium text-zinc-700">Notas/Observações da Encomenda (Opcional)</label>
+                <textarea id="order-notes" name="notes" rows="2" placeholder="Ex: Deixar no andar de baixo caso não responda..."
+                    class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
+            </div>
+
+            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#144226] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0e2f1b]">
+                Confirmar e Submeter Encomenda
+            </button>
+        </form>
+    @else
+        <div class="space-y-4">
+            <a href="/entrar?redirect=/carrinho" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                Entrar para Finalizar Compra
+            </a>
+            <p class="text-center text-sm text-muted-foreground">
+                Não tens conta? <a href="/registar" class="text-primary hover:underline">Regista-te aqui</a>
+            </p>
+        </div>
+    @endif
+</div>
                         </div>
                     </div>
                 </div>
