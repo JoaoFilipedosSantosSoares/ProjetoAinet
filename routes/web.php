@@ -17,12 +17,7 @@ Route::get('/', [HomeController::class, 'index'])->name('home');
 Route::get('/catalog', [CatalogController::class, 'index'])->name('catalog.index');
 Route::get('/catalog/{tshirt}', [CatalogController::class, 'show'])->name('catalog.show');
 
-// Carrinho de Compras
-Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
-Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
-Route::post('/cart/update/{itemId}', [CartController::class, 'update'])->name('cart.update');
-Route::post('/cart/remove/{itemId}', [CartController::class, 'remove'])->name('cart.remove');
-Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+
 
 /* ----- GUEST ROUTES ----- */
 Route::middleware(['guest'])->group(function () {
@@ -38,8 +33,7 @@ Route::middleware(['guest'])->group(function () {
 
 /* ----- AUTHENTICATED ROUTES ----- */
 Route::middleware(['auth', 'verified'])->group(function () {
-    Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
-    Route::post('/customization/upload', [CustomizationController::class, 'upload'])->name('customization.upload');
+    
     
     //vai buscar a imagem da tshirt no private
     Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
@@ -52,6 +46,17 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware('can:cliente')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+        
+        // Carrinho de Compras
+        Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+        Route::post('/cart/add', [CartController::class, 'add'])->name('cart.add');
+        Route::post('/cart/update/{itemId}', [CartController::class, 'update'])->name('cart.update');
+        Route::post('/cart/remove/{itemId}', [CartController::class, 'remove'])->name('cart.remove');
+        Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
+
+        // Personalização de T-Shirts
+        Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
+        Route::post('/customization/upload', [CustomizationController::class, 'upload'])->name('customization.upload');
     });
 
     /*
