@@ -11,6 +11,9 @@ use Illuminate\Http\RedirectResponse;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\Gate;
+use Symfony\Component\HttpFoundation\StreamedResponse;
+use Illuminate\Support\Facades\Storage;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -77,6 +80,32 @@ class OrderController extends Controller implements HasMiddleware
         $order->load('order_items.tshirt_image');
 
         return view('orders.show', compact('order'));
+    }
+
+    public function downloadReceipt(Order $order): RedirectResponse|StreamedResponse
+    {
+        // 2. MUDANÇA AQUI: Substitui $this->authorize() por Gate::authorize()
+        Gate::authorize('view', $order);
+
+        // 3. Verifica se a encomenda tem um recibo associado na base de dados
+        if (empty($order->receipt_url)) {
+            return redirect()->back()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'Esta encomenda ainda não possui um recibo disponível.');
+        }
+
+        // 4. Define o caminho correto dentro do storage privado
+        $filePath = 'pdf_receipts/' . $order->receipt_url;
+
+        // 5. Verifica se o ficheiro físico existe mesmo no disco privado
+        if (!Storage::exists($filePath)) {
+            return redirect()->back()
+                ->with('alert-type', 'danger')
+                ->with('alert-msg', 'O ficheiro do recibo não foi encontrado no servidor.');
+        }
+
+        // 6. Faz o download seguro do ficheiro privado
+        return Storage::download($filePath, "recibo-encomenda-{$order->id}.pdf");
     }
 
     // public function updateStatus(Request $request, Order $order): RedirectResponse
@@ -204,15 +233,15 @@ class OrderController extends Controller implements HasMiddleware
 
             $response = Http::withOptions([
                 'verify' => false,
-                'curl'   => [
+                'curl' => [
                     CURLOPT_SSL_VERIFYPEER => false,
                     CURLOPT_SSL_VERIFYHOST => 0
                 ],
             ])->post('https://ainet-payments-api.vercel.app/api/payments', [
-                'type'      => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
-                'reference' => $cleanReference,        // Chave EXATA do enunciado
-                'value'     => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
-            ]);
+                        'type' => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
+                        'reference' => $cleanReference,        // Chave EXATA do enunciado
+                        'value' => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
+                    ]);
 
             // Se a API responder com erro (status code diferente de 2xx)
             if ($response->failed()) {
@@ -343,7 +372,7 @@ class OrderController extends Controller implements HasMiddleware
         // 1. Validação adaptada para o campo 'notes' que vem do teu HTML
         $request->validate([
             'status' => 'required|in:closed,canceled,pending,paid',
-            'reason_for_cancellation'  => 'nullable|string|max:1000',
+            'reason_for_cancellation' => 'nullable|string|max:1000',
         ]);
 
         // 2. Proteção para garantir que apenas Administradores anulam encomendas

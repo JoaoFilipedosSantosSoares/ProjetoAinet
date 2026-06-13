@@ -27,30 +27,30 @@
             </div>
 
             {{-- CONDICIONAL: Filtros exclusivos para Administrador --}}
-            @if(auth()->user()->user_type === 'A')
-                {{-- Filtro 2: Estado da Encomenda --}}
-                <div class="flex flex-col gap-1.5 w-full md:w-48">
-                    <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider" for="status">Estado</label>
-                    <select id="status" name="status"
-                        class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white cursor-pointer">
-                        <option value="">Todos os Estados</option>
-                        <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pendente (Pending)
-                        </option>
-                        <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Concluída (Closed)
-                        </option>
-                        <option value="canceled" {{ request('status') === 'canceled' ? 'selected' : '' }}>Cancelada (Canceled)
-                        </option>
-                    </select>
-                </div>
+            @can('admin')
+            {{-- Filtro 2: Estado da Encomenda --}}
+            <div class="flex flex-col gap-1.5 w-full md:w-48">
+                <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider" for="status">Estado</label>
+                <select id="status" name="status"
+                    class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white cursor-pointer">
+                    <option value="">Todos os Estados</option>
+                    <option value="pending" {{ request('status') === 'pending' ? 'selected' : '' }}>Pendente (Pending)
+                    </option>
+                    <option value="closed" {{ request('status') === 'closed' ? 'selected' : '' }}>Concluída (Closed)
+                    </option>
+                    <option value="canceled" {{ request('status') === 'canceled' ? 'selected' : '' }}>Cancelada (Canceled)
+                    </option>
+                </select>
+            </div>
 
-                {{-- Filtro 3: Quem encomendou (Nome/Email) --}}
-                <div class="flex flex-col gap-1.5 flex-1">
-                    <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider" for="customer">Cliente</label>
-                    <input id="customer" name="customer" type="text" value="{{ request('customer') }}"
-                        placeholder="Nome ou e-mail do cliente..."
-                        class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
-                </div>
-            @endif
+            {{-- Filtro 3: Quem encomendou (Nome/Email) --}}
+            <div class="flex flex-col gap-1.5 flex-1">
+                <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider" for="customer">Cliente</label>
+                <input id="customer" name="customer" type="text" value="{{ request('customer') }}"
+                    placeholder="Nome ou e-mail do cliente..."
+                    class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
+            </div>
+            @endcan
 
             {{-- Botões de Ação --}}
             <div class="flex gap-2 w-full md:w-auto">

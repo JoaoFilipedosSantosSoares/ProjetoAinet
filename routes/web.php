@@ -74,6 +74,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:cliente')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::get('/account/order/{order}', [OrderController::class, 'show'])->name('orders.show');
+        Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
 
         // Carrinho de Compras
 
