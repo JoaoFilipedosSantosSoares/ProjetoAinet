@@ -27,28 +27,28 @@ class AccountController extends Controller implements HasMiddleware
     {
         $user = Auth::user();
         $orders = null;
+        $cancelledOrders = collect(); // Coleção vazia por defeito
 
         if ($user->user_type === 'C') {
-            // 1. Vai buscar o ID correto da tabela customers (evita misturar com o ID do user)
             $customerId = $user->customer?->id;
 
             if ($customerId) {
-                // 2. Filtra pelas encomendas fechadas desse cliente
+                // 1. Encomendas Concluídas/Fechadas
                 $orders = Order::where('customer_id', $customerId)
-                    ->where('status', 'closed') // <-- Adicionado o filtro 'closed'
-                    ->orderBy('id', 'desc')   // Mantém a ordenação por data
+                    ->where('status', 'closed')
+                    ->orderBy('id', 'desc')
                     ->paginate(10)
                     ->withQueryString();
-            } else {
-                // Caso o user seja 'C' mas por algum motivo não tenha registo na tabela customers
-                $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+
+                // 2. Encomendas Canceladas (não paginadas, ou paginadas se preferires)
+                $cancelledOrders = Order::where('customer_id', $customerId)
+                    ->where('status', 'canceled')
+                    ->orderBy('id', 'desc')
+                    ->get();
             }
-        } else {
-            // Se for um Admin, enviamos uma paginação vazia para a view não quebrar ao tentar ler as $orders
-            $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
         }
 
-        return view('account.index', compact('user', 'orders'));
+        return view('account.index', compact('user', 'orders', 'cancelledOrders'));
     }
 
     public function editProfile(): View

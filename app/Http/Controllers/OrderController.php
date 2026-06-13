@@ -38,24 +38,37 @@ class OrderController extends Controller implements HasMiddleware
     public function index(Request $request): View
     {
         $user = Auth::user();
+
+        // Capturar todos os filtros
         $filterBySearch = $request->query('search');
         $filterByStatus = $request->query('status');
         $filterByCustomer = $request->query('customer');
+        $dataInicio = $request->query('data_inicio');
+        $dataFim = $request->query('data_fim');
 
         $ordersQuery = Order::query();
 
+        // 1. Filtro de Estado (Regra de negócio: Funcionário só vê 'pending')
         if ($user->user_type === 'F') {
-            $ordersQuery->where('status', '=', 'pending');
-        } else {
-            if (!empty($filterByStatus)) {
-                $ordersQuery->where('status', '=', $filterByStatus);
-            }
+            $ordersQuery->where('status', 'pending');
+        } elseif (!empty($filterByStatus)) {
+            $ordersQuery->where('status', $filterByStatus);
         }
 
+        // 2. Filtro de ID
         if (!empty($filterBySearch)) {
-            $ordersQuery->where('id', '=', $filterBySearch);
+            $ordersQuery->where('id', $filterBySearch);
         }
 
+        // 3. Filtro de Datas (Intervalo)
+        if (!empty($dataInicio)) {
+            $ordersQuery->whereDate('created_at', '>=', $dataInicio);
+        }
+        if (!empty($dataFim)) {
+            $ordersQuery->whereDate('created_at', '<=', $dataFim);
+        }
+
+        // 4. Filtro de Cliente (Apenas para Admin)
         if ($user->user_type === 'A' && !empty($filterByCustomer)) {
             $ordersQuery->whereHas('customer.user', function ($query) use ($filterByCustomer) {
                 $query->where('name', 'like', "%{$filterByCustomer}%")
@@ -69,7 +82,12 @@ class OrderController extends Controller implements HasMiddleware
             ->paginate(20)
             ->withQueryString();
 
-        return view('orders.index', compact('orders', 'filterBySearch', 'filterByStatus', 'filterByCustomer'));
+        return view('orders.index', compact(
+            'orders',
+            'filterBySearch',
+            'filterByStatus',
+            'filterByCustomer'
+        ));
     }
 
     public function show(Order $order): View
@@ -141,6 +159,7 @@ class OrderController extends Controller implements HasMiddleware
             // Injeta os valores calculados diretamente no array do item para a View consumir de forma limpa
             $item['unit_price'] = $unitPrice;
             $item['sub_total'] = $unitPrice * $qty;
+
 
             $grandTotal += $item['sub_total'];
         }

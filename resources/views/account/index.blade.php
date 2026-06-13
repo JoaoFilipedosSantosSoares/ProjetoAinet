@@ -257,6 +257,50 @@
                     @endif
                 </div>
             </section>
+            <section id="cancelled-orders-panel" class="mt-8">
+                <div class="overflow-hidden rounded-3xl border border-zinc-200 bg-white shadow-sm">
+                    <div class="border-b border-zinc-200 bg-red-50/50 p-6">
+                        <h2 class="text-xl font-semibold text-red-900">Encomendas Canceladas</h2>
+                        <p class="text-sm text-red-700">Histórico de compras que foram anuladas</p>
+                    </div>
+
+                    @if($cancelledOrders->isNotEmpty())
+                        <div class="overflow-x-auto">
+                            <table class="w-full text-left text-sm text-zinc-600">
+                                <thead class="border-b border-zinc-100 bg-zinc-50 text-xs font-semibold uppercase text-zinc-700">
+                                    <tr>
+                                        <th class="px-6 py-4">ID</th>
+                                        <th class="px-6 py-4">Data</th>
+                                        <th class="px-6 py-4 text-right">Total</th>
+                                        <th class="px-6 py-4">Motivo</th>
+                                    </tr>
+                                </thead>
+                                <tbody class="divide-y divide-zinc-100">
+                                    @foreach($cancelledOrders as $order)
+                                        <tr class="transition hover:bg-red-50/30">
+                                            <td class="px-6 py-4 font-medium text-zinc-900">#{{ $order->id }}</td>
+                                            <td class="px-6 py-4">{{ $order->created_at->format('d/m/Y') }}</td>
+                                            <td class="px-6 py-4 text-right font-semibold text-zinc-900">
+                                                {{ number_format($order->total_price, 2, ',', '.') }} €
+                                            </td>
+                                            <td class="px-6 py-4 italic text-red-600">
+                                                {{ $order->reason_for_cancellation ?? 'Sem motivo especificado' }}
+                                            </td>
+                                        </tr>
+                                    @endforeach
+                                </tbody>
+                            </table>
+                        </div>
+                    @else
+                        <div class="flex flex-col items-center justify-center p-8 text-center text-zinc-500">
+                            <svg class="mb-2 h-6 w-6 text-zinc-300" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 12l2 2 4-4m6 2a9 9 0 11-18 0 9 9 0 0118 0z" />
+                            </svg>
+                            <p class="text-sm">Não existem encomendas canceladas.</p>
+                        </div>
+                    @endif
+                </div>
+            </section>
         </div>
     </div>
 </main>

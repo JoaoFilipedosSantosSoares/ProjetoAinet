@@ -227,9 +227,14 @@ class ManagementController extends Controller
 
         // Verifica se uma imagem foi enviada
         if ($request->hasFile('category_image')) {
-            // Guarda na pasta 'categories' dentro do 'storage/app/public'
-            $path = $request->file('category_image')->store('categories', 'public');
-            $data['image_url'] = $path;
+            // 1. Obtém o nome original do ficheiro
+            $fileName = $request->file('category_image')->getClientOriginalName();
+
+            // 3. Guarda na pasta 'categories' com o nome específico
+            $path = $request->file('category_image')->storeAs('categories', $fileName, 'public');
+
+            // 4. Guarda apenas o nome do ficheiro (ou o caminho completo se preferires) na DB
+            $data['image_url'] = $fileName;
         }
 
         Category::create($data);
@@ -275,37 +280,40 @@ class ManagementController extends Controller
     public function storeColor(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'code' => 'required|string|max:6|unique:colors,code',
+            // Regex para aceitar apenas 6 caracteres hexadecimais (0-9, a-f, case-insensitive)
+            'code' => ['required', 'string', 'regex:/^[a-fA-F0-9]{6}$/', 'unique:colors,code'],
             'name' => 'required|string|max:255',
             'tshirt_image' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
         ], [
             'code.required' => 'O código HEX é obrigatório.',
+            'code.regex' => 'O código HEX deve conter apenas 6 caracteres válidos (0-9 e A-F).',
             'code.unique' => 'Já existe uma cor registada com esse código HEX.',
             'name.required' => 'O nome da cor é obrigatório.',
             'tshirt_image.required' => 'O upload da imagem da t-shirt base é obrigatório.',
-            'tshirt_image.max' => 'A imagem da t-shirt não pode ter mais do que 2MB.',
         ]);
 
         try {
             DB::transaction(function () use ($request, $validated) {
-                $fileName = strtolower($validated['code']) . '.jpg';
+                // Garantir que salvamos sempre em minúsculas para o ficheiro
+                $code = strtolower($validated['code']);
+                $fileName = $code . '.jpg';
 
                 $request->file('tshirt_image')->storeAs('tshirt_base', $fileName, 'public');
 
                 Color::create([
-                    'code' => strtoupper($validated['code']),
+                    'code' => strtoupper($validated['code']), // Guardamos em maiúsculas na DB
                     'name' => $validated['name'],
                 ]);
             });
 
             return redirect()->route('staff.gestao')
                 ->with('alert-type', 'success')
-                ->with('alert-msg', "A cor <b>{$validated['name']}</b> e a respetiva t-shirt base foram adicionadas com sucesso!");
+                ->with('alert-msg', "A cor <b>{$validated['name']}</b> foi adicionada com sucesso!");
         } catch (\Exception $error) {
             return redirect()->back()
                 ->withInput()
                 ->with('alert-type', 'danger')
-                ->with('alert-msg', 'Ocorreu um erro ao salvar a cor. Certifique-se de que os dados são válidos.');
+                ->with('alert-msg', 'Ocorreu um erro ao salvar a cor.');
         }
     }
 
