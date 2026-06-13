@@ -34,14 +34,33 @@ class OrderController extends Controller implements HasMiddleware
 
     public function index(Request $request): View
     {
+        $user = Auth::user();
         $filterBySearch = $request->query('search');
+        $filterByStatus = $request->query('status');
+        $filterByCustomer = $request->query('customer');
 
         $ordersQuery = Order::query();
 
-        $ordersQuery->where('status', '=', 'pending');
+        if ($user->user_type === 'F') {
+            $ordersQuery->where('status', '=', 'pending');
+        } else {
+            // Se for Admin (A), pode filtrar por qualquer estado selecionado
+            if (!empty($filterByStatus)) {
+                $ordersQuery->where('status', '=', $filterByStatus);
+            }
+        }
 
-        if ($filterBySearch !== null) {
+        // Filtro por ID (comum a ambos)
+        if (!empty($filterBySearch)) {
             $ordersQuery->where('id', '=', $filterBySearch);
+        }
+
+        // Filtro por Cliente (Apenas para Admin - Pesquisa por Nome ou Email do User)
+        if ($user->user_type === 'A' && !empty($filterByCustomer)) {
+            $ordersQuery->whereHas('customer.user', function ($query) use ($filterByCustomer) {
+                $query->where('name', 'like', "%{$filterByCustomer}%")
+                    ->orWhere('email', 'like', "%{$filterByCustomer}%");
+            });
         }
 
         $orders = $ordersQuery
@@ -50,7 +69,7 @@ class OrderController extends Controller implements HasMiddleware
             ->paginate(20)
             ->withQueryString();
 
-        return view('orders.index', compact('orders', 'filterBySearch'));
+        return view('orders.index', compact('orders', 'filterBySearch', 'filterByStatus', 'filterByCustomer'));
     }
 
     public function show(Order $order): View
@@ -60,19 +79,19 @@ class OrderController extends Controller implements HasMiddleware
         return view('orders.show', compact('order'));
     }
 
-    public function updateStatus(Request $request, Order $order): RedirectResponse
-    {
-        $request->validate([
-            'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
-        ]);
+    // public function updateStatus(Request $request, Order $order): RedirectResponse
+    // {
+    //     $request->validate([
+    //         'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
+    //     ]);
 
-        if (in_array($order->status, ['cancelado', 'enviado'])) {
-            return redirect()->back()->with('error', 'Não é possível alterar o estado de uma encomenda finalizada.');
-        }
+    //     if (in_array($order->status, ['cancelado', 'enviado'])) {
+    //         return redirect()->back()->with('error', 'Não é possível alterar o estado de uma encomenda finalizada.');
+    //     }
 
-        $order->update(['status' => $request->status]);
-        return redirect()->back()->with('success', 'Estado atualizado.');
-    }
+    //     $order->update(['status' => $request->status]);
+    //     return redirect()->back()->with('success', 'Estado atualizado.');
+    // }
 
     public function checkout()
     {
@@ -306,38 +325,50 @@ class OrderController extends Controller implements HasMiddleware
 
     public function update(Request $request, Order $order): RedirectResponse
     {
-        // Valida usando os estados literais em inglês aceites pelo CHECK constraint da BD
+        // dd($request->all());
+        // 1. Validação estrita
+        // 1. Validação adaptada para o campo 'notes' que vem do teu HTML
         $request->validate([
-            'status' => 'required|in:pending,paid,closed,canceled'
+            'status' => 'required|in:closed,canceled,pending,paid',
+            'reason_for_cancellation'  => 'nullable|string|max:1000',
         ]);
 
-        // Regra de negócio: impede alterar se já estiver cancelada ('canceled') ou fechada ('closed')
-        if (in_array($order->status, ['canceled', 'closed'])) {
+        // 2. Proteção para garantir que apenas Administradores anulam encomendas
+        if ($request->status === 'canceled' && Auth::user()->user_type !== 'A') {
             return redirect()->back()
-                ->with('alert-type', 'warning')
-                ->with('alert-msg', "Não é possível alterar o estado da encomenda <b>#{$order->id}</b> porque ela já se encontra finalizada.");
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Apenas administradores podem anular encomendas.');
         }
 
-        DB::transaction(function () use ($request, $order) {
-            $order->update([
-                'status' => $request->status // Irá gravar 'closed' corretamente na base de dados
-            ]);
-        });
+        // 3. Preparar os dados para o update
+        $updateData = [
+            'status' => $request->status,
+        ];
 
-        // Mapeamento apenas para a mensagem visual de sucesso ficar bonita em português
-        $statusPt = match ($request->status) {
-            'pending'  => 'pendente',
-            'paid'     => 'paga',
-            'closed'   => 'concluída',
-            'canceled' => 'cancelada',
-            default    => $request->status
-        };
+        // Se for um cancelamento, fazemos a gestão do texto na coluna 'reason_for_cancellation'
+        if ($request->status === 'canceled') {
+            $currentReason = $order->reason_for_cancellation;
 
-        $url = route('orders.show', ['order' => $order]);
-        $htmlMessage = "O estado da encomenda <a href='$url'><u>#{$order->id}</u></a> foi atualizado com sucesso para <b>{$statusPt}</b>!";
+            // Lemos o $request->reason_for_cancellation porque é aí que o teu form está a injetar o "teste"
+            if (!empty($request->reason_for_cancellation)) {
+                $timestamp = now()->format('d/m/Y H:i');
+                $break = !empty($currentReason) ? "\n\n" : "";
 
-        return redirect()->back()
+                // Concatena o novo motivo na coluna certa da BD
+                $updateData['reason_for_cancellation'] = $currentReason . $break . "[Cancelado em {$timestamp}] " . $request->reason_for_cancellation;
+            }
+        }
+
+        // 4. Atualiza os dados na Base de Dados
+        $order->update($updateData);
+
+        // 5. Mensagens de feedback
+        $message = $request->status === 'canceled'
+            ? "Encomenda <b>#{$order->id}</b> foi anulada com sucesso."
+            : "Encomenda <b>#{$order->id}</b> marcada como concluída!";
+
+        return redirect()->route('orders.index')
             ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
+            ->with('alert-msg', $message);
     }
 }
