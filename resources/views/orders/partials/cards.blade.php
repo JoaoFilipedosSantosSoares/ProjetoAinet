@@ -40,21 +40,28 @@
         <div class="space-y-4">
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-4">
                 @foreach ($order->order_items as $item)
-                    <div class="mb-4">
-                        @if ($item->tshirt_image?->image_url && $item->tshirt_image->customer_id == null)
-                            <img src="{{ asset('storage/tshirt_images/' . $item->tshirt_image->image_url) }}" alt="T-shirt"
-                                class="mb-2 h-32 w-32 rounded-lg object-cover" />
-                        @elseif ($item->tshirt_image?->image_url && $item->tshirt_image->customer_id == $order->customer_id)
-                            <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
-                                alt="T-shirt" class="mb-2 h-32 w-32 rounded-lg object-cover" />
-                        @endif
-                        {{-- Correção para garantir que o qty vai buscar o campo correto das tabelas pivot se necessário,
-                        alterado para qty conforme o controller --}}
-                        <p class="mt-1 text-sm text-muted-foreground">Tamanho: {{ $item->size }} · Quantidade:
-                            {{ $item->qty ?? $item->quantity }} · P. unitário: {{ $item->unit_price }}€
-                        </p>
-                    </div>
-                @endforeach
+    <div class="mb-4">
+        {{-- LÓGICA DE DETEÇÃO DA ESTAMPA: PRIVADA VS PÚBLICA (CATÁLOGO) --}}
+        @if(isset($item->tshirt_image->customer_id))
+            {{-- Imagem Privada do Cliente (Usa a rota segura) --}}
+            <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
+                alt="{{ $item->tshirt_image->name ?? 'T-shirt personalizada' }}"
+                class="mb-2 h-32 w-32 rounded-lg object-cover" />
+        @else
+            {{-- Imagem Pública do Catálogo (Usa o asset público com fallback para default.png) --}}
+            <img src="{{ asset('storage/tshirt_images/' . ($item->tshirt_image->image_url ?? 'default.png')) }}"
+                alt="{{ $item->tshirt_image->name ?? 'Estampa' }}"
+                class="mb-2 h-32 w-32 rounded-lg object-cover" />
+        @endif
+
+        {{-- Informações de Tamanho, Quantidade e Preço Unitário --}}
+        <p class="mt-1 text-sm text-muted-foreground">
+            Tamanho: {{ $item->size }} · 
+            Quantidade: {{ $item->qty ?? $item->quantity }} · 
+            P. unitário: {{ number_format($item->unit_price, 2, ',', '.') }}€
+        </p>
+    </div>
+@endforeach
                 <p class="mt-2 text-sm font-medium text-zinc-900">Sub-total:
                     €{{ number_format($order->total_price, 2) }}</p>
             </div>

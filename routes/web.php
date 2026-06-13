@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::get('/profile', [AccountController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
 
+    Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
     /*
     |--------------------------------------------------------------------------
     | MIDDLEWARE: CLIENTE
@@ -80,7 +81,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:cliente')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::get('/account/order/{order}', [OrderController::class, 'show'])->name('orders.show');
-        Route::get('/orders/{order}/receipt', [OrderController::class, 'downloadReceipt'])->name('orders.receipt');
 
         // Carrinho de Compras
 
