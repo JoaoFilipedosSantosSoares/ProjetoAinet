@@ -61,7 +61,7 @@ class OrderController extends Controller implements HasMiddleware
 
         $orders = $ordersQuery
             ->with('customer.user')
-            ->orderBy('date', 'desc')
+            ->orderBy('id', 'desc')
             ->paginate(20)
             ->withQueryString();
 
