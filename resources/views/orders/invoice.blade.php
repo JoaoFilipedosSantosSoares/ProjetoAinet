@@ -4,7 +4,7 @@
 <head>
     <meta charset="UTF-8">
     <title>Recibo da Encomenda #{{ $order->id }}</title>
-    <style>
+    <style> 
         /* --- ESTILOS GERAIS (Inspirados no teu Catálogo) --- */
         @page {
             margin: 40px;

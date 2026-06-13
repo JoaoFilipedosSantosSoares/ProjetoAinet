@@ -278,6 +278,10 @@ class OrderController extends Controller implements HasMiddleware
             return $newOrder;
         });
 
+        if ($order) {
+            $this->generateAndSave($order);
+        }
+
         session()->forget('cart');
 
         return redirect()->route('account.index')
@@ -384,10 +388,6 @@ class OrderController extends Controller implements HasMiddleware
         }
 
         $order->update($updateData);
-
-        if (in_array($request->status, ['closed', 'paid'])) {
-            $this->generateAndSave($order);
-        }
 
         $message = $request->status === 'canceled'
             ? "Encomenda <b>#{$order->id}</b> foi anulada com sucesso."
