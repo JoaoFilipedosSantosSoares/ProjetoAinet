@@ -29,10 +29,23 @@ class AccountController extends Controller implements HasMiddleware
         $orders = null;
 
         if ($user->user_type === 'C') {
-            $orders = Order::where('customer_id', $user->id)
-                ->orderBy('date', 'desc')
-                ->paginate(10)
-                ->withQueryString();
+            // 1. Vai buscar o ID correto da tabela customers (evita misturar com o ID do user)
+            $customerId = $user->customer?->id;
+
+            if ($customerId) {
+                // 2. Filtra pelas encomendas fechadas desse cliente
+                $orders = Order::where('customer_id', $customerId)
+                    ->where('status', 'closed') // <-- Adicionado o filtro 'closed'
+                    ->orderBy('date', 'desc')   // Mantém a ordenação por data
+                    ->paginate(10)
+                    ->withQueryString();
+            } else {
+                // Caso o user seja 'C' mas por algum motivo não tenha registo na tabela customers
+                $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
+            }
+        } else {
+            // Se for um Admin, enviamos uma paginação vazia para a view não quebrar ao tentar ler as $orders
+            $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 10);
         }
 
         return view('account.index', compact('user', 'orders'));

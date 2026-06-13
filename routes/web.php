@@ -72,6 +72,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     */
     Route::middleware('can:cliente')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
+        Route::get('/account/order/{order}', [OrderController::class, 'show'])->name('orders.show');
 
         // Carrinho de Compras
         Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
@@ -143,6 +144,5 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Bloquear e Eliminar Staff
         Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [StaffController::class, 'destroy'])->name('account.destroy');
-
     });
 });

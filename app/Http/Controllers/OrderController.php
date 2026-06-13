@@ -35,8 +35,7 @@ class OrderController extends Controller implements HasMiddleware
     public function index(Request $request): View
     {
         $filterBySearch = $request->query('search');
-        $filterByStatus = $request->query('status'); // Permite filtrar por pendente, em processamento, etc.
-
+        $filterByStatus = $request->query('status');
         $ordersQuery = Order::query();
 
         if ($filterByStatus !== null) {
@@ -47,7 +46,6 @@ class OrderController extends Controller implements HasMiddleware
             $ordersQuery->where('id', '=', $filterBySearch);
         }
 
-        // Padrão do professor: paginação com query string e carregamento de relações
         $orders = $ordersQuery
             ->with('customer.user')
             ->orderBy('date', 'desc')
@@ -59,9 +57,9 @@ class OrderController extends Controller implements HasMiddleware
 
     public function show(Order $order): View
     {
-        $order->load('orderItems.tshirtImage', 'customer.user');
+        $order->load('order_items.tshirt_image');
 
-        return view('orders.show')->with('order', $order);
+        return view('orders.show', compact('order'));
     }
 
     public function updateStatus(Request $request, Order $order): RedirectResponse

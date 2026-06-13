@@ -3,6 +3,7 @@
 namespace App\Http\Controllers;
 
 use App\Models\User;
+use App\Models\Order;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use Illuminate\Contracts\View\View;
@@ -10,18 +11,12 @@ use Illuminate\Support\Facades\DB;
 
 class ClientController extends Controller
 {
-    /**
-     * Lista todos os clientes.
-     */
     public function index(Request $request): View
     {
-        // Captura os dados do formulário de clientes
         $filterBySearch = $request->query('search');
 
-        // Traz APENAS clientes ('C')
         $clientsQuery = User::where('user_type', 'C');
 
-        // Se houver pesquisa, filtra por nome ou email
         if ($filterBySearch !== null) {
             $clientsQuery->where(function ($q) use ($filterBySearch) {
                 $q->where('name', 'like', "%$filterBySearch%")
@@ -29,28 +24,22 @@ class ClientController extends Controller
             });
         }
 
-        // Ordena, pagina e mantém a Query String no URL
         $clients = $clientsQuery
             ->orderBy('name')
             ->paginate(15)
             ->withQueryString();
 
-        // Envia exatamente as mesmas variáveis para a view de clientes
         return view('clients.index', compact('clients', 'filterBySearch'));
     }
 
-    /**
-     * Mostra o perfil detalhado de um cliente específico.
-     */
+
     public function show(User $user)
     {
-        // Segurança: Se tentarem meter o ID de um Admin/Funcionário no URL de clientes
         if ($user->user_type !== 'C') {
             return redirect()->route('clients.index')
                 ->with('error', 'O utilizador selecionado não é um cliente.');
         }
 
-        // Se o cliente tiver uma relação com a tabela 'customer' (para NIF, morada, etc.)
         $user->load('customer');
 
         return view('clients.show', compact('user'));
@@ -85,5 +74,29 @@ class ClientController extends Controller
             Storage::disk('public')->delete('photos/' . $fileName);
         }
         return redirect()->route('clients.index')->with('success', "Cliente " . $user->name . " apagado(a).");
+    }
+
+    public function myOrders(Request $request): View
+    {
+        // 1. Vai buscar o perfil de cliente do utilizador logado
+        $customerRecord = $request->user()?->customer;
+
+        // 2. Se o utilizador não tiver perfil de cliente (ex: for um Admin),
+        // ou se não tiver encomendas, envia uma paginação vazia para a view
+        if (!$customerRecord) {
+            $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
+            return view('orders.my', compact('orders'));
+        }
+
+        // 3. Procura as encomendas que pertencem a este customer_id
+        // Fazemos paginação de 20 por página e mantemos os filtros no URL (Query String)
+        $orders = Order::where('customer_id', $customerRecord->id)
+            ->where('status', 'closed')
+            ->orderBy('created_at', 'desc') // As mais recentes primeiro
+            ->paginate(20)
+            ->withQueryString();
+
+        // 4. Retorna a view (ajusta o caminho se a tua view tiver outro nome)
+        return view('orders.my', compact('orders'));
     }
 }

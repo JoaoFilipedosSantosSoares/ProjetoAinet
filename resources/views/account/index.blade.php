@@ -125,6 +125,73 @@
                     </form>
                 </div>
             </section>
+            <section id="orders-panel" class="space-y-6 mt-8">
+                <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
+                    <div class="border-b border-zinc-200 p-6">
+                        <h2 class="text-xl font-semibold text-foreground">As Minhas Encomendas concluídas</h2>
+                        <p class="text-muted-foreground">Acompanha o histórico das tuas compras </p>
+                    </div>
+
+                    @if($orders && $orders->isNotEmpty())
+                    <div class="overflow-x-auto">
+                        <table class="w-full text-left text-sm text-zinc-600">
+                            <thead class="bg-zinc-50 text-xs font-semibold uppercase text-zinc-700 border-b border-zinc-200">
+                                <tr>
+                                    <th class="px-6 py-4">ID / Referência</th>
+                                    <th class="px-6 py-4">Data</th>
+                                    <th class="px-6 py-4">Estado</th>
+                                    <th class="px-6 py-4 text-right">Total</th>
+                                    <th class="px-6 py-4 text-center">Ações</th>
+                                </tr>
+                            </thead>
+                            <tbody class="divide-y divide-zinc-100">
+                                @foreach($orders as $order)
+                                <tr class="hover:bg-zinc-50/50 transition">
+                                    <td class="whitespace-nowrap px-6 py-4 font-medium text-zinc-900">
+                                        #{{ $order->id }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        {{ date('d/m/Y H:i', strtotime($order->date ?? $order->created_at)) }}
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4">
+                                        <span class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">
+                                            {{ ucfirst($order->status) }}
+                                        </span>
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-right font-semibold text-zinc-900">
+                                        {{ number_format($order->total_price, 2, ',', '.') }} €
+                                    </td>
+                                    <td class="whitespace-nowrap px-6 py-4 text-center">
+                                        <a href="{{ route('orders.show', $order->id) }}" class="inline-flex items-center gap-1 text-sm font-semibold text-zinc-900 hover:underline">
+                                            Ver Detalhes
+                                            <svg class="h-4 w-4" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 5l7 7-7 7" />
+                                            </svg>
+                                        </a>
+                                    </td>
+                                </tr>
+                                @endforeach
+                            </tbody>
+                        </table>
+                    </div>
+
+                    <div class="mt-6 px-6 pb-6">
+                        {{ $orders->links() }}
+                    </div>
+
+                    @else
+                    <div class="flex flex-col items-center justify-center p-12 text-center">
+                        <div class="rounded-full bg-zinc-50 p-4 border border-zinc-100 mb-4">
+                            <svg class="h-8 w-8 text-zinc-400" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
+                            </svg>
+                        </div>
+                        <h3 class="text-sm font-semibold text-zinc-900">Nenhuma encomenda fechado</h3>
+                        <p class="mt-1 text-sm text-muted-foreground">Não encontrámos encomendas com o estado fechada na tua conta.</p>
+                    </div>
+                    @endif
+                </div>
+            </section>
         </div>
     </div>
 </main>

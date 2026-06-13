@@ -2,7 +2,7 @@
 <main class="min-h-screen bg-background">
     <div class="container mx-auto px-4 py-12">
         <div class="mb-8 text-center">
-            <h1 class="mb-2 text-3xl font-bold text-foreground">Tshit</h1>
+            <h1 class="mb-2 text-3xl font-bold text-foreground">Confirmação</h1>
             <p class="text-muted-foreground">Escolha as opções e adicione o seu produto ao carrinho</p>
         </div>
 
