@@ -11,19 +11,32 @@
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="product-card overflow-hidden rounded-2xl bg-white shadow-sm">
                         <div class="relative aspect-square overflow-hidden bg-zinc-100 flex items-center justify-center">
-                            <img id="tshirt-base-preview" src="{{ asset('storage/tshirt_base/' . $selectedColor->code . '.jpg') }}"
+                            <img id="tshirt-base-preview"
+                                src="{{ asset('storage/tshirt_base/' . $selectedColor->code . '.jpg') }}"
                                 alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain" />
                             <img src="{{ asset('storage/tshirt_images/' . $tshirt->image_url) }}"
                                 alt="{{ $tshirt->name }}" class="relative z-10 h-[50%] w-[50%] object-contain" />
                         </div>
-                        <div class="p-4">
-                            <p class="text-xs uppercase tracking-widest text-muted-foreground">
-                                {{ $tshirt->category->name ?? 'Sem Categoria' }}
-                            </p>
-                            <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->name }}</h3>
+
+                        <div class="p-4 border-b border-zinc-100">
+                            <div class="flex items-center justify-between gap-4 mb-2">
+                                <p class="text-xs uppercase tracking-widest text-muted-foreground font-semibold">
+                                    {{ $tshirt->category->name ?? 'Sem Categoria' }}
+                                </p>
+
+                                @if(!empty($tshirt->category->image_url))
+                                <div class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                                    <img src="{{ asset('storage/categories/' . $tshirt->category->image_url) }}"
+                                        alt="{{ $tshirt->name ?? 'Imagem Categoria' }}"
+                                        class="h-full w-full object-cover" />
+                                </div>
+                                @endif
+                            </div>
+                            <h3 class="font-semibold text-zinc-900 text-base tracking-tight">{{ $tshirt->name }}</h3>
                         </div>
-                        <div class="p-4">
-                            <p class="text-xs uppercase tracking-widest black font-bold">
+
+                        <div class="p-4 bg-zinc-50/30">
+                            <p class="text-xs uppercase tracking-widest text-zinc-900 font-bold">
                                 Descrição
                             </p>
                             <p class="mt-2 text-sm text-zinc-600 leading-relaxed italic">

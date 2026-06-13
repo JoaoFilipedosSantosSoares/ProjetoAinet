@@ -54,7 +54,6 @@ Route::middleware(['guest'])->group(function () {
     });
 });
 
-
 /*
 |--------------------------------------------------------------------------
 | AUTHENTICATED ROUTES (Apenas para utilizadores Logados e Verificados)
@@ -81,6 +80,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     Route::middleware('can:cliente')->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
         Route::get('/account/order/{order}', [OrderController::class, 'show'])->name('orders.show');
+
+        // Carrinho de Compras
 
         // Personalização de T-Shirts
         Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');

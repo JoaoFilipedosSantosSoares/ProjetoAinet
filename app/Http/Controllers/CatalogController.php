@@ -18,7 +18,13 @@ class CatalogController extends Controller
         }
 
         if ($request->filled('search')) {
-            $query->where('name', 'like', '%' . $request->search . '%');
+            $searchTerm = '%' . $request->search . '%';
+
+            // Agrupamos a pesquisa com uma função anónima para não interferir com o filtro da categoria
+            $query->where(function ($q) use ($searchTerm) {
+                $q->where('name', 'like', $searchTerm)
+                    ->orWhere('description', 'like', $searchTerm); // Adicionada a pesquisa por descrição
+            });
         }
 
         $tshirts = $query->paginate(18)->appends($request->query());
@@ -37,13 +43,13 @@ class CatalogController extends Controller
             'imageUrl' => $t->image_url,
         ]);
 
-        
+
 
         return view('catalog.index', [
             'tshirts' => $tshirts,
             'categories' => $categories,
             'catalogImages' => $catalogImages,
-            
+
         ]);
     }
 
@@ -65,7 +71,6 @@ class CatalogController extends Controller
             'tshirt' => $tshirt,
             'colors' => $colors,
             'selectedColor' => $selectedColor,
-            // 3. Enviar as variáveis de preço para a View
             'basePrice' => $basePrice,
             'discountPrice' => $discountPrice,
             'qtyTrigger' => $qtyTrigger,

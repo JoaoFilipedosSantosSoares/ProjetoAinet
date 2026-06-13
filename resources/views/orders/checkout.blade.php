@@ -4,7 +4,6 @@
     <div class="container mx-auto px-4 max-w-5xl">
         <h1 class="mb-8 text-3xl font-bold tracking-tight text-zinc-900">Finalizar Encomenda (Checkout)</h1>
 
-        {{-- Exibição de Erros de Validação / Pagamento Recusado --}}
         @if($errors->any())
             <div class="mb-6 rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-800 border border-red-200">
                 <ul class="list-disc pl-5 space-y-1">
@@ -100,7 +99,9 @@
                             value="{{ old('payment_ref', auth()->user()->customer->default_payment_ref ?? '') }}" 
                             placeholder="Selecione um método de pagamento acima..."
                             class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
-                        <p id="payment_help_text" class="text-[11px] text-zinc-400">Selecione um método para ver o formato correto.</p>
+                        <p id="payment_help_text" class="text-[11px] text-zinc-400">
+                            <b>Formatos aceites:</b> Visa (ex: 4123...), MB WAY (ex: 9123...) ou o e-mail da sua conta PayPal.
+                        </p>
                     </div>
                 </div>
             </div>

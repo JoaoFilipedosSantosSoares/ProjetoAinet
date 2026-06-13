@@ -132,10 +132,12 @@ class OrderController extends Controller implements HasMiddleware
             return redirect()->route('cart.index')->with('error', 'O seu carrinho está vazio.');
         }
 
+        // 1. VALIDAÇÃO ESTRETA CONFORME O ENUNCIADO
         $request->validate([
             'address' => 'required|string|max:255',
             'nif' => 'nullable|digits:9',
-            'payment_type' => 'required|in:VISA,MB WAY,PAYPAL',
+            // Aceita exatamente "Visa", "PayPal" ou "MB WAY" (sensível a maiúsculas)
+            'payment_type' => 'required|in:Visa,PayPal,MB WAY',
             'notes' => 'nullable|string|max:1000',
             'payment_ref' => [
                 'required',
@@ -148,11 +150,13 @@ class OrderController extends Controller implements HasMiddleware
                             }
                             break;
                         case 'MB WAY':
-                            if (!preg_match('/^[0-9]{9}$/', $value)) {
-                                $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos.');
+                            // 9 dígitos e OBRIGATORIAMENTE iniciado por 9
+                            if (!preg_match('/^9[0-9]{8}$/', $value)) {
+                                $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos e começar com 9.');
                             }
                             break;
-                        case 'PAYPAL':
+                        case 'PayPal':
+                            // E-mail válido
                             if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
                                 $fail('O formato do e-mail PayPal é inválido.');
                             }
@@ -193,26 +197,46 @@ class OrderController extends Controller implements HasMiddleware
             ];
         }
 
-        $paymentSuccess = true;
-        if (strlen($request->payment_ref) < 3) {
-            $paymentSuccess = false;
-        }
-
-        if (!$paymentSuccess) {
+        // VALIDAÇÃO EXTRA DO VALOR SEGUNDO O ENUNCIADO (0.01 até 999999.99)
+        if ($grandTotal < 0.01 || $grandTotal > 999999.99) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['payment_ref' => 'O pagamento simulado foi recusado pela entidade emissora. Verifique os dados inseridos.']);
+                ->withErrors(['payment_ref' => 'O valor total da encomenda excede os limites permitidos para pagamento.']);
         }
 
-        $formPaymentType = $request->payment_type;
-        $dbPaymentType = match ($formPaymentType) {
-            'VISA' => 'Visa',
-            'MB WAY' => 'MB WAY',
-            'PAYPAL' => 'PayPal',
-            default => $formPaymentType
-        };
+        try {
+            // Limpa espaços que o utilizador possa ter digitado na referência
+            $cleanReference = str_replace(' ', '', $request->payment_ref);
 
-        $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave, $dbPaymentType) {
+            $response = Http::withOptions([
+                'verify' => false,
+                'curl'   => [
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => 0
+                ],
+            ])->post('https://ainet-payments-api.vercel.app/api/payments', [
+                'type'      => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
+                'reference' => $cleanReference,        // Chave EXATA do enunciado
+                'value'     => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
+            ]);
+
+            // Se a API responder com erro (status code diferente de 2xx)
+            if ($response->failed()) {
+                $apiError = $response->json()['message'] ?? 'Validation failed';
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['payment_ref' => "<b>Erro de Pagamento:</b> {$apiError}"]);
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['payment_ref' => 'Não foi possível contactar a plataforma externa de pagamentos. Tente novamente mais tarde.']);
+        }
+
+        // 4. GRAVAÇÃO NA BASE DE DADOS (TRANSAÇÃO ATÓMICA)
+        $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave) {
+
+            // Como a API deu OK, salvamos como 'paid' (ou 'pending' se a tua BD exigir)
             $newOrder = Order::create([
                 'status' => 'pending',
                 'customer_id' => $user->customer->id ?? null,
@@ -221,10 +245,11 @@ class OrderController extends Controller implements HasMiddleware
                 'notes' => $request->notes,
                 'nif' => $request->nif,
                 'address' => $request->address,
-                'payment_type' => $dbPaymentType,
+                'payment_type' => $request->payment_type, // Salva o texto exato validado
                 'payment_ref' => $request->payment_ref,
             ]);
 
+            // Associa os itens à encomenda
             foreach ($itemsToSave as $itemData) {
                 $itemData['order_id'] = $newOrder->id;
                 Order_item::create($itemData);
@@ -233,11 +258,12 @@ class OrderController extends Controller implements HasMiddleware
             return $newOrder;
         });
 
+        // 5. LIMPAR CARRINHO E REDIRECIONAR
         session()->forget('cart');
 
-        return redirect()->route('home')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', "Encomenda <b>#{$order->id}</b> registada com sucesso!");
+        return redirect()->route('account.index')
+            ->with('status', 'order-placed-success')
+            ->with('order_id', $order->id);
     }
 
     public function confirm(Request $request): RedirectResponse

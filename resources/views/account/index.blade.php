@@ -29,6 +29,12 @@
                 A tua palavra-passe foi alterada com sucesso!
             </div>
             @endif
+            
+            @if (session('status') === 'order-placed-success')
+            <div class="mb-4 rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-800 border border-emerald-200">
+                Encomenda <b>#{{ session('order_id') }}</b> processada e paga com sucesso!
+            </div>
+            @endif
 
             {{-- SECÇÃO 1: INFORMAÇÕES PESSOAIS --}}
             <section id="profile-panel" class="space-y-6">
