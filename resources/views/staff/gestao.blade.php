@@ -16,7 +16,6 @@
                 carrinho.</p>
         </div>
 
-        {{-- FORM ATIVADO E CONFIGURADO --}}
         <form method="POST" action="{{ route('staff.gestao.updatePrices') }}">
             @csrf
             @method('PUT')
@@ -55,7 +54,7 @@
         </form>
     </div>
 
-    {{-- Grelha de Duas Colunas: 1. Categorias | 2. Cores --}}
+    {{-- 1. Categorias | 2. Cores --}}
     <div class="mb-12 grid gap-8 lg:grid-cols-2">
 
         {{-- SECÇÃO: CATEGORIAS --}}
@@ -68,7 +67,7 @@
                     </div>
                 </div>
 
-                {{-- FORM ATIVADO: Criar Categoria --}}
+                {{--Criar Categoria --}}
                 <form method="POST" action="{{ route('staff.gestao.storeCategory') }}" class="mb-4 flex gap-2">
                     @csrf
                     <input type="text" name="name" required placeholder="Nova categoria (ex: Desporto)..."
@@ -79,7 +78,6 @@
                     </button>
                 </form>
 
-                {{-- ALTERADO: Aumentada a max-h para esticar até ao fim da nova linha --}}
                 <div class="overflow-hidden rounded-xl border border-zinc-200 max-h-[370px] overflow-y-auto">
                     <table class="w-full border-collapse text-left text-sm text-zinc-500">
                         <tbody class="divide-y divide-zinc-200 bg-white">
@@ -91,7 +89,7 @@
                                             class="inline-flex h-7 px-2 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition shadow-sm mr-1">
                                             Editar
                                         </button>
-                                        {{-- FORM ATIVADO: Eliminar Categoria --}}
+                                        {{-- Eliminar Categoria --}}
                                         <form method="POST" action="{{ route('staff.gestao.destroyCategory', $category) }}"
                                             class="inline" onsubmit="return confirm('Eliminar esta categoria?');">
                                             @csrf
@@ -124,7 +122,7 @@
                     </div>
                 </div>
 
-                {{-- FORM ATIVADO: Criar Cor --}}
+                {{-- Criar Cor --}}
                 <form method="POST" action="{{ route('staff.gestao.storeColor') }}" enctype="multipart/form-data"
                     class="mb-6 space-y-4">
                     @csrf
@@ -192,7 +190,7 @@
                                             class="inline-flex h-7 px-2.5 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition shadow-sm mr-1">
                                             Editar
                                         </button>
-                                        {{-- FORM ATIVADO: Eliminar Cor --}}
+                                        {{-- Eliminar Cor --}}
                                         <form method="POST" action="{{ route('staff.gestao.destroyColor', $color) }}"
                                             class="inline" onsubmit="return confirm('Eliminar esta cor?');">
                                             @csrf
@@ -217,7 +215,7 @@
 
     </div>
 
-    {{-- SECÇÃO: CATÁLOGO DE IMAGENS OFICIAIS --}}
+    {{-- CATÁLOGO DE IMAGENS OFICIAIS --}}
     <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-xl font-bold text-zinc-900">Catálogo Oficial de Designs</h2>
@@ -225,7 +223,7 @@
             </p>
         </div>
         <div>
-            {{-- LINK ATIVADO: Criar nova imagem --}}
+            {{-- Criar nova imagem --}}
             <a href="{{ route('staff.gestao.create') }}">
                 <button type="button"
                     class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
@@ -235,7 +233,7 @@
         </div>
     </div>
 
-    {{-- FORM ATIVADO: Filtragem e Pesquisa do Catálogo --}}
+    {{-- Filtragem e Pesquisa do Catálogo --}}
     <form method="GET" action="{{ route('staff.gestao') }}"
         class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
         <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
@@ -311,7 +309,7 @@
 
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end gap-2">
-                                    {{-- LINK ATIVADO: Editar Imagem --}}
+                                    {{-- Editar Imagem --}}
                                     <a href="{{ route('staff.gestao.edit', $image) }}">
                                         <button type="button"
                                             class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white transition hover:bg-zinc-100 shadow-sm"
@@ -320,7 +318,7 @@
                                         </button>
                                     </a>
 
-                                    {{-- FORM ATIVADO: Eliminar Imagem do Catálogo --}}
+                                    {{-- Eliminar Imagem do Catálogo --}}
                                     <form method="POST" action="{{ route('staff.gestao.destroy', $image) }}" class="inline"
                                         onsubmit="return confirm('Eliminar estampa?');">
                                         @csrf

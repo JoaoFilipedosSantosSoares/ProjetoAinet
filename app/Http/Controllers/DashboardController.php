@@ -55,7 +55,7 @@ class DashboardController extends Controller
         $mediaSemanalQuantidade = $totalTshirtsVendidas / $semanasDivisor;
 
         // ==========================================
-        // BLOCO 2: TOP RANKINGS (Com Limite Dinâmico)
+        // BLOCO 2: TOP RANKINGS
         // ==========================================
         
         // 1. Categorias Mais Rentáveis
@@ -146,8 +146,6 @@ class DashboardController extends Controller
         }
 
         $dadosEncomendas = array_values($encomendasMeses);
-
-
 
         return view('staff.estatisticas', compact(
             'vendasTotais',

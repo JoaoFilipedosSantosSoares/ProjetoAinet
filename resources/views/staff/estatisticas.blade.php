@@ -69,7 +69,6 @@
                 <p class="text-sm text-zinc-400">Análise macro do fluxo de caixa faturado em cada mês do ano de {{ $anoSelecionado }}.</p>
             </div>
             
-            {{-- h-80 define uma excelente altura responsiva --}}
             <div class="h-80 w-full relative">
                 <canvas id="lucrosChart"></canvas>
             </div>
@@ -221,12 +220,12 @@
     // Criar um array de cores dinâmico para os 12 meses
     const coresBarras = dadosFaturacao.map(valor => {
         if (valor === maxLucro && maxLucro > 0) {
-            return '#22c55e'; // Verde (Tailwind green-500) para o mês mais lucrativo
+            return '#22c55e'; 
         }
         if (valor === minLucro && minLucro > 0) {
-            return '#ef4444'; // Vermelho (Tailwind red-500) para o mês com menos lucro
+            return '#ef4444'; 
         }
-        return '#18181b';     // Preto original (zinc-900) para os restantes meses
+        return '#18181b';     
     });
     // -----------------------------------------------------------
 

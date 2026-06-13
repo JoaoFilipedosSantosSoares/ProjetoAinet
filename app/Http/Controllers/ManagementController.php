@@ -48,7 +48,7 @@ class ManagementController extends Controller
     public function create(): View
     {
         $categories = Category::orderBy('name')->get();
-        // Enviamos um objeto vazio para o formulário saber que é uma CRIAÇÃO
+        
         $tshirtImage = new Tshirt_Image();
 
         return view('staff.imagem_form', compact('categories', 'tshirtImage'));
@@ -73,18 +73,18 @@ class ManagementController extends Controller
             // 1. Ir buscar a extensão do ficheiro enviado
             $extension = $request->file('image_file')->getClientOriginalExtension();
 
-            // 2. Gerar um nome único e seguro antes de inserir na BD (ex: catalogImage_64cf3a1b.png)
+            // 2. Gerar um nome único e seguro antes de inserir na BD
             $newFileName = 'catalogImage_' . uniqid() . '.' . $extension;
 
             // 3. Fazer o upload do ficheiro para a pasta storage/app/public/tshirt_images
             $request->file('image_file')->storeAs('tshirt_images', $newFileName, 'public');
 
-            // 4. Criar o registo na Base de Dados JÁ COM o image_url preenchido
+            // 4. Criar o registo na Base de Dados
             Tshirt_Image::create([
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'category_id' => $validated['category_id'],
-                'image_url' => $newFileName, // <-- Agora a BD já recebe o campo obrigatório!
+                'image_url' => $newFileName, 
                 'customer_id' => null,       // Nulo porque é para o catálogo global
             ]);
         });
@@ -194,8 +194,6 @@ class ManagementController extends Controller
         $prices->unit_price_own = $validated['unit_price_own'];
         $prices->qty_discount = $validated['qty_discount'];
 
-        // Como a tua tabela tem campos NOT NULL para os descontos, 
-        // se não os estás a usar neste form, damos-lhes um valor padrão ou mantemos o que estava:
         $prices->unit_price_catalog_discount = $prices->unit_price_catalog_discount ?? 0;
         $prices->unit_price_own_discount = $prices->unit_price_own_discount ?? 0;
 
@@ -208,7 +206,7 @@ class ManagementController extends Controller
 
     /*
     |--------------------------------------------------------------------------
-    | GESTÃO DE CATEGORIAS (Novo)
+    | GESTÃO DE CATEGORIAS 
     |--------------------------------------------------------------------------
     */
     public function storeCategory(Request $request): RedirectResponse
@@ -265,7 +263,6 @@ class ManagementController extends Controller
     public function storeColor(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            // Limpa espaços e garante que o código fica guardado em maiúsculas/minúsculas limpas
             'code' => 'required|string|max:6|unique:colors,code',
             'name' => 'required|string|max:255',
             'tshirt_image' => 'required|image|mimes:jpeg,jpg,png,webp|max:2048',
@@ -286,8 +283,6 @@ class ManagementController extends Controller
                 Color::create([
                     'code' => strtoupper($validated['code']),
                     'name' => $validated['name'],
-                    // Se na tua BD a coluna se chamar 'image_url', adicionas aqui:
-                    // 'image_url' => $fileName,
                 ]);
             });
 
@@ -305,18 +300,17 @@ class ManagementController extends Controller
     public function updateColor(Request $request, Color $color)
     {
         $validated = $request->validate([
-            // Forçamos a validação a aceitar o código atual
             'code' => 'required|string|max:6',
             'name' => 'required|string|max:255',
             'tshirt_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
         ]);
 
-        // Garantimos que tudo trabalha em minúsculas
+        // tudo trabalha em minúsculas
         $oldCode = strtolower($color->code);
         $newCode = strtolower($validated['code']);
 
         if ($request->hasFile('tshirt_image')) {
-            // Apaga as imagens antigas se existirem (procura por .jpg e .png)
+            // Apaga as imagens antigas se existirem 
             if (Storage::disk('public')->exists("tshirt_base/{$oldCode}.jpg")) {
                 Storage::disk('public')->delete("tshirt_base/{$oldCode}.jpg");
             }
@@ -324,7 +318,7 @@ class ManagementController extends Controller
                 Storage::disk('public')->delete("tshirt_base/{$oldCode}.png");
             }
 
-            // Guarda a nova imagem acompanhando o novo código em minúsculas
+            // Guarda a nova imagem acompanhando o novo código 
             $extension = $request->file('tshirt_image')->getClientOriginalExtension();
             $fileName = $newCode . '.' . $extension;
             $request->file('tshirt_image')->storeAs('tshirt_base', $fileName, 'public');
@@ -338,7 +332,7 @@ class ManagementController extends Controller
             }
         }
 
-        // Para evitar o bug do SQLite ao fazer update à própria Chave Primária
+        // Para evitar fazer update à própria Chave Primária
         $updateData = ['name' => $validated['name']];
         if ($oldCode !== $newCode) {
             $updateData['code'] = $newCode;
