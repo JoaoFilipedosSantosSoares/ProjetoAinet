@@ -107,17 +107,24 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
         Route::put('/staff/gestao/precos', [ManagementController::class, 'updatePrices'])->name('staff.gestao.updatePrices');
 
+        // --- GESTÃO DE T-SHIRTS ---
         Route::get('/staff/gestao/create', [ManagementController::class, 'create'])->name('staff.gestao.create');
         Route::post('/staff/gestao/store', [ManagementController::class, 'store'])->name('staff.gestao.store');
         Route::get('/staff/gestao/{tshirtImage}/edit', [ManagementController::class, 'edit'])->name('staff.gestao.edit');
         Route::put('/staff/gestao/{tshirtImage}', [ManagementController::class, 'update'])->name('staff.gestao.update');
         Route::delete('/staff/gestao/{tshirtImage}', [ManagementController::class, 'destroy'])->name('staff.gestao.destroy');
 
+        // --- GESTÃO DE CATEGORIAS ---
         Route::post('/staff/gestao/categoria', [ManagementController::class, 'storeCategory'])->name('staff.gestao.storeCategory');
         Route::delete('/staff/gestao/categoria/{category}', [ManagementController::class, 'destroyCategory'])->name('staff.gestao.destroyCategory');
 
-        Route::post('/staff/gestao/cor', [ManagementController::class, 'storeColor'])->name('staff.gestao.storeColor');
         Route::delete('/staff/gestao/cor/{color}', [ManagementController::class, 'destroyColor'])->name('staff.gestao.destroyColor');
+
+        // --- GESTÃO DE CORES ---
+        Route::put('/staff/gestao/cores/{color}', [ManagementController::class, 'updateColor'])->name('staff.gestao.updateColor');
+        Route::put('/staff/gestao/categorias/{category}', [ManagementController::class, 'updateCategory'])->name('staff.gestao.updateCategory');
+
+        Route::post('/staff/gestao/cor', [ManagementController::class, 'storeColor'])->name('staff.gestao.storeColor');
 
         // --- GESTÃO DE EQUIPA (StaffController) ---
         Route::get('/staff/index', [StaffController::class, 'index'])->name('staff.index');

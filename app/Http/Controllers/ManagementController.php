@@ -229,6 +229,17 @@ class ManagementController extends Controller
             ->with('alert-msg', 'Nova categoria criada com sucesso!');
     }
 
+    public function updateCategory(Request $request, Category $category)
+    {
+        $validated = $request->validate([
+            'name' => 'required|string|max:255',
+        ]);
+
+        $category->update($validated);
+
+        return redirect()->back()->with('success', 'Categoria atualizada com sucesso!');
+    }
+
     public function destroyCategory(Category $category): RedirectResponse
     {
         try {
@@ -289,6 +300,53 @@ class ManagementController extends Controller
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', 'Ocorreu um erro ao salvar a cor. Certifique-se de que os dados são válidos.');
         }
+    }
+
+    public function updateColor(Request $request, Color $color)
+    {
+        $validated = $request->validate([
+            // Forçamos a validação a aceitar o código atual
+            'code' => 'required|string|max:6',
+            'name' => 'required|string|max:255',
+            'tshirt_image' => 'nullable|image|mimes:jpeg,jpg,png,webp|max:2048',
+        ]);
+
+        // Garantimos que tudo trabalha em minúsculas
+        $oldCode = strtolower($color->code);
+        $newCode = strtolower($validated['code']);
+
+        if ($request->hasFile('tshirt_image')) {
+            // Apaga as imagens antigas se existirem (procura por .jpg e .png)
+            if (Storage::disk('public')->exists("tshirt_base/{$oldCode}.jpg")) {
+                Storage::disk('public')->delete("tshirt_base/{$oldCode}.jpg");
+            }
+            if (Storage::disk('public')->exists("tshirt_base/{$oldCode}.png")) {
+                Storage::disk('public')->delete("tshirt_base/{$oldCode}.png");
+            }
+
+            // Guarda a nova imagem acompanhando o novo código em minúsculas
+            $extension = $request->file('tshirt_image')->getClientOriginalExtension();
+            $fileName = $newCode . '.' . $extension;
+            $request->file('tshirt_image')->storeAs('tshirt_base', $fileName, 'public');
+        } elseif ($oldCode !== $newCode) {
+            // Se mudou o código mas NÃO enviou imagem, apenas renomeia o ficheiro existente
+            if (Storage::disk('public')->exists("tshirt_base/{$oldCode}.jpg")) {
+                Storage::disk('public')->move("tshirt_base/{$oldCode}.jpg", "tshirt_base/{$newCode}.jpg");
+            }
+            if (Storage::disk('public')->exists("tshirt_base/{$oldCode}.png")) {
+                Storage::disk('public')->move("tshirt_base/{$oldCode}.png", "tshirt_base/{$newCode}.png");
+            }
+        }
+
+        // Para evitar o bug do SQLite ao fazer update à própria Chave Primária
+        $updateData = ['name' => $validated['name']];
+        if ($oldCode !== $newCode) {
+            $updateData['code'] = $newCode;
+        }
+
+        $color->update($updateData);
+
+        return redirect()->back()->with('success', 'Cor atualizada com sucesso!');
     }
 
     public function destroyColor(Color $color): RedirectResponse
