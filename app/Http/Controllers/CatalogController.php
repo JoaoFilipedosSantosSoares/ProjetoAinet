@@ -5,6 +5,7 @@ namespace App\Http\Controllers;
 use App\Models\Tshirt_image;
 use App\Models\Color;
 use Illuminate\Http\Request;
+use App\Models\Price;
 
 class CatalogController extends Controller
 {
@@ -58,13 +59,13 @@ class CatalogController extends Controller
         $selectedColorCode = $request->query('color');
         $selectedColor = $colors->where('code', $selectedColorCode)->first() ?? $colors->first();
 
-        // Buscar as regras de preço dinâmicas da tabela 'prices' para o Catálogo
-        $priceRules = \App\Models\Price::first();
+        // 1. Ir buscar os preços globais à base de dados
+        $priceConfig = Price::first();
 
-        // Valores de salvaguarda caso a tabela esteja vazia (valores padrão do catálogo)
-        $basePrice = $priceRules ? $priceRules->unit_price_catalog : 25.00;
-        $discountPrice = $priceRules ? $priceRules->unit_price_catalog_discount : 20.00;
-        $qtyTrigger = $priceRules ? $priceRules->qty_discount : 5;
+        // 2. Extrair os valores exatos para o CATÁLOGO
+        $basePrice = $priceConfig ? (float) $priceConfig->unit_price_catalog : 10.00;
+        $discountPrice = $priceConfig ? (float) $priceConfig->unit_price_catalog_discount : 8.50;
+        $qtyTrigger = $priceConfig ? (int) $priceConfig->qty_discount : 10;
 
         return view('catalog.show', [
             'tshirt' => $tshirt,
@@ -72,7 +73,7 @@ class CatalogController extends Controller
             'selectedColor' => $selectedColor,
             'basePrice' => $basePrice,
             'discountPrice' => $discountPrice,
-            'qtyTrigger' => $qtyTrigger
+            'qtyTrigger' => $qtyTrigger,
         ]);
     }
 }

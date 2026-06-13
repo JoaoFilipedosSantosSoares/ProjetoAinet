@@ -20,33 +20,54 @@
             @csrf
             @method('PUT')
 
+            {{-- Aumentámos o gap para dar espaço entre linhas --}}
             <div class="grid gap-6 md:grid-cols-3">
+
+                {{-- Linha 1 --}}
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço
-                        Unitário Catalogo (€)</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Unit.
+                        Catálogo (€)</label>
                     <input type="number" step="0.01" min="0" name="unit_price_catalog"
                         value="{{ $prices->unit_price_catalog ?? '25.00' }}"
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço
-                        Unitário Personalizada (€)</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Unit.
+                        Própria (€)</label>
                     <input type="number" step="0.01" min="0" name="unit_price_own"
                         value="{{ $prices->unit_price_own ?? '30.00' }}"
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
                 </div>
 
                 <div>
-                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Quantidade p/
-                        Desconto (Unidades)</label>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Quant. p/
+                        Desconto (Unid.)</label>
                     <input type="number" min="1" name="qty_discount" value="{{ $prices->qty_discount ?? '5' }}"
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
                 </div>
 
-                <div class="md:col-span-3 flex justify-end">
+                {{-- Linha 2 --}}
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Desc.
+                        Catálogo (€)</label>
+                    <input type="number" step="0.01" min="0" name="unit_price_catalog_discount"
+                        value="{{ $prices->unit_price_catalog_discount ?? '20.00' }}"
+                        class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                </div>
+
+                <div>
+                    <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Desc.
+                        Própria (€)</label>
+                    <input type="number" step="0.01" min="0" name="unit_price_own_discount"
+                        value="{{ $prices->unit_price_own_discount ?? '25.00' }}"
+                        class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                </div>
+
+                {{-- Botão alinhado na 3ª coluna --}}
+                <div class="flex items-end justify-end">
                     <button type="submit"
-                        class="rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition shadow-sm">
+                        class="w-full rounded-xl bg-zinc-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition shadow-sm">
                         Salvar Alterações de Preço
                     </button>
                 </div>
@@ -68,14 +89,21 @@
                 </div>
 
                 {{--Criar Categoria --}}
-                <form method="POST" action="{{ route('staff.gestao.storeCategory') }}" class="mb-4 flex gap-2">
+                <form method="POST" action="{{ route('staff.gestao.storeCategory') }}" enctype="multipart/form-data"
+                    class="mb-4 space-y-2">
                     @csrf
-                    <input type="text" name="name" required placeholder="Nova categoria (ex: Desporto)..."
-                        class="flex-1 rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
-                    <button type="submit"
-                        class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
-                        +
-                    </button>
+                    <div class="flex gap-2">
+                        <input type="text" name="name" required placeholder="Nova categoria..."
+                            class="flex-1 rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
+                        <button type="submit"
+                            class="rounded-xl bg-zinc-900 px-4 py-2 text-sm font-medium text-white hover:bg-zinc-800 transition">
+                            +
+                        </button>
+                    </div>
+
+                    {{-- Input de imagem opcional --}}
+                    <input type="file" name="category_image" accept="image/*"
+                        class="w-full text-xs text-zinc-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 hover:file:bg-zinc-200 cursor-pointer">
                 </form>
 
                 <div class="overflow-hidden rounded-xl border border-zinc-200 max-h-[370px] overflow-y-auto">
@@ -83,9 +111,20 @@
                         <tbody class="divide-y divide-zinc-200 bg-white">
                             @forelse($categories as $category)
                                 <tr class="hover:bg-zinc-50 transition">
+                                    <td class="px-4 py-3">
+                       
+                                        @if($category->image_url)
+                                            <img src="{{ asset('storage/' . $category->image_url) }}"
+                                                alt="{{ $category->name }}" class="w-10 h-10 rounded-lg object-cover">
+                                        @else
+                                            <div
+                                                class="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] text-zinc-400">
+                                                Sem</div>
+                                        @endif
+                                    </td>
                                     <td class="px-4 py-3 font-medium text-zinc-900">{{ $category->name }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        <button onclick="openCategoryModal('{{ $category->id }}', '{{ $category->name }}')" 
+                                        <button onclick="openCategoryModal('{{ $category->id }}', '{{ $category->name }}')"
                                             class="inline-flex h-7 px-2 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition shadow-sm mr-1">
                                             Editar
                                         </button>
@@ -186,7 +225,7 @@
                                     </td>
                                     <td class="px-4 py-3 text-xs text-zinc-400">#{{ $color->code }}</td>
                                     <td class="px-4 py-3 text-right">
-                                        <button onclick="openColorModal('{{ $color->code }}', '{{ $color->name }}')" 
+                                        <button onclick="openColorModal('{{ $color->code }}', '{{ $color->name }}')"
                                             class="inline-flex h-7 px-2.5 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition shadow-sm mr-1">
                                             Editar
                                         </button>
@@ -352,65 +391,81 @@
 
 </div>
 
-<div id="colorModal" class="fixed inset-0 z-50 hidden bg-zinc-950/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-zinc-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+<div id="colorModal"
+    class="fixed inset-0 z-50 hidden bg-zinc-950/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+        class="bg-white rounded-2xl border border-zinc-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
         <div class="flex items-center justify-between border-b border-zinc-100 pb-3 mb-4">
             <h3 class="text-base font-bold text-zinc-900">Editar Cor</h3>
             <button onclick="closeColorModal()" class="text-zinc-400 hover:text-zinc-600">✕</button>
         </div>
-        
+
         <form id="editColorForm" method="POST" enctype="multipart/form-data" class="space-y-4">
             @csrf
             @method('PUT')
-            
+
             <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Código HEX</label>
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Código
+                    HEX</label>
                 <input type="text" id="edit_color_code" name="code" required max="6"
                     class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:border-zinc-950">
             </div>
-            
+
             <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nome da Cor</label>
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nome da
+                    Cor</label>
                 <input type="text" id="edit_color_name" name="name" required
                     class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:border-zinc-950">
             </div>
-            
+
             <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nova T-shirt Base (Opcional)</label>
-                <div class="relative w-full h-10 flex items-center rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-900">
-                    <input type="file" name="tshirt_image" accept="image/*" class="w-full text-xs text-zinc-500 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 file:cursor-pointer focus:outline-none">
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nova T-shirt
+                    Base (Opcional)</label>
+                <div
+                    class="relative w-full h-10 flex items-center rounded-xl border border-zinc-300 bg-white px-3 text-sm text-zinc-900">
+                    <input type="file" name="tshirt_image" accept="image/*"
+                        class="w-full text-xs text-zinc-500 file:mr-3 file:py-1 file:px-2.5 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 file:cursor-pointer focus:outline-none">
                 </div>
                 <p class="text-[10px] text-zinc-400 mt-1">Deixa em branco para manter a imagem da t-shirt atual.</p>
             </div>
-            
+
             <div class="flex justify-end gap-2 pt-2 border-t border-zinc-100">
-                <button type="button" onclick="closeColorModal()" class="h-10 px-4 text-sm font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition">Cancelar</button>
-                <button type="submit" class="h-10 px-5 text-sm font-semibold text-white bg-zinc-950 hover:bg-zinc-800 rounded-xl transition">Guardar Alterações</button>
+                <button type="button" onclick="closeColorModal()"
+                    class="h-10 px-4 text-sm font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition">Cancelar</button>
+                <button type="submit"
+                    class="h-10 px-5 text-sm font-semibold text-white bg-zinc-950 hover:bg-zinc-800 rounded-xl transition">Guardar
+                    Alterações</button>
             </div>
         </form>
     </div>
 </div>
 
-<div id="categoryModal" class="fixed inset-0 z-50 hidden bg-zinc-950/40 backdrop-blur-sm flex items-center justify-center p-4">
-    <div class="bg-white rounded-2xl border border-zinc-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
+<div id="categoryModal"
+    class="fixed inset-0 z-50 hidden bg-zinc-950/40 backdrop-blur-sm flex items-center justify-center p-4">
+    <div
+        class="bg-white rounded-2xl border border-zinc-200 shadow-xl max-w-md w-full p-6 animate-in fade-in zoom-in-95 duration-150">
         <div class="flex items-center justify-between border-b border-zinc-100 pb-3 mb-4">
             <h3 class="text-base font-bold text-zinc-900">Editar Categoria</h3>
             <button onclick="closeCategoryModal()" class="text-zinc-400 hover:text-zinc-600">✕</button>
         </div>
-        
+
         <form id="editCategoryForm" method="POST" class="space-y-4">
             @csrf
             @method('PUT')
-            
+
             <div>
-                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nome da Categoria</label>
+                <label class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nome da
+                    Categoria</label>
                 <input type="text" id="edit_category_name" name="name" required
                     class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:outline-none focus:border-zinc-950">
             </div>
-            
+
             <div class="flex justify-end gap-2 pt-2 border-t border-zinc-100">
-                <button type="button" onclick="closeCategoryModal()" class="h-10 px-4 text-sm font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition">Cancelar</button>
-                <button type="submit" class="h-10 px-5 text-sm font-semibold text-white bg-zinc-950 hover:bg-zinc-800 rounded-xl transition">Guardar Alterações</button>
+                <button type="button" onclick="closeCategoryModal()"
+                    class="h-10 px-4 text-sm font-semibold text-zinc-700 bg-zinc-100 hover:bg-zinc-200 rounded-xl transition">Cancelar</button>
+                <button type="submit"
+                    class="h-10 px-5 text-sm font-semibold text-white bg-zinc-950 hover:bg-zinc-800 rounded-xl transition">Guardar
+                    Alterações</button>
             </div>
         </form>
     </div>
@@ -420,28 +475,28 @@
     function openColorModal(code, name) {
         document.getElementById('edit_color_code').value = code;
         document.getElementById('edit_color_name').value = name;
-        
+
         // Define dinamicamente o URL da rota com o código da cor correspondente
         let form = document.getElementById('editColorForm');
         form.action = `/staff/gestao/cores/${code.toLowerCase()}`;
-        
+
         document.getElementById('colorModal').classList.remove('hidden');
     }
-    
+
     function closeColorModal() {
         document.getElementById('colorModal').classList.add('hidden');
     }
-    
+
     function openCategoryModal(id, name) {
         document.getElementById('edit_category_name').value = name;
-        
+
         // Define dinamicamente o URL da rota com o ID da categoria correspondente
         let form = document.getElementById('editCategoryForm');
         form.action = `/staff/gestao/categorias/${id}`;
-        
+
         document.getElementById('categoryModal').classList.remove('hidden');
     }
-    
+
     function closeCategoryModal() {
         document.getElementById('categoryModal').classList.add('hidden');
     }

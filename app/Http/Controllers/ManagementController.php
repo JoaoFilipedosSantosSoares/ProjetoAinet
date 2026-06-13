@@ -48,7 +48,7 @@ class ManagementController extends Controller
     public function create(): View
     {
         $categories = Category::orderBy('name')->get();
-        
+
         $tshirtImage = new Tshirt_Image();
 
         return view('staff.imagem_form', compact('categories', 'tshirtImage'));
@@ -84,7 +84,7 @@ class ManagementController extends Controller
                 'name' => $validated['name'],
                 'description' => $validated['description'] ?? null,
                 'category_id' => $validated['category_id'],
-                'image_url' => $newFileName, 
+                'image_url' => $newFileName,
                 'customer_id' => null,       // Nulo porque é para o catálogo global
             ]);
         });
@@ -172,30 +172,29 @@ class ManagementController extends Controller
     public function updatePrices(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'unit_price_catalog' => 'required|numeric|min:0',
-            'unit_price_own' => 'required|numeric|min:0',
-            'qty_discount' => 'required|integer|min:1',
+            'unit_price_catalog'          => 'required|numeric|min:0',
+            'unit_price_own'              => 'required|numeric|min:0',
+            'qty_discount'                => 'required|integer|min:1',
+            'unit_price_catalog_discount' => 'required|numeric|min:0',
+            'unit_price_own_discount'     => 'required|numeric|min:0',
         ], [
-            'unit_price_catalog.required' => 'O preço do catálogo é obrigatório.',
-            'unit_price_own.required' => 'O preço da t-shirt personalizada é obrigatório.',
-            'qty_discount.required' => 'A quantidade para desconto é obrigatória.',
-            'qty_discount.integer' => 'A quantidade deve ser um número inteiro.',
+            'unit_price_catalog.required'          => 'O preço do catálogo é obrigatório.',
+            'unit_price_own.required'              => 'O preço da t-shirt personalizada é obrigatório.',
+            'unit_price_catalog_discount.required' => 'O preço com desconto (catálogo) é obrigatório.',
+            'unit_price_own_discount.required'     => 'O preço com desconto (personalizada) é obrigatório.',
+            'qty_discount.required'                => 'A quantidade para desconto é obrigatória.',
+            'qty_discount.integer'                 => 'A quantidade deve ser um número inteiro.',
         ]);
 
         // Busca as configurações atuais (ou cria uma se a tabela estiver vazia)
-        $prices = Price::first();
-
-        if (!$prices) {
-            $prices = new Price();
-        }
+        $prices = Price::first() ?? new Price();
 
         // Atualiza os valores vindos do formulário
-        $prices->unit_price_catalog = $validated['unit_price_catalog'];
-        $prices->unit_price_own = $validated['unit_price_own'];
-        $prices->qty_discount = $validated['qty_discount'];
-
-        $prices->unit_price_catalog_discount = $prices->unit_price_catalog_discount ?? 0;
-        $prices->unit_price_own_discount = $prices->unit_price_own_discount ?? 0;
+        $prices->unit_price_catalog          = $validated['unit_price_catalog'];
+        $prices->unit_price_own              = $validated['unit_price_own'];
+        $prices->qty_discount                = $validated['qty_discount'];
+        $prices->unit_price_catalog_discount = $validated['unit_price_catalog_discount'];
+        $prices->unit_price_own_discount     = $validated['unit_price_own_discount'];
 
         $prices->save();
 
@@ -212,15 +211,28 @@ class ManagementController extends Controller
     public function storeCategory(Request $request): RedirectResponse
     {
         $validated = $request->validate([
-            'name' => 'required|string|max:255|unique:categories,name',
+            'name'           => 'required|string|max:255|unique:categories,name',
+            'category_image' => 'nullable|image|mimes:jpeg,png,jpg,webp|max:2048', // Validação da imagem
         ], [
-            'name.required' => 'O nome da categoria é obrigatório.',
-            'name.unique' => 'Esta categoria já existe.',
+            'name.required'           => 'O nome da categoria é obrigatório.',
+            'name.unique'             => 'Esta categoria já existe.',
+            'category_image.image'    => 'O ficheiro tem de ser uma imagem.',
+            'category_image.mimes'    => 'Formatos permitidos: jpeg, png, jpg, webp.',
+            'category_image.max'      => 'A imagem não pode exceder 2MB.',
         ]);
 
-        Category::create([
+        $data = [
             'name' => $validated['name']
-        ]);
+        ];
+
+        // Verifica se uma imagem foi enviada
+        if ($request->hasFile('category_image')) {
+            // Guarda na pasta 'categories' dentro do 'storage/app/public'
+            $path = $request->file('category_image')->store('categories', 'public');
+            $data['image_url'] = $path;
+        }
+
+        Category::create($data);
 
         return redirect()->route('staff.gestao')
             ->with('alert-type', 'success')

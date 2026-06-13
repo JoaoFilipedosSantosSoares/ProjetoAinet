@@ -1,23 +1,4 @@
 @component('layouts.main-content', ['title' => 'Finalizar Encomenda'])
-@php
-    $grandTotal = 0;
-
-    // Lógica de cálculo idêntica à do carrinho para garantir integridade visual dos preços
-    $calculateItemPrice = function ($isCatalog, $quantity, $rules) {
-        if (!$rules) {
-            if ($quantity >= 5) {
-                return $isCatalog ? 20.00 : 40.00;
-            }
-            return $isCatalog ? 25.00 : 50.00;
-        }
-
-        if ($quantity >= $rules->qty_discount) {
-            return $isCatalog ? $rules->unit_price_catalog_discount : $rules->unit_price_own_discount;
-        }
-
-        return $isCatalog ? $rules->unit_price_catalog : $rules->unit_price_own;
-    };
-@endphp
 
 <main class="min-h-screen bg-background py-12">
     <div class="container mx-auto px-4 max-w-5xl">
@@ -74,8 +55,12 @@
                 <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-5">
                     <h2 class="text-xl font-bold text-zinc-900 border-b border-zinc-100 pb-3">Método de Pagamento Simulado</h2>
 
-                    {{-- Tipo de Pagamento através de Radio Buttons --}}
+                    {{-- Tipo de Pagamento --}}
                     <div class="grid gap-4 sm:grid-cols-3">
+                        @php
+                            $selectedPaymentType = old('payment_type', auth()->user()->customer->default_payment_type ?? 'VISA');
+                        @endphp
+
                         <label class="relative flex items-center gap-3 p-4 border border-zinc-200 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition">
                             <input type="radio" name="payment_type" value="Visa"
                                 class="h-4 w-4 text-[#144226] focus:ring-[#144226]" {{ old('payment_type', auth()->user()->customer->default_payment_type) === 'Visa' ? 'checked' : '' }} required />
@@ -123,19 +108,15 @@
                 <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
                     <h3 class="text-lg font-bold text-zinc-900 border-b border-zinc-100 pb-2">Resumo dos Artigos</h3>
 
+                    {{-- Lista dos Itens vindos diretos do Controller --}}
                     <div class="max-h-64 overflow-y-auto divide-y divide-zinc-100 pr-1">
                         @foreach($cartItems as $id => $item)
-                            @php
-                                $unitPrice = $calculateItemPrice($item['isCatalogImage'], $item['quantity'], $priceRules);
-                                $subTotal = $unitPrice * $item['quantity'];
-                                $grandTotal += $subTotal;
-                            @endphp
                             <div class="flex justify-between items-center py-3 text-sm">
                                 <div class="overflow-hidden">
                                     <p class="font-semibold text-zinc-800 truncate max-w-40">{{ $item['name'] }}</p>
                                     <p class="text-xs text-zinc-400">Tam: {{ $item['size'] }} | Qtd: {{ $item['quantity'] }}</p>
                                 </div>
-                                <span class="font-bold text-zinc-900">{{ number_format($subTotal, 2) }}€</span>
+                                <span class="font-bold text-zinc-900">{{ number_format($item['sub_total'], 2) }}€</span>
                             </div>
                         @endforeach
                     </div>
@@ -165,4 +146,40 @@
         </form>
     </div>
 </main>
+
+<script>
+    document.addEventListener("DOMContentLoaded", function() {
+        const input = document.getElementById('payment_ref_input');
+        const helpText = document.getElementById('payment_help_text');
+
+        function updatePaymentUI(method) {
+            if (method === 'VISA') {
+                input.placeholder = "Ex: 4000 1234 5678 9010 (16 dígitos)";
+                input.type = "text";
+                helpText.innerText = "Insira o número do cartão (começando por 4).";
+            } 
+            else if (method === 'MB WAY') { 
+                input.placeholder = "Ex: 910 000 000 (9 dígitos)";
+                input.type = "tel";
+                helpText.innerText = "Insira o número de telemóvel associado ao MB WAY.";
+            } 
+            else if (method === 'PAYPAL') {
+                input.placeholder = "Ex: utilizador@email.com";
+                input.type = "email";
+                helpText.innerText = "Insira o e-mail da conta PayPal.";
+            }
+        }
+
+        document.querySelectorAll('input[name="payment_type"]').forEach((radio) => {
+            radio.addEventListener('change', function() {
+                updatePaymentUI(this.value);
+            });
+        });
+
+        const activeRadio = document.querySelector('input[name="payment_type"]:checked');
+        if (activeRadio) {
+            updatePaymentUI(activeRadio.value);
+        }
+    });
+</script>
 @endcomponent

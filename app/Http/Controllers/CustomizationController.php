@@ -23,9 +23,6 @@ class CustomizationController extends Controller implements HasMiddleware
             // Apenas Clientes autenticados e verificados podem mexer nas suas personalizações
             new Middleware('auth'),
             new Middleware('verified'),
-
-            // Regra fina da Policy: Garante que o cliente só apaga as SUAS próprias imagens
-            new Middleware('can:delete,tshirtImage', only: ['destroy']),
         ];
     }
 
@@ -63,15 +60,16 @@ class CustomizationController extends Controller implements HasMiddleware
 
         $priceRules = Price::first();
 
-        // Valores de salvaguarda caso a tabela esteja vazia
-        $basePrice = $priceRules ? $priceRules->unit_price_own : 50.00;
-        $discountPrice = $priceRules ? $priceRules->unit_price_own_discount : 40.00;
-        $qtyTrigger = $priceRules ? $priceRules->qty_discount : 5;
+        // Valores de salvaguarda atualizados para coincidir com a tua DB atual
+        $basePrice = $priceRules ? $priceRules->unit_price_own : 15.00;
+        $discountPrice = $priceRules ? $priceRules->unit_price_own_discount : 12.00;
+        $qtyTrigger = $priceRules ? $priceRules->qty_discount : 10;
 
         $hasDiscount = false;
         $unitPrice = $basePrice;
 
         // Aplicar a regra de desconto por quantidade para imagens próprias (Own)
+        // Só passa para 12€ se o cliente encomendar 10 ou mais unidades
         if ($quantity >= $qtyTrigger) {
             $unitPrice = $discountPrice;
             $hasDiscount = true;
@@ -88,7 +86,8 @@ class CustomizationController extends Controller implements HasMiddleware
             'quantity',
             'unitPrice',
             'basePrice',
-            'discountPrice',
+            'discountPrice', 
+            'qtyTrigger',    
             'totalPrice',
             'hasDiscount'
         ));
@@ -170,31 +169,66 @@ class CustomizationController extends Controller implements HasMiddleware
             ->with('alert-msg', $htmlMessage);
     }
 
+    public function edit($id)
+    {
+        // Procura a imagem pelo ID ou falha (404) se não existir
+        $image = Tshirt_Image::findOrFail($id);
+
+        // if ($image->customer_id !== auth()->id()) { abort(403); }
+
+        return view('customization.edit', compact('image'));
+    }
+
+    public function update(Request $request, $id)
+    {
+        $image = Tshirt_Image::findOrFail($id);
+
+        // Opcional: Segurança extra para garantir propriedade
+        // if ($image->customer_id !== auth()->id()) { abort(403); }
+
+        // Validação simples
+        $request->validate([
+            'name' => 'required|string|max:255',
+            'description' => 'nullable|string|max:1000',
+        ]);
+
+        // Atualiza apenas os campos permitidos
+        $image->update([
+            'name' => $request->name,
+            'description' => $request->description,
+        ]);
+
+        // Redireciona de volta para a página principal de customização selecionando este design
+        return redirect()
+            ->route('customization.index', ['design' => $image->id])
+            ->with('success', 'Design atualizado com sucesso!');
+    }
+
     public function destroy(Tshirt_Image $tshirtImage): RedirectResponse
     {
-        try {
-            DB::transaction(function () use ($tshirtImage) {
-                $filename = $tshirtImage->image_url;
-
-                // 1. Apaga o registo da Base de Dados
-                $tshirtImage->delete();
-
-                // 2. Apaga o ficheiro físico do storage privado (Última operação do bloco como o professor faz)
-                if ($filename && Storage::exists('tshirt_images_private/' . $filename)) {
-                    Storage::delete('tshirt_images_private/' . $filename);
-                }
-            });
-
-            $alertType = 'success';
-            $alertMsg = "A imagem personalizada foi eliminada com sucesso.";
-
-        } catch (\Exception $error) {
-            $alertType = 'danger';
-            $alertMsg = "Não foi possível eliminar a imagem porque ela já está associada a encomendas existentes.";
+        // SEGURANÇA MÁXIMA: Se o ID do utilizador logado for diferente do dono da imagem, bloqueia!
+        if ((int) auth()->id() !== (int) $tshirtImage->customer_id) {
+            abort(403, 'Ação não autorizada. Esta imagem pertence a outro utilizador.');
         }
 
-        return redirect()->route('customization.index')
-            ->with('alert-type', $alertType)
-            ->with('alert-msg', $alertMsg);
+        try {
+            $filename = $tshirtImage->image_url;
+
+            // A Base de Dados trata de apagar o registo de forma segura
+            DB::transaction(function () use ($tshirtImage) {
+                $tshirtImage->delete();
+            });
+
+            // O ficheiro físico só sai do disco se a transação correu bem na BD
+            if ($filename && Storage::exists('tshirt_images_private/' . $filename)) {
+                Storage::delete('tshirt_images_private/' . $filename);
+            }
+
+            return redirect()->route('customization.index')
+                ->with('success', "A imagem personalizada foi eliminada com sucesso.");
+        } catch (\Exception $error) {
+            return redirect()->route('customization.index')
+                ->with('error', "Não foi possível eliminar a imagem porque ela já está associada a encomendas existentes.");
+        }
     }
 }
