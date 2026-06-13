@@ -43,7 +43,7 @@ Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear')
 Route::middleware(['guest'])->group(function () {
     Route::get('/login', [AuthController::class, 'login'])->name('login');
     Route::post('/login', [AuthController::class, 'authenticate'])->name('login.authenticate'); // <-- ADICIONADO (Submissão do Login)
-    
+
     Route::get('/register', [AuthController::class, 'register'])->name('register');
     Route::get('/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.request');
 
@@ -66,7 +66,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
     // Buscar imagens guardadas no storage privado
     Route::get('tshirt_images/{filename}', [TshirtImageController::class, 'showImage'])
         ->name('tshirt_images.show');
-    
+
     // Perfil Comum: Qualquer user logado pode editar o seu próprio perfil
     Route::get('/profile', [AccountController::class, 'editProfile'])->name('profile.edit');
     Route::put('/profile', [AccountController::class, 'updateProfile'])->name('profile.update');
@@ -134,7 +134,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::post('/staff/gestao/cor', [ManagementController::class, 'storeColor'])->name('staff.gestao.storeColor');
         Route::put('/staff/gestao/cores/{color}', [ManagementController::class, 'updateColor'])->name('staff.gestao.updateColor');
         Route::delete('/staff/gestao/cor/{color}', [ManagementController::class, 'destroyColor'])->name('staff.gestao.destroyColor');
-        
+
         // GESTÃO DE CATEGORIAS (UPDATE)
         Route::put('/staff/gestao/categorias/{category}', [ManagementController::class, 'updateCategory'])->name('staff.gestao.updateCategory');
 
@@ -153,5 +153,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Bloquear e Eliminar Staff
         Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [StaffController::class, 'destroy'])->name('account.destroy');
+
     });
 });

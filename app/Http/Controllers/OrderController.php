@@ -238,12 +238,12 @@ class OrderController extends Controller implements HasMiddleware
                     CURLOPT_SSL_VERIFYHOST => 0
                 ],
             ])->post('https://ainet-payments-api.vercel.app/api/payments', [
-                'type' => $request->payment_type, 
+                'type' => $request->payment_type,
                 'reference' => $cleanReference,
                 'value' => (float) number_format($grandTotal, 2, '.', ''),
             ]);
 
-         
+
             if ($response->failed()) {
                 $apiError = $response->json()['message'] ?? 'Validation failed';
                 return redirect()->back()
@@ -401,26 +401,30 @@ class OrderController extends Controller implements HasMiddleware
     protected function generateAndSave(Order $order): bool
     {
         try {
-            // 1. Vamos buscar os itens e fazemos um JOIN manual com a tabela tshirt_images
-            // para conseguir o campo 'image_url' de cada estampa
             $items = \DB::table('order_items')
                 ->leftJoin('tshirt_images', 'order_items.tshirt_image_id', '=', 'tshirt_images.id')
                 ->where('order_items.order_id', $order->id)
-                ->select(
-                    'order_items.*',
-                    'tshirt_images.image_url as estampa_file' // Nome do ficheiro da estampa (.png)
-                )
+                ->select('order_items.*', 'tshirt_images.image_url as estampa_file')
                 ->get();
 
-            // 2. Garante que a pasta privada para os PDFs existe
+            if (!Storage::exists('pdf_receipts')) {
+                Storage::makeDirectory('pdf_receipts');
+            }
 
             $fileName = "receipt_{$order->id}.pdf";
 
-            // 3. Caminhos físicos reais no Laragon para o DomPDF ler as imagens
-            $catalogPath = public_path('storage/tshirt_images/');     // Onde estão as estampas
-            $backgroundsPath = public_path('storage/tshirt_base/'); // Onde estão os modelos lison das t-shirts
+            // CAMINHOS FÍSICOS:
+            $backgroundsPath = public_path('storage/tshirt_base/');
 
-            // 4. Envia os dados limpos para a View
+            // ALTERA AQUI: Tenta um destes caminhos conforme a estrutura do teu projeto:
+            $catalogPath = storage_path('app/tshirt_images/');
+            // Se não der, tenta: $catalogPath = storage_path('app/private/tshirt_images/');
+            // Se as estampas afinal estiverem na pasta pública: $catalogPath = public_path('storage/tshirt_images/');
+
+            // --- TESTE TEMPORÁRIO (Podes apagar depois de funcionar) ---
+            // Se quiseres ver o caminho exato que ele procura e se o ficheiro existe, descomenta a linha abaixo:
+            // dd($catalogPath . $items[0]->estampa_file, file_exists($catalogPath . $items[0]->estampa_file));
+
             $pdf = Pdf::loadView('orders.invoice', [
                 'order'           => $order,
                 'items'           => $items,
@@ -428,17 +432,13 @@ class OrderController extends Controller implements HasMiddleware
                 'backgroundsPath' => $backgroundsPath
             ]);
 
-            // 5. Grava o PDF
             Storage::put("pdf_receipts/{$fileName}", $pdf->output());
 
-            // 6. Atualiza o status na BD
-            $order->update([
-                'receipt_url' => $fileName
-            ]);
+            $order->update(['receipt_url' => $fileName]);
 
             return true;
         } catch (\Exception $e) {
-            dd("Erro ao gerar PDF com base de dados: " . $e->getMessage());
+            dd("Erro ao gerar PDF: " . $e->getMessage());
             return false;
         }
     }
