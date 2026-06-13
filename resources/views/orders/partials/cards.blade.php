@@ -28,7 +28,6 @@
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            {{-- Badge Dinâmico --}}
             <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $badgeClasses }}">
                 {{ $statusText }}
             </span>
@@ -41,20 +40,16 @@
             <div class="rounded-3xl border border-zinc-200 bg-zinc-50 p-4">
                 @foreach ($order->order_items as $item)
     <div class="mb-4">
-        {{-- LÓGICA DE DETEÇÃO DA ESTAMPA: PRIVADA VS PÚBLICA (CATÁLOGO) --}}
         @if(isset($item->tshirt_image->customer_id))
-            {{-- Imagem Privada do Cliente (Usa a rota segura) --}}
             <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
                 alt="{{ $item->tshirt_image->name ?? 'T-shirt personalizada' }}"
                 class="mb-2 h-32 w-32 rounded-lg object-cover" />
         @else
-            {{-- Imagem Pública do Catálogo (Usa o asset público com fallback para default.png) --}}
             <img src="{{ asset('storage/tshirt_images/' . ($item->tshirt_image->image_url ?? 'default.png')) }}"
-                alt="{{ $item->tshirt_image->name ?? 'Estampa' }}"
+                alt="{{ $item->tshirt_image->name ?? 'Imagem Apagada' }}"
                 class="mb-2 h-32 w-32 rounded-lg object-cover" />
         @endif
 
-        {{-- Informações de Tamanho, Quantidade e Preço Unitário --}}
         <p class="mt-1 text-sm text-muted-foreground">
             Tamanho: {{ $item->size }} · 
             Quantidade: {{ $item->qty ?? $item->quantity }} · 

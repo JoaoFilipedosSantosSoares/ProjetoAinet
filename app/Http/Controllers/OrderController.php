@@ -14,6 +14,7 @@ use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Gate;
 use Symfony\Component\HttpFoundation\StreamedResponse;
 use Illuminate\Support\Facades\Storage;
+use Barryvdh\DomPDF\Facade\Pdf;
 
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -140,7 +141,7 @@ class OrderController extends Controller implements HasMiddleware
             // Injeta os valores calculados diretamente no array do item para a View consumir de forma limpa
             $item['unit_price'] = $unitPrice;
             $item['sub_total'] = $unitPrice * $qty;
-            
+
             $grandTotal += $item['sub_total'];
         }
         unset($item); // Quebra a referência por segurança do PHP
@@ -244,10 +245,10 @@ class OrderController extends Controller implements HasMiddleware
                     CURLOPT_SSL_VERIFYHOST => 0
                 ],
             ])->post('https://ainet-payments-api.vercel.app/api/payments', [
-                        'type' => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
-                        'reference' => $cleanReference,        // Chave EXATA do enunciado
-                        'value' => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
-                    ]);
+                'type' => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
+                'reference' => $cleanReference,        // Chave EXATA do enunciado
+                'value' => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
+            ]);
 
             // Se a API responder com erro (status code diferente de 2xx)
             if ($response->failed()) {
@@ -382,13 +383,10 @@ class OrderController extends Controller implements HasMiddleware
                 ->with('alert-msg', 'Apenas administradores podem anular encomendas.');
         }
 
-        $updateData = [
-            'status' => $request->status,
-        ];
+        $updateData = ['status' => $request->status];
 
         if ($request->status === 'canceled') {
             $currentReason = $order->reason_for_cancellation;
-
             if (!empty($request->reason_for_cancellation)) {
                 $timestamp = now()->format('d/m/Y H:i');
                 $break = !empty($currentReason) ? "\n\n" : "";
@@ -396,14 +394,51 @@ class OrderController extends Controller implements HasMiddleware
             }
         }
 
+        // 1. Atualiza o estado na Base de Dados
         $order->update($updateData);
+
+        // 2. Chama a função que está aqui em baixo no mesmo Controller usando $this
+        if (in_array($request->status, ['closed', 'paid'])) {
+            $this->generateAndSave($order);
+        }
 
         $message = $request->status === 'canceled'
             ? "Encomenda <b>#{$order->id}</b> foi anulada com sucesso."
-            : "Encomenda <b>#{$order->id}</b> marcada como concluída!";
+            : "Encomenda <b>#{$order->id}</b> marcada como concluída e PDF gerado!";
 
         return redirect()->route('orders.index')
             ->with('alert-type', 'success')
             ->with('alert-msg', $message);
+    }
+
+    // Função localizada no mesmo Controller (metemos como protected ou private por segurança)
+    protected function generateAndSave(Order $order): bool
+    {
+        try {
+            // Criar a pasta manualmente via código caso ela não exista no Laragon
+
+
+            // HTML estático de teste (não lê o teu ficheiro Blade, evita erros de lá)
+            $htmlTeste = "<h1>Teste de Recibo</h1><p>Encomenda ID: {$order->id}</p><p>Total: {$order->total_price}€</p>";
+
+            // Carrega o HTML estático diretamente
+            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($htmlTeste);
+
+            $fileName = "receipt_{$order->id}.pdf";
+
+            // Grava o ficheiro
+            Storage::put("pdf_receipts/{$fileName}", $pdf->output());
+
+            // Atualiza a BD
+            $order->update([
+                'receipt_url' => $fileName
+            ]);
+
+            return true;
+        } catch (\Exception $e) {
+            // Escreve o erro exato no ecrã para não teres de ir ao log
+            dd("Erro fatal no teste do PDF: " . $e->getMessage());
+            return false;
+        }
     }
 }
