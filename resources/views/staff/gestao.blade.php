@@ -425,7 +425,7 @@
         
         // Define dinamicamente o URL da rota com o código da cor correspondente
         let form = document.getElementById('editColorForm');
-        form.action = `/staff/gestao/cores/${code}`;
+        form.action = `/staff/gestao/cores/${code.toLowerCase()}`;
         
         document.getElementById('colorModal').classList.remove('hidden');
     }

@@ -13,6 +13,7 @@ use App\Http\Controllers\AuthController;
 use App\Http\Controllers\AccountController;
 use App\Http\Controllers\ClientController;
 use App\Http\Controllers\StaffController;
+use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\ManagementController;
 
 /*
@@ -101,6 +102,8 @@ Route::middleware(['auth', 'verified'])->group(function () {
     |--------------------------------------------------------------------------
     */
     Route::middleware('can:admin')->group(function () {
+        // DASHBOARD
+        Route::get('/staff/estatisticas', [DashboardController::class, 'index'])->name('staff.estatisticas');
 
         // --- GESTÃO GLOBAL DA LOJA (ManagementController) ---
         Route::get('/staff/gestao', [ManagementController::class, 'index'])->name('staff.gestao');
@@ -140,5 +143,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         // Bloquear e Eliminar Staff
         Route::post('/staff/index/{user}/block', [AccountController::class, 'toggleBlock'])->name('account.block');
         Route::delete('/staff/index/{user}', [StaffController::class, 'destroy'])->name('account.destroy');
+
     });
 });

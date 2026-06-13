@@ -9,6 +9,15 @@
         </a>
 
         <nav class="hidden items-center gap-2 md:flex">
+            @auth
+                @can('admin')
+                    <a href="{{ route('staff.estatisticas') }}"
+                        class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
+                        Dashboard
+                    </a>
+                @endcan
+            @endauth
+
             <a href="{{ route('home') }}"
                 class="flex items-center gap-2 rounded-xl bg-transparent px-4 py-2.5 text-sm font-medium text-zinc-600 transition hover:text-zinc-950">
                 <span>Inicio</span>
