@@ -413,10 +413,8 @@ class OrderController extends Controller implements HasMiddleware
             }
         }
 
-        // 1. Atualiza o estado na Base de Dados
         $order->update($updateData);
 
-        // 2. Chama a função que está aqui em baixo no mesmo Controller usando $this
         if (in_array($request->status, ['closed', 'paid'])) {
             $this->generateAndSave($order);
         }
@@ -430,33 +428,32 @@ class OrderController extends Controller implements HasMiddleware
             ->with('alert-msg', $message);
     }
 
-    // Função localizada no mesmo Controller (metemos como protected ou private por segurança)
     protected function generateAndSave(Order $order): bool
     {
         try {
-            // Criar a pasta manualmente via código caso ela não exista no Laragon
+            // 1. Garante que as relações corretas estão carregadas para não dar erro no Blade
+            // Certifica-se de que os nomes batem certo com as funções do teu Model Order
+            $order->load(['customer.user', 'order_items.tshirtImage']);
 
 
-            // HTML estático de teste (não lê o teu ficheiro Blade, evita erros de lá)
-            $htmlTeste = "<h1>Teste de Recibo</h1><p>Encomenda ID: {$order->id}</p><p>Total: {$order->total_price}€</p>";
-
-            // Carrega o HTML estático diretamente
-            $pdf = \Barryvdh\DomPDF\Facade\Pdf::loadHTML($htmlTeste);
-
+            // 3. Define o nome do ficheiro único
             $fileName = "receipt_{$order->id}.pdf";
 
-            // Grava o ficheiro
-            Storage::put("pdf_receipts/{$fileName}", $pdf->output());
+            // 4. MUDANÇA AQUI: Carrega o teu ficheiro Blade customizado e injeta a variável $order
+            $pdf = Pdf::loadView('orders.invoice', compact('order'));
 
-            // Atualiza a BD
+            // 5. Grava o PDF gerado a partir do teu Blade na pasta privada
+            Storage::put("private/pdf_receipts/{$fileName}", $pdf->output());
+
+            // 6. Atualiza o campo receipt_url na Base de Dados com o nome do ficheiro
             $order->update([
                 'receipt_url' => $fileName
             ]);
 
             return true;
         } catch (\Exception $e) {
-            // Escreve o erro exato no ecrã para não teres de ir ao log
-            dd("Erro fatal no teste do PDF: " . $e->getMessage());
+            // Se houver algum erro de digitação no Blade (ex: variáveis que não existem), ele vai "parar" aqui e mostrar-te o aviso
+            dd("Erro ao renderizar a tua página de PDF customizada: " . $e->getMessage());
             return false;
         }
     }
