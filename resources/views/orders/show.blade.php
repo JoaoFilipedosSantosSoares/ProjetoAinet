@@ -21,7 +21,8 @@
             <div>
                 <h1 class="text-2xl font-bold text-zinc-900">Encomenda #{{ $order->id }}</h1>
                 <p class="text-sm text-zinc-500">Realizada em:
-                    {{ date('d/m/Y', strtotime($order->date ?? $order->created_at)) }}</p>
+                    {{ date('d/m/Y', strtotime($order->date ?? $order->created_at)) }}
+                </p>
             </div>
             <div>
                 <span
@@ -41,62 +42,62 @@
 
                     <div class="divide-y divide-zinc-100">
                         @forelse($order->order_items as $item)
-                            <div class="p-6 flex gap-4 items-center justify-between">
+                        <div class="p-6 flex gap-4 items-center justify-between">
 
-                                <div class="flex items-center gap-4">
-                                    <div
-                                        class="relative aspect-square h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center p-1 shadow-inner">
-                                        <img src="{{ asset('storage/tshirt_base/' . ($item->color_code ?? $item->color) . '.jpg') }}"
-                                            alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain"
-                                            onerror="this.src='/img/tshirt.png'" />
+                            <div class="flex items-center gap-4">
+                                <div
+                                    class="relative aspect-square h-20 w-20 shrink-0 overflow-hidden rounded-xl bg-zinc-100 border border-zinc-200 flex items-center justify-center p-1 shadow-inner">
+                                    <img src="{{ asset('storage/tshirt_base/' . ($item->color_code ?? $item->color) . '.jpg') }}"
+                                        alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain"
+                                        onerror="this.src='/img/tshirt.png'" />
 
-                                        @if($item->tshirt_image)
-                                            @if(isset($item->tshirt_image->customer_id))
-                                                <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
-                                                    alt="{{ $item->tshirt_image->name }}"
-                                                    class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
-                                            @else
-                                                <img src="{{ asset('storage/tshirt_images/' . ($item->tshirt_image->image_url ?? 'default.png')) }}"
-                                                    alt="Estampa"
-                                                    class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
-                                            @endif
-                                        @else
-                                            <span class="relative z-10 text-[10px] font-bold text-red-500 text-center px-1">Sem
-                                                imagem</span>
-                                        @endif
-                                    </div>
-
-                                    <div>
-                                        <h3 class="font-bold text-sm text-zinc-900">
-                                            T-Shirt Tamanho {{ $item->size }}
-                                            @if(!$item->tshirt_image)
-                                                <span
-                                                    class="ml-2 inline-block text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 animate-pulse">
-                                                    (A imagem foi apagada)
-                                                </span>
-                                            @endif
-                                        </h3>
-                                        <p class="text-xs text-zinc-500">Quantidade: <span
-                                                class="font-bold text-zinc-800">{{ $item->qty ?? $item->quantity }}</span>
-                                        </p>
-                                    </div>
-                                </div>
-
-                                <div class="text-right">
-                                    <span
-                                        class="block font-bold text-sm text-zinc-900">{{ number_format($item->sub_total ?? $item->price ?? 0, 2, ',', '.') }}
-                                        €</span>
-                                    @if(isset($item->unit_price))
-                                        <span class="text-xs text-zinc-400">({{ number_format($item->unit_price, 2, ',', '.') }}
-                                            €/un)</span>
+                                    @if($item->tshirt_image)
+                                    @if(isset($item->tshirt_image->customer_id))
+                                    <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
+                                        alt="{{ $item->tshirt_image->name }}"
+                                        class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
+                                    @else
+                                    <img src="{{ asset('storage/tshirt_images/' . ($item->tshirt_image->image_url ?? 'default.png')) }}"
+                                        alt="Estampa"
+                                        class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
+                                    @endif
+                                    @else
+                                    <span class="relative z-10 text-[10px] font-bold text-red-500 text-center px-1">Sem
+                                        imagem</span>
                                     @endif
                                 </div>
 
+                                <div>
+                                    <h3 class="font-bold text-sm text-zinc-900">
+                                        T-Shirt Tamanho {{ $item->size }}
+                                        @if(!$item->tshirt_image)
+                                        <span
+                                            class="ml-2 inline-block text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 animate-pulse">
+                                            (A imagem foi apagada)
+                                        </span>
+                                        @endif
+                                    </h3>
+                                    <p class="text-xs text-zinc-500">Quantidade: <span
+                                            class="font-bold text-zinc-800">{{ $item->qty ?? $item->quantity }}</span>
+                                    </p>
+                                </div>
                             </div>
+
+                            <div class="text-right">
+                                <span
+                                    class="block font-bold text-sm text-zinc-900">{{ number_format($item->sub_total ?? $item->price ?? 0, 2, ',', '.') }}
+                                    €</span>
+                                @if(isset($item->unit_price))
+                                <span class="text-xs text-zinc-400">({{ number_format($item->unit_price, 2, ',', '.') }}
+                                    €/un)</span>
+                                @endif
+                            </div>
+
+                        </div>
                         @empty
-                            <div class="p-8 text-center text-sm text-zinc-500">
-                                Nenhum item associado a esta encomenda na base de dados.
-                            </div>
+                        <div class="p-8 text-center text-sm text-zinc-500">
+                            Nenhum item associado a esta encomenda na base de dados.
+                        </div>
                         @endforelse
                     </div>
                 </div>
@@ -124,8 +125,8 @@
                             €</span>
                     </div>
 
-                    {{-- BOTÃO DE DESCARREGAR RECIBO (Apenas aparece se existir o URL na BD) --}}
-                    @if($order->receipt_url)
+                    @can('admin')
+                        @if($order->receipt_url)
                         <div class="pt-2">
                             <a href="{{ route('orders.receipt', $order) }}"
                                 class="inline-flex w-full justify-center items-center gap-2 rounded-2xl border border-zinc-300 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none">
@@ -136,11 +137,12 @@
                                 Descarregar Recibo PDF
                             </a>
                         </div>
-                    @else
+                        @else
                         <div class="pt-2 text-center text-xs text-zinc-400 italic">
                             O recibo estará disponível assim que for processado pela nossa equipa.
                         </div>
-                    @endif
+                        @endif
+                    @endcan
 
                 </div>
             </div>
