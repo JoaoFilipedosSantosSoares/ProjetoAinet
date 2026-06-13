@@ -17,7 +17,6 @@ use Illuminate\Routing\Controllers\Middleware;
 
 class OrderController extends Controller implements HasMiddleware
 {
-
     public static function middleware(): array
     {
         return [
@@ -44,18 +43,15 @@ class OrderController extends Controller implements HasMiddleware
         if ($user->user_type === 'F') {
             $ordersQuery->where('status', '=', 'pending');
         } else {
-            // Se for Admin (A), pode filtrar por qualquer estado selecionado
             if (!empty($filterByStatus)) {
                 $ordersQuery->where('status', '=', $filterByStatus);
             }
         }
 
-        // Filtro por ID (comum a ambos)
         if (!empty($filterBySearch)) {
             $ordersQuery->where('id', '=', $filterBySearch);
         }
 
-        // Filtro por Cliente (Apenas para Admin - Pesquisa por Nome ou Email do User)
         if ($user->user_type === 'A' && !empty($filterByCustomer)) {
             $ordersQuery->whereHas('customer.user', function ($query) use ($filterByCustomer) {
                 $query->where('name', 'like', "%{$filterByCustomer}%")
@@ -75,29 +71,16 @@ class OrderController extends Controller implements HasMiddleware
     public function show(Order $order): View
     {
         $order->load('order_items.tshirt_image');
-
         return view('orders.show', compact('order'));
     }
 
-    // public function updateStatus(Request $request, Order $order): RedirectResponse
-    // {
-    //     $request->validate([
-    //         'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
-    //     ]);
-
-    //     if (in_array($order->status, ['cancelado', 'enviado'])) {
-    //         return redirect()->back()->with('error', 'Não é possível alterar o estado de uma encomenda finalizada.');
-    //     }
-
-    //     $order->update(['status' => $request->status]);
-    //     return redirect()->back()->with('success', 'Estado atualizado.');
-    // }
-
+    /**
+     * Prepara os dados do checkout calculando os preços e totais antes de renderizar a View.
+     */
     public function checkout()
     {
         $user = Auth::user();
 
-        // Requisito: Apenas Clientes. Administradores (A) e Funcionários (E) não têm acesso.
         if (in_array($user->user_type, ['A', 'E'])) {
             return redirect()->route('cart.index')->with('error', 'Administradores e funcionários não podem efetuar compras.');
         }
@@ -108,8 +91,32 @@ class OrderController extends Controller implements HasMiddleware
         }
 
         $priceRules = Price::first();
+        $grandTotal = 0;
 
-        return view('orders.checkout', compact('cartItems', 'priceRules'));
+        // Calcula os preços de forma idêntica ao storeCheckout para manter integridade total
+        foreach ($cartItems as $id => &$item) {
+            $isCatalog = (bool) ($item['isCatalogImage'] ?? false);
+            $qty = (int) ($item['quantity'] ?? 1);
+
+            if (!$priceRules) {
+                $unitPrice = $isCatalog ? ($qty >= 5 ? 20.00 : 25.00) : ($qty >= 5 ? 40.00 : 50.00);
+            } else {
+                if ($qty >= $priceRules->qty_discount) {
+                    $unitPrice = $isCatalog ? $priceRules->unit_price_catalog_discount : $priceRules->unit_price_own_discount;
+                } else {
+                    $unitPrice = $isCatalog ? $priceRules->unit_price_catalog : $priceRules->unit_price_own;
+                }
+            }
+
+            // Injeta os valores calculados diretamente no array do item para a View consumir de forma limpa
+            $item['unit_price'] = $unitPrice;
+            $item['sub_total'] = $unitPrice * $qty;
+            
+            $grandTotal += $item['sub_total'];
+        }
+        unset($item); // Quebra a referência por segurança do PHP
+
+        return view('orders.checkout', compact('cartItems', 'grandTotal', 'priceRules'));
     }
 
     public function storeCheckout(Request $request)
@@ -125,7 +132,6 @@ class OrderController extends Controller implements HasMiddleware
             return redirect()->route('cart.index')->with('error', 'O seu carrinho está vazio.');
         }
 
-        // Validação estrita dos dados obrigatórios de faturação/envio e pagamento
         $request->validate([
             'address' => 'required|string|max:255',
             'nif' => 'nullable|digits:9',
@@ -137,19 +143,16 @@ class OrderController extends Controller implements HasMiddleware
                 function ($attribute, $value, $fail) use ($request) {
                     switch ($request->payment_type) {
                         case 'VISA':
-                            // Verifica se são exatamente 16 dígitos e começam com 4
                             if (!preg_match('/^4[0-9]{15}$/', $value)) {
                                 $fail('O número do cartão Visa deve conter exatamente 16 dígitos e começar com 4.');
                             }
                             break;
                         case 'MB WAY':
-                            // Verifica se são exatamente 9 dígitos
                             if (!preg_match('/^[0-9]{9}$/', $value)) {
                                 $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos.');
                             }
                             break;
                         case 'PAYPAL':
-                            // Verifica formato de email
                             if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
                                 $fail('O formato do e-mail PayPal é inválido.');
                             }
@@ -163,12 +166,10 @@ class OrderController extends Controller implements HasMiddleware
         $grandTotal = 0;
         $itemsToSave = [];
 
-        // Replicar integralmente a informação para garantir a imutabilidade histórica
         foreach ($cartItems as $id => $item) {
             $isCatalog = (bool) $item['isCatalogImage'];
             $qty = (int) $item['quantity'];
 
-            // Determinar o preço unitário do momento exato da compra
             if (!$priceRules) {
                 $unitPrice = $isCatalog ? ($qty >= 5 ? 20.00 : 25.00) : ($qty >= 5 ? 40.00 : 50.00);
             } else {
@@ -192,7 +193,6 @@ class OrderController extends Controller implements HasMiddleware
             ];
         }
 
-        // Simulação do Pagamento
         $paymentSuccess = true;
         if (strlen($request->payment_ref) < 3) {
             $paymentSuccess = false;
@@ -204,7 +204,6 @@ class OrderController extends Controller implements HasMiddleware
                 ->withErrors(['payment_ref' => 'O pagamento simulado foi recusado pela entidade emissora. Verifique os dados inseridos.']);
         }
 
-        // Mapeamento ortográfico EXATO exigido pela tua Base de Dados (CHECK constraint)
         $formPaymentType = $request->payment_type;
         $dbPaymentType = match ($formPaymentType) {
             'VISA' => 'Visa',
@@ -213,12 +212,9 @@ class OrderController extends Controller implements HasMiddleware
             default => $formPaymentType
         };
 
-        // Gravação na Base de Dados dentro de uma transação atómica
         $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave, $dbPaymentType) {
-
-            // Regista a Encomenda no estado correto esperado pelo Modelo e BD ('pending')
             $newOrder = Order::create([
-                'status' => 'pending', // <--- Alterado de volta para 'pending' para passar no CHECK constraint
+                'status' => 'pending',
                 'customer_id' => $user->customer->id ?? null,
                 'date' => now()->toDateString(),
                 'total_price' => $grandTotal,
@@ -229,7 +225,6 @@ class OrderController extends Controller implements HasMiddleware
                 'payment_ref' => $request->payment_ref,
             ]);
 
-            // Associa as linhas imutáveis à encomenda gerada
             foreach ($itemsToSave as $itemData) {
                 $itemData['order_id'] = $newOrder->id;
                 Order_item::create($itemData);
@@ -238,15 +233,12 @@ class OrderController extends Controller implements HasMiddleware
             return $newOrder;
         });
 
-        // Limpa o carrinho de compras da sessão do utilizador
         session()->forget('cart');
 
-        // Redireciona para o teu histórico de encomendas com as chaves padrão de sessão
         return redirect()->route('home')
             ->with('alert-type', 'success')
             ->with('alert-msg', "Encomenda <b>#{$order->id}</b> registada com sucesso!");
     }
-
 
     public function confirm(Request $request): RedirectResponse
     {
@@ -268,7 +260,6 @@ class OrderController extends Controller implements HasMiddleware
             $totalPrice += $item['subtotal'];
         }
 
-        // Chamada à API de pagamentos externa
         $paymentPayload = [
             'provider' => strtolower($request->payment_type),
             'merchant_key' => 'chave_do_teu_enunciado_aqui',
@@ -291,7 +282,7 @@ class OrderController extends Controller implements HasMiddleware
 
         $newOrder = DB::transaction(function () use ($request, $cart, $totalPrice) {
             $order = Order::create([
-                'customer_id' => Auth::user()->customer->id, // Mantido exatamente o teu original
+                'customer_id' => Auth::user()->customer->id,
                 'status' => 'pago',
                 'date' => now()->toDateString(),
                 'total_price' => $totalPrice,
@@ -325,44 +316,33 @@ class OrderController extends Controller implements HasMiddleware
 
     public function update(Request $request, Order $order): RedirectResponse
     {
-        // dd($request->all());
-        // 1. Validação estrita
-        // 1. Validação adaptada para o campo 'notes' que vem do teu HTML
         $request->validate([
             'status' => 'required|in:closed,canceled,pending,paid',
             'reason_for_cancellation'  => 'nullable|string|max:1000',
         ]);
 
-        // 2. Proteção para garantir que apenas Administradores anulam encomendas
         if ($request->status === 'canceled' && Auth::user()->user_type !== 'A') {
             return redirect()->back()
                 ->with('alert-type', 'error')
                 ->with('alert-msg', 'Apenas administradores podem anular encomendas.');
         }
 
-        // 3. Preparar os dados para o update
         $updateData = [
             'status' => $request->status,
         ];
 
-        // Se for um cancelamento, fazemos a gestão do texto na coluna 'reason_for_cancellation'
         if ($request->status === 'canceled') {
             $currentReason = $order->reason_for_cancellation;
 
-            // Lemos o $request->reason_for_cancellation porque é aí que o teu form está a injetar o "teste"
             if (!empty($request->reason_for_cancellation)) {
                 $timestamp = now()->format('d/m/Y H:i');
                 $break = !empty($currentReason) ? "\n\n" : "";
-
-                // Concatena o novo motivo na coluna certa da BD
                 $updateData['reason_for_cancellation'] = $currentReason . $break . "[Cancelado em {$timestamp}] " . $request->reason_for_cancellation;
             }
         }
 
-        // 4. Atualiza os dados na Base de Dados
         $order->update($updateData);
 
-        // 5. Mensagens de feedback
         $message = $request->status === 'canceled'
             ? "Encomenda <b>#{$order->id}</b> foi anulada com sucesso."
             : "Encomenda <b>#{$order->id}</b> marcada como concluída!";

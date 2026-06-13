@@ -54,15 +54,12 @@ class TshirtImagePolicy
      */
     public function delete(User $user, Tshirt_Image $tshirtImage): bool
     {
-        // Se for um Cliente ('C'), ele só pode apagar se a imagem lhe pertencer
-        if ($user->user_type === 'C') {
-            // Nota: usamos ?-> para o caso de segurança se a relação falhar
-            return $tshirtImage->customer_id === $user->customer?->id;
-        }
+        dd([
+        'id_do_utilizador_logado' => $user->id,
+        'customer_id_da_imagem' => $tshirtImage->customer_id
+    ]);
 
-        // Se for um Funcionário ('F'), por norma não deve apagar as imagens privadas 
-        // dos clientes diretamente no painel de personalização deles.
-        return false;
+        return $user->id === $tshirtImage->customer_id;
     }
 
     /**
