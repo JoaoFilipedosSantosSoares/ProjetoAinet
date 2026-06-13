@@ -78,105 +78,135 @@ class OrderController extends Controller implements HasMiddleware
         return redirect()->back()->with('success', 'Estado atualizado.');
     }
 
-    public function storeCheckout(Request $request): RedirectResponse
+    public function checkout()
     {
-        // 1. Validar apenas as notas (uma vez que o pagamento foi removido)
+        $user = Auth::user();
+
+        // Requisito: Apenas Clientes. Administradores (A) e Funcionários (E) não têm acesso.
+        if (in_array($user->user_type, ['A', 'E'])) {
+            return redirect()->route('cart.index')->with('error', 'Administradores e funcionários não podem efetuar compras.');
+        }
+
+        $cartItems = session()->get('cart', []);
+        if (empty($cartItems)) {
+            return redirect()->route('cart.index')->with('error', 'O seu carrinho está vazio.');
+        }
+
+        $priceRules = Price::first();
+
+        return view('orders.checkout', compact('cartItems', 'priceRules'));
+    }
+
+    public function storeCheckout(Request $request)
+    {
+        $user = Auth::user();
+
+        if (in_array($user->user_type, ['A', 'E'])) {
+            return redirect()->route('cart.index')->with('error', 'Acesso negado.');
+        }
+
+        $cartItems = session()->get('cart', []);
+        if (empty($cartItems)) {
+            return redirect()->route('cart.index')->with('error', 'O seu carrinho está vazio.');
+        }
+
+        // Validação estrita dos dados obrigatórios de faturação/envio e pagamento
         $request->validate([
+            'address' => 'required|string|max:255',
+            'nif' => 'nullable|digits:9',
+            'payment_type' => 'required|in:VISA,MC,PAYPAL',
+            'payment_ref' => 'required|string|max:50',
             'notes' => 'nullable|string|max:1000',
         ]);
 
-        $cart = session()->get('cart', []);
-        if (empty($cart)) {
-            return redirect()->route('cart.index')
-                ->with('alert-type', 'warning')
-                ->with('alert-msg', 'O seu carrinho está vazio.');
-        }
+        $priceRules = Price::first();
+        $grandTotal = 0;
+        $itemsToSave = [];
 
-        // 2. Obter o cliente autenticado e as suas informações obrigatórias
-        $user = Auth::user();
-        $customer = $user->customer;
+        // Replicar integralmente a informação para garantir a imutabilidade histórica
+        foreach ($cartItems as $id => $item) {
+            $isCatalog = (bool) $item['isCatalogImage'];
+            $qty = (int) $item['quantity'];
 
-        if (!$customer) {
-            return redirect()->route('cart.index')
-                ->with('alert-type', 'danger')
-                ->with('alert-msg', 'Não foi possível associar a encomenda a um perfil de cliente válido.');
-        }
-
-        // 3. Obter as regras de preço guardadas na base de dados
-        $rules = Price::first();
-
-        // 4. Processar e estruturar as linhas do carrinho calculando os preços reais
-        $totalPrice = 0;
-        $calculatedItems = [];
-
-        foreach ($cart as $item) {
-            // Verifica o gatilho qty_discount definido pelo administrador para atribuir o preço unitário
-            if ($item['quantity'] >= ($rules->qty_discount ?? 10)) {
-                $unitPrice = $item['isCatalogImage'] 
-                    ? ($rules->unit_price_catalog_discount ?? 20.00) 
-                    : ($rules->unit_price_own_discount ?? 40.00);
+            // Determinar o preço unitário do momento exato da compra
+            if (!$priceRules) {
+                $unitPrice = $isCatalog ? ($qty >= 5 ? 20.00 : 25.00) : ($qty >= 5 ? 40.00 : 50.00);
             } else {
-                $unitPrice = $item['isCatalogImage'] 
-                    ? ($rules->unit_price_catalog ?? 25.00) 
-                    : ($rules->unit_price_own ?? 50.00);
+                if ($qty >= $priceRules->qty_discount) {
+                    $unitPrice = $isCatalog ? $priceRules->unit_price_catalog_discount : $priceRules->unit_price_own_discount;
+                } else {
+                    $unitPrice = $isCatalog ? $priceRules->unit_price_catalog : $priceRules->unit_price_own;
+                }
             }
 
-            $subTotal = $unitPrice * $item['quantity'];
-            $totalPrice += $subTotal;
+            $subTotal = $unitPrice * $qty;
+            $grandTotal += $subTotal;
 
-            $calculatedItems[] = [
+            $itemsToSave[] = [
                 'tshirt_image_id' => $item['tshirt_image_id'],
-                'color_code'      => $item['color'],
-                'size'            => $item['size'],
-                'quantity'        => $item['quantity'],
-                'unit_price'      => $unitPrice,
-                'sub_total'       => $subTotal
+                'color_code' => $item['color'],
+                'size' => $item['size'],
+                'qty' => $qty,
+                'unit_price' => $unitPrice,
+                'sub_total' => $subTotal,
             ];
         }
 
-        $newOrderId = DB::transaction(function () use ($request, $customer, $calculatedItems, $totalPrice) {
-            
-            // Grava a ordem principal injetando o NIF e a Morada associados ao cliente
-            $orderId = DB::table('orders')->insertGetId([
-                'customer_id'   => $customer->id,
-                'status'        => 'pending', // ALTERADO PARA 'pending' para passar na CHECK constraint do SQLite
-                'date'          => now()->toDateString(),
-                'total_price'   => $totalPrice,
-                'notes'         => $request->notes,
-                'nif'           => $customer->nif ?? '999999999',
-                'address'       => $customer->address ?? 'Morada não especificada',
-                'payment_type'  => $customer->default_payment_type ?? null,
-                'payment_ref'   => $customer->default_payment_ref ?? null,
-                'created_at'    => now(),
-                'updated_at'    => now(),
+        // Simulação do Pagamento
+        $paymentSuccess = true;
+        if (strlen($request->payment_ref) < 3) {
+            $paymentSuccess = false;
+        }
+
+        if (!$paymentSuccess) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['payment_ref' => 'O pagamento simulado foi recusado pela entidade emissora. Verifique os dados inseridos.']);
+        }
+
+        // Mapeamento ortográfico EXATO exigido pela tua Base de Dados (CHECK constraint)
+        $formPaymentType = $request->payment_type;
+        $dbPaymentType = match ($formPaymentType) {
+            'VISA' => 'Visa',
+            'MC' => 'Mastercard',
+            'PAYPAL' => 'PayPal',
+            default => $formPaymentType
+        };
+
+        // Gravação na Base de Dados dentro de uma transação atómica
+        $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave, $dbPaymentType) {
+
+            // Regista a Encomenda no estado correto esperado pelo Modelo e BD ('pending')
+            $newOrder = Order::create([
+                'status' => 'pending', // <--- Alterado de volta para 'pending' para passar no CHECK constraint
+                'customer_id' => $user->customer->id ?? null,
+                'date' => now()->toDateString(),
+                'total_price' => $grandTotal,
+                'notes' => $request->notes,
+                'nif' => $request->nif,
+                'address' => $request->address,
+                'payment_type' => $dbPaymentType,
+                'payment_ref' => $request->payment_ref,
             ]);
 
-            // Grava cada um dos sub-itens atrelados a esta encomenda
-            foreach ($calculatedItems as $calcItem) {
-                DB::table('order_items')->insert([
-                    'order_id'        => $orderId,
-                    'tshirt_image_id' => $calcItem['tshirt_image_id'],
-                    'color_code'      => $calcItem['color_code'],
-                    'size'            => $calcItem['size'],
-                    'qty'             => $calcItem['quantity'], 
-                    'unit_price'      => $calcItem['unit_price'],
-                    'sub_total'       => $calcItem['sub_total']
-                ]);
+            // Associa as linhas imutáveis à encomenda gerada
+            foreach ($itemsToSave as $itemData) {
+                $itemData['order_id'] = $newOrder->id;
+                Order_item::create($itemData);
             }
 
-            return $orderId;
+            return $newOrder;
         });
 
-        // 6. Limpar a sessão do carrinho
+        // Limpa o carrinho de compras da sessão do utilizador
         session()->forget('cart');
 
-        $url = route('orders.show', ['order' => $newOrderId]);
-        $htmlMessage = "A encomenda <a href='$url'><u>#{$newOrderId}</u></a> foi submetida com sucesso e encontra-se no estado <b>pendente</b>!";
-
-        return redirect()->route('orders.index')
+        // Redireciona para o teu histórico de encomendas com as chaves padrão de sessão
+        return redirect()->route('home')
             ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
+            ->with('alert-msg', "Encomenda <b>#{$order->id}</b> registada com sucesso!");
     }
+
 
     // NÃO TENHO A CERTEZA SE ISTO ESTÁ CORRETO
     public function confirm(Request $request): RedirectResponse

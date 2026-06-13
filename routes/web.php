@@ -45,6 +45,10 @@ Route::middleware(['guest'])->group(function () {
     });
 });
 
+Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/update/{itemId}', [CartController::class, 'update'])->name('cart.update');
+Route::post('/cart/remove/{itemId}', [CartController::class, 'remove'])->name('cart.remove');
+Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
 /*
 |--------------------------------------------------------------------------
@@ -70,19 +74,15 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/account', [AccountController::class, 'index'])->name('account.index');
 
         // Carrinho de Compras
-        Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
         Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
-        Route::post('/cart/update/{itemId}', [CartController::class, 'update'])->name('cart.update');
-        Route::post('/cart/remove/{itemId}', [CartController::class, 'remove'])->name('cart.remove');
-        Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
 
         // Personalização de T-Shirts
         Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');
         Route::post('/customization/upload', [CustomizationController::class, 'upload'])->name('customization.upload');
 
-        // Encomendas
-        Route::post('/encomendas/checkout', [OrderController::class, 'storeCheckout'])
-            ->name('orders.storeCheckout');
+        // Novas rotas dedicadas ao processo de Checkout
+        Route::get('/checkout', [OrderController::class, 'checkout'])->name('orders.checkout');
+        Route::post('/checkout', [OrderController::class, 'storeCheckout'])->name('orders.storeCheckout');
     });
 
     /*

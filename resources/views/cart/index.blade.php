@@ -5,7 +5,6 @@
 
         // Função anónima para calcular o preço com base no objeto de regras vindo do Model Prices
         $calculateItemPrice = function($isCatalog, $quantity, $rules) {
-            // Fallback preventivo caso a tabela prices esteja totalmente vazia
             if (!$rules) {
                 if ($quantity >= 5) {
                     return $isCatalog ? 20.00 : 40.00;
@@ -13,7 +12,6 @@
                 return $isCatalog ? 25.00 : 50.00;
             }
 
-            // Lógica do Desconto de Quantidade por Item específico
             if ($quantity >= $rules->qty_discount) {
                 return $isCatalog ? $rules->unit_price_catalog_discount : $rules->unit_price_own_discount;
             }
@@ -22,187 +20,190 @@
         };
     @endphp
 
-    <main class="min-h-screen bg-background">
-        <div class="container mx-auto px-4 py-12">
-            
-            {{-- ESTADO VAZIO (Sem JS) --}}
-            @if(count($cartItems) === 0)
-                <div class="flex flex-col items-center justify-center py-20 text-center">
-                    <svg class="mb-4 h-16 w-16 text-muted-foreground" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                        <path d="M6 6h15l-2 12H6L4 6z" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                        <path d="M9 6V4h6v2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+    <main class="min-h-screen bg-background py-12">
+        <div class="container mx-auto px-4 max-w-6xl">
+            <h1 class="mb-8 text-3xl font-bold tracking-tight text-zinc-900">O seu Carrinho</h1>
+
+            @if(session('success'))
+                <div class="mb-6 rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-800 border border-emerald-200">
+                    {{ session('success') }}
+                </div>
+            @endif
+
+            @if(empty($cartItems) || count($cartItems) === 0)
+                <div class="flex flex-col items-center justify-center py-20 text-center border border-dashed border-zinc-200 rounded-3xl bg-white shadow-sm">
+                    <svg class="mb-4 h-16 w-16 text-zinc-400" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="1.5" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z"/>
                     </svg>
-                    <h1 class="mb-2 text-2xl font-bold text-foreground">O teu carrinho está vazio</h1>
-                    <p class="mb-6 text-muted-foreground">Adiciona algumas t-shirts incríveis ao teu carrinho!</p>
-                    <div class="flex flex-wrap justify-center gap-4">
-                        <a href="/catalog" class="rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">Ver Catálogo</a>
-                        <a href="/customization" class="rounded-2xl border border-zinc-300 px-5 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">Criar T-Shirt</a>
-                    </div>
+                    <h2 class="text-xl font-semibold text-zinc-900">O seu carrinho está vazio</h2>
+                    <p class="mt-2 text-sm text-zinc-500">Explore os nossos produtos e encontre a estampa perfeita!</p>
+                    <a href="{{ route('catalog.index') }}" class="mt-6 rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition shadow-sm">
+                        Voltar ao Catálogo
+                    </a>
                 </div>
             @else
-                {{-- CONTEÚDO DO CARRINHO COM ITENS --}}
-                <div class="mb-8 flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
-                    <div>
-                        <h1 class="text-3xl font-bold text-foreground">O Teu Carrinho</h1>
-                        <p class="text-muted-foreground">{{ count($cartItems) }} {{ count($cartItems) === 1 ? 'artigo' : 'artigos' }} no carrinho</p>
-                    </div>
-                    
-                    {{-- Formulário para Limpar o Carrinho --}}
-                    <form action="{{ route('cart.clear') }}" method="POST">
-                        @csrf
-                        <button type="submit" class="inline-flex items-center gap-2 rounded-2xl border border-zinc-300 px-4 py-3 text-sm font-semibold text-zinc-900 transition hover:bg-zinc-100">
-                            <span>Limpar Carrinho</span>
-                        </button>
-                    </form>
-                </div>
-
                 <div class="grid gap-8 lg:grid-cols-3">
-                    <div class="space-y-4 lg:col-span-2">
-                        @foreach ($cartItems as $item)
+                    
+                    {{-- TABELA DE ITENS (LADO ESQUERDO) --}}
+                    <div class="lg:col-span-2 space-y-4">
+                        <div class="flex justify-between items-center mb-2">
+                            <span class="text-sm font-medium text-zinc-500">{{ count($cartItems) }} item(ns) no total</span>
+                            
+                            {{-- OPERAÇÃO DE LIMPEZA TOTAL --}}
+                            <form method="POST" action="{{ route('cart.clear') }}">
+                                @csrf
+                                <button type="submit" class="text-sm font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1">
+                                    Limpar Carrinho
+                                </button>
+                            </form>
+                        </div>
+
+                        @foreach($cartItems as $id => $item)
                             @php
                                 $unitPrice = $calculateItemPrice($item['isCatalogImage'], $item['quantity'], $priceRules);
-                                $itemTotal = $unitPrice * $item['quantity'];
-                                $grandTotal += $itemTotal;
+                                $subTotal = $unitPrice * $item['quantity'];
+                                $grandTotal += $subTotal;
+                                
+                                $hasDiscountApplied = $priceRules && ($item['quantity'] >= $priceRules->qty_discount);
                             @endphp
 
-                            <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
-                                <div class="p-4 sm:p-6">
-                                    <div class="flex flex-col gap-4 sm:flex-row">
+                            {{-- FORMULÁRIO DE ATUALIZAÇÃO INDIVIDUAL DA LINHA --}}
+                            <form method="POST" action="{{ route('cart.update', ['itemId' => $id]) }}" class="relative rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start md:items-center justify-between transition hover:shadow-md">
+                                @csrf
+
+                                {{-- Bloco da Imagem Grande Reposto e Nome do Item --}}
+                                <div class="flex items-center gap-6 w-full md:w-auto">
+                                    
+                                    {{-- Quadrado da T-shirt destacado (Tamanho Grande) --}}
+                                    <div class="relative aspect-square h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
+                                        {{-- T-shirt de Base --}}
+                                        <img src="{{ asset('storage/tshirt_base/' . $item['color'] . '.jpg') }}" class="absolute inset-0 h-full w-full object-contain" onerror="this.src='/img/tshirt.png'" />
                                         
-                                        {{-- Imagem do produto --}}
-                                        <div class="relative h-24 w-full overflow-hidden rounded-3xl bg-muted sm:w-24 flex items-center justify-center">
-                                            @if($item['isCatalogImage'])
-                                                <img src="{{ asset('storage/tshirt_images/' . $item['imageUrl']) }}" alt="{{ $item['imageName'] }}" class="object-contain w-full h-full" />
-                                            @else
-                                                <img src="{{ route('tshirt_images.show', ['filename' => $item['imageUrl']]) }}" alt="{{ $item['imageName'] }}" class="object-contain w-full h-full" />
+                                        {{-- Estampa sobreposta (Condição de Catálogo vs Personalizado usando a tua rota específica) --}}
+                                        @if($item['isCatalogImage'])
+                                            <img src="{{ asset('storage/tshirt_images/' . $item['imageUrl']) }}" class="absolute h-16 w-16 object-contain pointer-events-none" />
+                                        @else
+                                            <img src="{{ route('tshirt_images.show', ['filename' => $item['imageUrl']]) }}" class="absolute h-16 w-16 object-contain pointer-events-none" />
+                                        @endif
+                                    </div>
+
+                                    <div class="overflow-hidden">
+                                        <h3 class="font-bold text-base text-zinc-900 truncate max-w-[220px]">{{ $item['name'] }}</h3>
+                                        <p class="text-xs text-zinc-500 mt-0.5">{{ $item['isCatalogImage'] ? 'Imagem de Catálogo' : 'Design Personalizado' }}</p>
+                                        
+                                        <div class="mt-3 flex flex-col gap-0.5">
+                                            <div class="flex items-baseline gap-2">
+                                                <span class="text-base font-extrabold text-zinc-950">{{ number_format($subTotal, 2) }}€</span>
+                                                <span class="text-xs text-zinc-400">({{ number_format($unitPrice, 2) }}€/un)</span>
+                                            </div>
+                                            @if($hasDiscountApplied)
+                                                <span class="w-fit inline-block mt-1 text-[10px] font-bold bg-emerald-50 text-emerald-700 px-2 py-0.5 rounded-full border border-emerald-100">Desconto aplicado</span>
                                             @endif
-                                        </div>
-
-                                        {{-- Informações e Ações --}}
-                                        <div class="flex flex-1 flex-col justify-between gap-4">
-                                            <div class="flex items-start justify-between gap-4">
-                                                <div>
-                                                    <h2 class="text-lg font-semibold text-foreground">{{ $item['imageName'] }}</h2>
-                                                    <p class="text-sm text-muted-foreground">
-                                                        {{ $item['isCatalogImage'] ? 'Design do Catálogo' : 'Imagem Personalizada' }}
-                                                    </p>
-                                                </div>
-
-                                                {{-- Formulário para Remover Item --}}
-                                                <form action="{{ route('cart.remove', $item['id']) }}" method="POST">
-                                                    @csrf
-                                                    <button type="submit" class="rounded-full border border-zinc-300 px-3 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100">
-                                                        Remover
-                                                    </button>
-                                                </form>
-                                            </div>
-
-                                            {{-- FORMULÁRIO DE ATUALIZAÇÃO (Submete alterações ao trocar selects ou focar a quantidade) --}}
-                                            <form action="{{ route('cart.update', $item['id']) }}" method="POST" class="grid gap-4 sm:grid-cols-3 items-end">
-                                                @csrf
-                                                <div>
-                                                    <label class="mb-2 block text-sm font-medium text-zinc-900">Cor</label>
-                                                    <select name="color" class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary">
-                                                        @foreach ($tshirtColors as $color)
-                                                            <option value="{{ $color->code }}" {{ $item['color'] === $color->code ? 'selected' : '' }}>
-                                                                {{ $color->name }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-                                                
-                                                <div>
-                                                    <label class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
-                                                    <select name="size" class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary">
-                                                        @foreach ($tshirtSizes as $size)
-                                                            <option value="{{ $size }}" {{ $item['size'] === $size ? 'selected' : '' }}>
-                                                                {{ $size }}
-                                                            </option>
-                                                        @endforeach
-                                                    </select>
-                                                </div>
-
-                                                <div class="flex gap-2 items-center">
-                                                    <div class="w-full">
-                                                        <label class="mb-2 block text-sm font-medium text-zinc-900">Qtd</label>
-                                                        <input name="quantity" type="number" min="1" value="{{ $item['quantity'] }}" 
-                                                            class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none" />
-                                                    </div>
-                                                    <button type="submit" title="Atualizar Linha" class="mt-7 p-3 rounded-2xl bg-zinc-100 border border-zinc-200 hover:bg-zinc-200 text-sm">
-                                                        ✓
-                                                    </button>
-                                                </div>
-                                            </form>
-
-                                            <div class="flex items-center justify-between border-t border-zinc-200 pt-4 text-sm text-muted-foreground">
-                                                <span>Preço unitário</span>
-                                                <span>{{ number_format($unitPrice, 2) }}€</span>
-                                            </div>
-                                            <div class="flex items-center justify-between pt-2 text-base font-semibold text-foreground">
-                                                <span>Total do Artigo</span>
-                                                <span class="text-zinc-900">{{ number_format($itemTotal, 2) }}€</span>
-                                            </div>
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+
+                                {{-- CONFIGURADORES INDIVIDUAIS (Cor, Tamanho, Quantidade) --}}
+                                <div class="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-zinc-100">
+                                    
+                                    {{-- Seletor de Cor --}}
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Cor</span>
+                                        <select name="color" class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400 transition">
+                                            @foreach($tshirtColors as $color)
+                                                <option value="{{ $color->code }}" {{ $item['color'] === $color->code ? 'selected' : '' }}>
+                                                    {{ $color->name }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Seletor de Tamanho --}}
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Tam</span>
+                                        <select name="size" class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400 transition">
+                                            @foreach($tshirtSizes as $size)
+                                                <option value="{{ $size }}" {{ $item['size'] === $size ? 'selected' : '' }}>
+                                                    {{ $size }}
+                                                </option>
+                                            @endforeach
+                                        </select>
+                                    </div>
+
+                                    {{-- Input de Quantidade (0 ou menos remove automaticamente) --}}
+                                    <div class="flex flex-col gap-1">
+                                        <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Qty</span>
+                                        <input type="number" name="quantity" min="0" value="{{ $item['quantity'] }}" 
+                                            class="w-16 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-2 text-xs font-bold text-zinc-900 outline-none text-center focus:border-zinc-400 transition" />
+                                    </div>
+
+                                    {{-- Ações da Linha --}}
+                                    <div class="flex items-center gap-1.5 pt-4">
+                                        {{-- Botão Guardar/Atualizar --}}
+                                        <button type="submit" title="Guardar Alterações" class="rounded-xl bg-zinc-100 p-2 text-zinc-700 transition hover:bg-zinc-200 hover:text-zinc-950">
+                                            <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
+                                            </svg>
+                                        </button>
+                            </form>
+
+                                        {{-- Botão Eliminar Direto --}}
+                                        <form method="POST" action="{{ route('cart.remove', ['itemId' => $id]) }}">
+                                            @csrf
+                                            <button type="submit" title="Remover Item" class="rounded-xl bg-red-50 p-2 text-red-600 transition hover:bg-red-100">
+                                                <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                                    <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 7l-.867 12.142A2 2 0 0116.138 21H7.862a2 2 0 01-1.995-1.858L5 7m5 4v6m4-6v6m1-10V4a1 1 0 00-1-1h-4a1 1 0 00-1 1v3M4 7h16"/>
+                                                </svg>
+                                            </button>
+                                        </form>
+                                    </div>
+                                </div>
                         @endforeach
                     </div>
 
-                    {{-- RESUMO DA COMPRA --}}
-                    <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm h-fit">
-                        <div class="p-6 space-y-6">
-                            <h2 class="text-xl font-semibold text-foreground">Resumo da Encomenda</h2>
+                    {{-- RESUMO FINANCEIRO (LADO DIREITO) --}}
+                    <div class="space-y-6">
+                        <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
+                            <h2 class="text-lg font-semibold text-zinc-900 mb-4">Resumo do Pedido</h2>
                             
-                            <div class="space-y-3">
-                                @foreach($cartItems as $item)
-                                    @php
-                                        $unitPrice = $calculateItemPrice($item['isCatalogImage'], $item['quantity'], $priceRules);
-                                    @endphp
-                                    <div class="flex justify-between text-sm text-muted-foreground">
-                                        <span>{{ $item['imageName'] }} (x{{ $item['quantity'] }})</span>
-                                        <span>{{ number_format($unitPrice * $item['quantity'], 2) }}€</span>
-                                    </div>
-                                @endforeach
-                            </div>
-
-                            <div class="border-t border-zinc-200 pt-4">
-                                <div class="flex items-center justify-between text-lg font-semibold">
-                                    <span>Total</span>
-                                    <span class="text-primary">{{ number_format($grandTotal, 2) }}€</span>
+                            <div class="space-y-3 border-b border-zinc-100 pb-4 text-sm text-zinc-600">
+                                <div class="flex justify-between">
+                                    <span>Subtotal de Artigos</span>
+                                    <span class="font-medium text-zinc-900">{{ number_format($grandTotal, 2) }}€</span>
                                 </div>
-                                <p class="mt-1 text-xs text-muted-foreground">Portes de envio calculados no checkout</p>
+                                <div class="flex justify-between">
+                                    <span>Portes de Envio</span>
+                                    <span class="text-emerald-600 font-medium font-bold">Grátis</span>
+                                </div>
                             </div>
-                            
-                            <div class="mt-6 space-y-4">
-    @if ($userIsAuthenticated)
-        {{-- Formulário Direto de Compra sem interrupção de ecrãs de pagamento externos --}}
-        <form method="POST" action="{{ route('orders.storeCheckout') }}" class="space-y-4">
-            @csrf
-            
-            <div>
-                <label for="order-notes" class="mb-2 block text-sm font-medium text-zinc-700">Notas/Observações da Encomenda (Opcional)</label>
-                <textarea id="order-notes" name="notes" rows="2" placeholder="Ex: Deixar no andar de baixo caso não responda..."
-                    class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20"></textarea>
-            </div>
 
-            <button type="submit" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#144226] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0e2f1b]">
-                Confirmar e Submeter Encomenda
-            </button>
-        </form>
-    @else
-        <div class="space-y-4">
-            <a href="/entrar?redirect=/carrinho" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
-                Entrar para Finalizar Compra
-            </a>
-            <p class="text-center text-sm text-muted-foreground">
-                Não tens conta? <a href="/registar" class="text-primary hover:underline">Regista-te aqui</a>
-            </p>
-        </div>
-    @endif
-</div>
+                            <div class="pt-4">
+                                <div class="flex items-baseline justify-between text-zinc-900 mb-6">
+                                    <span class="text-base font-semibold">Valor Total Estimado:</span>
+                                    <span class="text-2xl font-bold text-[#144226]">{{ number_format($grandTotal, 2) }}€</span>
+                                </div>
+
+                                {{-- VERIFICAÇÃO SE ESTÁ AUTENTICADO --}}
+                                @if ($userIsAuthenticated)
+                                    {{-- Corrigido: Botão agora direciona para a vista de Checkout para preenchimento de NIF, Endereço e Pagamento --}}
+                                    <a href="{{ route('orders.checkout') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#144226] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0e2f1b] shadow-sm text-center">
+                                        Proceder para o Checkout
+                                    </a>
+                                @else
+                                    {{-- Corrigido: Redirecionamento aponta para o /checkout para cumprir o requisito de prosseguir com o carrinho --}}
+                                    <div class="space-y-3">
+                                        <a href="/login?redirect=/checkout" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm text-center">
+                                            Entrar para Finalizar Compra
+                                        </a>
+                                        <p class="text-center text-xs text-zinc-500">
+                                            Não tem conta? <a href="/register?redirect=/checkout" class="text-zinc-900 font-medium underline">Registe-se aqui</a> e mantenha o seu carrinho!
+                                        </p>
+                                    </div>
+                                @endif
+                            </div>
                         </div>
                     </div>
+
                 </div>
             @endif
         </div>

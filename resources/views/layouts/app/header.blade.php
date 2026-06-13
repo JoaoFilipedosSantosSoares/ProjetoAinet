@@ -72,7 +72,7 @@
 
             @auth
             @can('cliente')
-            <a href="{{-- route('account.index') --}}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
+            <a href="{{ route('account.index') }}" class="p-2 text-zinc-800 hover:text-zinc-950 transition">
                 <img src="/img/user.png" alt="Account Icon" class="h-6 w-6" />
             </a>
             @else
