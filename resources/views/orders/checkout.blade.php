@@ -129,7 +129,7 @@
                                 @endphp
                                 <div class="flex justify-between items-center py-3 text-sm">
                                     <div class="overflow-hidden">
-                                        <p class="font-semibold text-zinc-800 truncate max-w-[160px]">{{ $item['name'] }}</p>
+                                        <p class="font-semibold text-zinc-800 truncate max-w-40">{{ $item['name'] }}</p>
                                         <p class="text-xs text-zinc-400">Tam: {{ $item['size'] }} | Qtd: {{ $item['quantity'] }}</p>
                                     </div>
                                     <span class="font-bold text-zinc-900">{{ number_format($subTotal, 2) }}€</span>

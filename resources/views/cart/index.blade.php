@@ -75,7 +75,7 @@
                                 <div class="flex items-center gap-6 w-full md:w-auto">
                                     
                                     {{-- Quadrado da T-shirt destacado (Tamanho Grande) --}}
-                                    <div class="relative aspect-square h-32 w-32 flex-shrink-0 overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
+                                    <div class="relative aspect-square h-32 w-32 shrink-0 overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
                                         {{-- T-shirt de Base --}}
                                         <img src="{{ asset('storage/tshirt_base/' . $item['color'] . '.jpg') }}" class="absolute inset-0 h-full w-full object-contain" onerror="this.src='/img/tshirt.png'" />
                                         
@@ -88,7 +88,7 @@
                                     </div>
 
                                     <div class="overflow-hidden">
-                                        <h3 class="font-bold text-base text-zinc-900 truncate max-w-[220px]">{{ $item['name'] }}</h3>
+                                        <h3 class="font-bold text-base text-zinc-900 truncate max-w-55">{{ $item['name'] }}</h3>
                                         <p class="text-xs text-zinc-500 mt-0.5">{{ $item['isCatalogImage'] ? 'Imagem de Catálogo' : 'Design Personalizado' }}</p>
                                         
                                         <div class="mt-3 flex flex-col gap-0.5">
@@ -173,7 +173,7 @@
                                 </div>
                                 <div class="flex justify-between">
                                     <span>Portes de Envio</span>
-                                    <span class="text-emerald-600 font-medium font-bold">Grátis</span>
+                                    <span class="text-emerald-600 font-bold">Grátis</span>
                                 </div>
                             </div>
 
