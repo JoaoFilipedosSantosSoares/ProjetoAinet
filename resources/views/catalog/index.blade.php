@@ -7,42 +7,38 @@
 
     <div class="mt-8 flex justify-center">
         <form method="GET" class="flex w-full max-w-4xl flex-col gap-3 sm:flex-row sm:items-center">
-            
+
             <div class="w-full sm:w-48">
                 <select
                     name="category"
-                    class="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                >
+                    class="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900">
                     <option value="" {{ request('category') === '' ? 'selected' : '' }}>Todas as Categorias</option>
                     @foreach ($categories as $category)
-                        <option value="{{ $category }}" {{ request('category') === $category ? 'selected' : '' }}>
-                            {{ $category }}
-                        </option>
+                    <option value="{{ $category }}" {{ request('category') === $category ? 'selected' : '' }}>
+                        {{ $category }}
+                    </option>
                     @endforeach
                 </select>
             </div>
 
             <div class="relative flex-1">
-                <input 
-                    type="text" 
-                    name="search" 
+                <input
+                    type="text"
+                    name="search"
                     value="{{ request('search') }}"
-                    placeholder="Pesquisar por nome da t-shirt..." 
-                    class="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900"
-                />
+                    placeholder="Pesquisar por nome da t-shirt..."
+                    class="w-full rounded-lg border border-zinc-300 px-4 py-2 text-sm focus:border-zinc-900 focus:outline-none focus:ring-1 focus:ring-zinc-900" />
             </div>
 
             <button
                 type="submit"
-                class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-zinc-950 sm:w-auto"
-            >
+                class="inline-flex items-center justify-center rounded-lg bg-zinc-900 px-5 py-2 text-sm font-semibold text-white transition hover:bg-zinc-950 sm:w-auto">
                 Pesquisar
             </button>
 
             <a
                 href="{{ url()->current() }}"
-                class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-5 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 sm:w-auto text-center"
-            >
+                class="inline-flex items-center justify-center rounded-lg border border-zinc-300 bg-white px-5 py-2 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50 sm:w-auto text-center">
                 Limpar
             </a>
 
@@ -58,17 +54,25 @@
                     <img src="{{ asset('storage/tshirt_images/' . $tshirt->image_url) }}" alt="{{ $tshirt->name }}"
                         class="h-full w-full object-contain transition group-hover:scale-105" />
                 </div>
-                <div class="p-4">
-                    <p class="text-xs uppercase tracking-widest text-muted-foreground">
-                        {{ $tshirt->category->name ?? 'Sem Categoria' }}</p>
-                    <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->name }}</h3>
+                <div class="p-5 border-t border-zinc-100 bg-zinc-50/30">
+                    <p class="text-[12px] font-bold uppercase tracking-widest black">
+                        {{ $tshirt->category->name ?? 'Sem Categoria' }}
+                    </p>
+
+                    <h3 class="mt-1 font-bold text-base text-zinc-900 tracking-tight">
+                        {{ $tshirt->name }}
+                    </h3>
+
+                    <p class="mt-1.5 text-xs text-zinc-500 leading-relaxed italic">
+                        {{ $tshirt->description ?? 'Sem descrição disponível.' }}
+                    </p>
                 </div>
             </div>
         </a>
         @empty
-            <div class="col-span-full text-center py-12 text-muted-foreground">
-                Nenhum design encontrado.
-            </div>
+        <div class="col-span-full text-center py-12 text-muted-foreground">
+            Nenhum design encontrado.
+        </div>
         @endforelse
     </div>
 
