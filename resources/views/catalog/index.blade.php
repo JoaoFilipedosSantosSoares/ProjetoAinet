@@ -55,14 +55,27 @@
                         class="h-full w-full object-contain transition group-hover:scale-105" />
                 </div>
                 <div class="p-5 border-t border-zinc-100 bg-zinc-50/30">
-                    <p class="text-[12px] font-bold uppercase tracking-widest black">
-                        {{ $tshirt->category->name ?? 'Sem Categoria' }}
-                    </p>
+                    {{-- Bloco Flex para meter a Categoria à esquerda e Imagem à direita --}}
+                    <div class="flex items-center justify-between gap-4 mb-2">
+                        <p class="text-[12px] font-bold uppercase tracking-widest text-zinc-900">
+                            {{ $tshirt->category->name ?? 'Sem Categoria' }}
+                        </p>
 
-                    <h3 class="mt-1 font-bold text-base text-zinc-900 tracking-tight">
+                        @if(!empty($tshirt->category->image_url))
+                        <div class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                            <img src="{{ asset('storage/categories/' . $tshirt->category->image_url) }}"
+                                alt="{{ $tshirt->name ?? 'Imagem' }}"
+                                class="h-full w-full object-cover" />
+                        </div>
+                        @endif
+                    </div>
+
+                    {{-- Nome da T-shirt --}}
+                    <h3 class="font-bold text-base text-zinc-900 tracking-tight">
                         {{ $tshirt->name }}
                     </h3>
 
+                    {{-- Descrição --}}
                     <p class="mt-1.5 text-xs text-zinc-500 leading-relaxed italic">
                         {{ $tshirt->description ?? 'Sem descrição disponível.' }}
                     </p>
