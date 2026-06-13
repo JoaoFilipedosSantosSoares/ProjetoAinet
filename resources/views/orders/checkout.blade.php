@@ -23,7 +23,6 @@
         <div class="container mx-auto px-4 max-w-5xl">
             <h1 class="mb-8 text-3xl font-bold tracking-tight text-zinc-900">Finalizar Encomenda (Checkout)</h1>
 
-            {{-- Exibição de Erros de Validação / Pagamento Recusado --}}
             @if($errors->any())
                 <div class="mb-6 rounded-2xl bg-red-50 p-4 text-sm font-medium text-red-800 border border-red-200">
                     <ul class="list-disc pl-5 space-y-1">
