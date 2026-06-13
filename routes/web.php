@@ -46,6 +46,7 @@ Route::middleware(['guest'])->group(function () {
 });
 
 Route::get('/cart', [CartController::class, 'index'])->name('cart.index');
+Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
 Route::post('/cart/update/{itemId}', [CartController::class, 'update'])->name('cart.update');
 Route::post('/cart/remove/{itemId}', [CartController::class, 'remove'])->name('cart.remove');
 Route::post('/cart/clear', [CartController::class, 'clear'])->name('cart.clear');
@@ -75,7 +76,6 @@ Route::middleware(['auth', 'verified'])->group(function () {
         Route::get('/account/order/{order}', [OrderController::class, 'show'])->name('orders.show');
 
         // Carrinho de Compras
-        Route::post('/cart/store', [CartController::class, 'store'])->name('cart.store');
 
         // Personalização de T-Shirts
         Route::get('/customization', [CustomizationController::class, 'index'])->name('customization.index');

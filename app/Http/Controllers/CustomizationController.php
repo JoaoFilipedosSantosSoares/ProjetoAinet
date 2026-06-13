@@ -88,6 +88,7 @@ class CustomizationController extends Controller implements HasMiddleware
             'quantity',
             'unitPrice',
             'basePrice',
+            'discountPrice',
             'totalPrice',
             'hasDiscount'
         ));
