@@ -110,9 +110,34 @@ class OrderController extends Controller implements HasMiddleware
         $request->validate([
             'address' => 'required|string|max:255',
             'nif' => 'nullable|digits:9',
-            'payment_type' => 'required|in:VISA,MC,PAYPAL',
-            'payment_ref' => 'required|string|max:50',
+            'payment_type' => 'required|in:VISA,MB WAY,PAYPAL',
             'notes' => 'nullable|string|max:1000',
+            'payment_ref' => [
+                'required',
+                'string',
+                function ($attribute, $value, $fail) use ($request) {
+                    switch ($request->payment_type) {
+                        case 'VISA':
+                            // Verifica se são exatamente 16 dígitos e começam com 4
+                            if (!preg_match('/^4[0-9]{15}$/', $value)) {
+                                $fail('O número do cartão Visa deve conter exatamente 16 dígitos e começar com 4.');
+                            }
+                            break;
+                        case 'MB WAY':
+                            // Verifica se são exatamente 9 dígitos
+                            if (!preg_match('/^[0-9]{9}$/', $value)) {
+                                $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos.');
+                            }
+                            break;
+                        case 'PAYPAL':
+                            // Verifica formato de email
+                            if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
+                                $fail('O formato do e-mail PayPal é inválido.');
+                            }
+                            break;
+                    }
+                },
+            ],
         ]);
 
         $priceRules = Price::first();
@@ -164,7 +189,7 @@ class OrderController extends Controller implements HasMiddleware
         $formPaymentType = $request->payment_type;
         $dbPaymentType = match ($formPaymentType) {
             'VISA' => 'Visa',
-            'MC' => 'Mastercard',
+            'MB WAY' => 'MB WAY',
             'PAYPAL' => 'PayPal',
             default => $formPaymentType
         };
@@ -204,11 +229,10 @@ class OrderController extends Controller implements HasMiddleware
     }
 
 
-    // NÃO TENHO A CERTEZA SE ISTO ESTÁ CORRETO
     public function confirm(Request $request): RedirectResponse
     {
         $request->validate([
-            'payment_type' => 'required|in:VISA,MC,PAYPAL,MBWAY',
+            'payment_type' => 'required|in:VISA,MB WAY,PAYPAL',
             'payment_ref' => 'required|string',
             'notes' => 'nullable|string|max:1000',
         ]);
@@ -279,40 +303,41 @@ class OrderController extends Controller implements HasMiddleware
             ->with('alert-type', 'success')
             ->with('alert-msg', $htmlMessage);
     }
+
     public function update(Request $request, Order $order): RedirectResponse
-{
-    // Valida usando os estados literais em inglês aceites pelo CHECK constraint da BD
-    $request->validate([
-        'status' => 'required|in:pending,paid,closed,canceled'
-    ]);
-
-    // Regra de negócio: impede alterar se já estiver cancelada ('canceled') ou fechada ('closed')
-    if (in_array($order->status, ['canceled', 'closed'])) {
-        return redirect()->back()
-            ->with('alert-type', 'warning')
-            ->with('alert-msg', "Não é possível alterar o estado da encomenda <b>#{$order->id}</b> porque ela já se encontra finalizada.");
-    }
-
-    DB::transaction(function () use ($request, $order) {
-        $order->update([
-            'status' => $request->status // Irá gravar 'closed' corretamente na base de dados
+    {
+        // Valida usando os estados literais em inglês aceites pelo CHECK constraint da BD
+        $request->validate([
+            'status' => 'required|in:pending,paid,closed,canceled'
         ]);
-    });
 
-    // Mapeamento apenas para a mensagem visual de sucesso ficar bonita em português
-    $statusPt = match ($request->status) {
-        'pending'  => 'pendente',
-        'paid'     => 'paga',
-        'closed'   => 'concluída',
-        'canceled' => 'cancelada',
-        default    => $request->status
-    };
+        // Regra de negócio: impede alterar se já estiver cancelada ('canceled') ou fechada ('closed')
+        if (in_array($order->status, ['canceled', 'closed'])) {
+            return redirect()->back()
+                ->with('alert-type', 'warning')
+                ->with('alert-msg', "Não é possível alterar o estado da encomenda <b>#{$order->id}</b> porque ela já se encontra finalizada.");
+        }
 
-    $url = route('orders.show', ['order' => $order]);
-    $htmlMessage = "O estado da encomenda <a href='$url'><u>#{$order->id}</u></a> foi atualizado com sucesso para <b>{$statusPt}</b>!";
+        DB::transaction(function () use ($request, $order) {
+            $order->update([
+                'status' => $request->status // Irá gravar 'closed' corretamente na base de dados
+            ]);
+        });
 
-    return redirect()->back()
-        ->with('alert-type', 'success')
-        ->with('alert-msg', $htmlMessage);
-}
+        // Mapeamento apenas para a mensagem visual de sucesso ficar bonita em português
+        $statusPt = match ($request->status) {
+            'pending'  => 'pendente',
+            'paid'     => 'paga',
+            'closed'   => 'concluída',
+            'canceled' => 'cancelada',
+            default    => $request->status
+        };
+
+        $url = route('orders.show', ['order' => $order]);
+        $htmlMessage = "O estado da encomenda <a href='$url'><u>#{$order->id}</u></a> foi atualizado com sucesso para <b>{$statusPt}</b>!";
+
+        return redirect()->back()
+            ->with('alert-type', 'success')
+            ->with('alert-msg', $htmlMessage);
+    }
 }
