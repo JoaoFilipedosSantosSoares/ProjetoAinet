@@ -6,9 +6,29 @@ use Illuminate\Http\Request;
 use App\Models\Tshirt_image;
 use App\Models\Color;
 use App\Models\Price;
+use Illuminate\Routing\Controllers\HasMiddleware;
+use Illuminate\Routing\Controllers\Middleware;
+use Closure;
+use Symfony\Component\HttpFoundation\Response;
 
-class CartController extends Controller
+class CartController extends Controller implements HasMiddleware
 {
+public static function middleware(): array
+{
+    return [
+        new Middleware(function (Request $request, Closure $next) {
+            $user = $request->user();
+
+            // Verifica se o user está autenticado E se tem cargo restrito
+            if ($user && in_array($user->user_type, ['F', 'A'])) {
+                abort(Response::HTTP_FORBIDDEN);
+            }
+
+            // Permite o acesso para clientes (autenticados que não sejam staff) e anónimos
+            return $next($request);
+        }),
+    ];
+}
     private function getStorePrices()
     {
         return Price::first();
