@@ -121,7 +121,7 @@ class CustomizationController extends Controller implements HasMiddleware
             'category_id' => null,
             'name' => pathinfo($file->getClientOriginalName(), PATHINFO_FILENAME),
             'image_url' => $fileName,
-            'description' => 'Design carregado pelo utilizador.',
+            'description' => $request->input('description') ?? 'Design carregado pelo utilizador.',
         ]);
 
         // 4. Redirecionar

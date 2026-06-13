@@ -22,6 +22,12 @@
                             </p>
                             <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->name }}</h3>
                         </div>
+                        <div class="p-4">
+                            <p class="text-xs uppercase tracking-widest text-muted-foreground">
+                                Descrição
+                            </p>
+                            <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->description }}</h3>
+                        </div>
                     </div>
                 </div>
             </div>
@@ -30,16 +36,16 @@
             <div class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="p-6 space-y-6">
-                        
+
                         {{-- Seleção de Cores através de links diretos (atualiza o preview da t-shirt) --}}
                         <div>
                             <label class="mb-2 block text-sm font-medium text-zinc-900">Cor da T-Shirt</label>
                             <div class="flex flex-wrap gap-2">
                                 @foreach ($colours as $color)
-                                    <a href="{{ route('catalog.show', ['tshirt' => $tshirt, 'color' => $color->code]) }}"
-                                        class="color-option h-10 w-10 rounded-full border-2 transition-all duration-200 {{ ($selectedColor->code ?? '') === $color->code ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2' : 'border-border' }}"
-                                        title="{{ $color->name }}"
-                                        style="background-color: #{{ $color->code }}"></a>
+                                <a href="{{ route('catalog.show', ['tshirt' => $tshirt, 'color' => $color->code]) }}"
+                                    class="color-option h-10 w-10 rounded-full border-2 transition-all duration-200 {{ ($selectedColor->code ?? '') === $color->code ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2' : 'border-border' }}"
+                                    title="{{ $color->name }}"
+                                    style="background-color: #{{ $color->code }}"></a>
                                 @endforeach
                             </div>
                             <p class="mt-2 text-sm text-muted-foreground">{{ $selectedColor->name ?? 'Selecione uma cor' }}</p>
@@ -76,7 +82,7 @@
                             </div>
 
                             <div class="space-y-3">
-                                <button type="submit" 
+                                <button type="submit"
                                     class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
                                     {{ (isset($tshirt) && $tshirt->image_url) ? '' : 'disabled' }}
                                     {{ auth()->check() && (auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A') ? 'disabled' : '' }}>
@@ -84,11 +90,11 @@
                                 </button>
 
                                 @auth
-                                    @if(auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A')
-                                        <p class="text-center text-xs text-red-500 mt-1">
-                                            Contas de funcionários/admins não podem efetuar compras.
-                                        </p>
-                                    @endif
+                                @if(auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A')
+                                <p class="text-center text-xs text-red-500 mt-1">
+                                    Contas de funcionários/admins não podem efetuar compras.
+                                </p>
+                                @endif
                                 @endauth
                             </div>
                         </form>

@@ -43,17 +43,28 @@
                                     <img src="{{ asset('storage/tshirt_base/' . ($item->color_code ?? $item->color) . '.jpg') }}"
                                         alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain" onerror="this.src='/img/tshirt.png'" />
 
-                                    @if($item->tshirt_image->customer_id)
+                                    @if($item->tshirt_image)
+                                    @if(isset($item->tshirt_image->customer_id))
                                     <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
                                         alt="{{ $item->tshirt_image->name }}" class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
                                     @else
                                     <img src="{{ asset('storage/tshirt_images/' . ($item->tshirt_image->image_url ?? 'default.png')) }}"
                                         alt="Estampa" class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
                                     @endif
+                                    @else
+                                    <span class="relative z-10 text-[10px] font-bold text-red-500 text-center px-1">Sem imagem</span>
+                                    @endif
                                 </div>
 
                                 <div>
-                                    <h3 class="font-bold text-sm text-zinc-900">T-Shirt Tamanho {{ $item->size }}</h3>
+                                    <h3 class="font-bold text-sm text-zinc-900">
+                                        T-Shirt Tamanho {{ $item->size }}
+                                        @if(!$item->tshirt_image)
+                                        <span class="ml-2 inline-block text-xs font-semibold text-red-600 bg-red-50 px-2 py-0.5 rounded-md border border-red-200 animate-pulse">
+                                            (A imagem foi apagada)
+                                        </span>
+                                        @endif
+                                    </h3>
                                     <p class="text-xs text-zinc-500">Quantidade: <span class="font-bold text-zinc-800">{{ $item->qty ?? $item->quantity }}</span></p>
                                 </div>
                             </div>
