@@ -35,13 +35,10 @@ class OrderController extends Controller implements HasMiddleware
     public function index(Request $request): View
     {
         $filterBySearch = $request->query('search');
-        $filterByStatus = $request->query('status'); // Permite filtrar por pendente, em processamento, etc.
 
         $ordersQuery = Order::query();
 
-        if ($filterByStatus !== null) {
-            $ordersQuery->where('status', $filterByStatus);
-        }
+        $ordersQuery->where('status', '=', 'pending');
 
         if ($filterBySearch !== null) {
             $ordersQuery->where('id', '=', $filterBySearch);
@@ -54,7 +51,7 @@ class OrderController extends Controller implements HasMiddleware
             ->paginate(20)
             ->withQueryString();
 
-        return view('orders.index', compact('orders', 'filterBySearch', 'filterByStatus'));
+        return view('orders.index', compact('orders', 'filterBySearch'));
     }
 
     public function show(Order $order): View
@@ -284,29 +281,39 @@ class OrderController extends Controller implements HasMiddleware
             ->with('alert-msg', $htmlMessage);
     }
     public function update(Request $request, Order $order): RedirectResponse
-    {
-        $request->validate([
-            'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
-        ]);
+{
+    // Valida usando os estados literais em inglês aceites pelo CHECK constraint da BD
+    $request->validate([
+        'status' => 'required|in:pending,paid,closed,canceled'
+    ]);
 
-        // Regra de negócio: impede alterar se já estiver cancelada ou enviada
-        if (in_array($order->status, ['cancelado', 'enviado'])) {
-            return redirect()->back()
-                ->with('alert-type', 'warning')
-                ->with('alert-msg', "Não é possível alterar o estado da encomenda <b>#{$order->id}</b> porque ela já se encontra no estado: {$order->status}");
-        }
-
-        DB::transaction(function () use ($request, $order) {
-            $order->update([
-                'status' => $request->status
-            ]);
-        });
-
-        $url = route('orders.show', ['order' => $order]);
-        $htmlMessage = "O estado da encomenda <a href='$url'><u>#{$order->id}</u></a> foi atualizado com sucesso para <b>{$request->status}</b>!";
-
+    // Regra de negócio: impede alterar se já estiver cancelada ('canceled') ou fechada ('closed')
+    if (in_array($order->status, ['canceled', 'closed'])) {
         return redirect()->back()
-            ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
+            ->with('alert-type', 'warning')
+            ->with('alert-msg', "Não é possível alterar o estado da encomenda <b>#{$order->id}</b> porque ela já se encontra finalizada.");
     }
+
+    DB::transaction(function () use ($request, $order) {
+        $order->update([
+            'status' => $request->status // Irá gravar 'closed' corretamente na base de dados
+        ]);
+    });
+
+    // Mapeamento apenas para a mensagem visual de sucesso ficar bonita em português
+    $statusPt = match ($request->status) {
+        'pending'  => 'pendente',
+        'paid'     => 'paga',
+        'closed'   => 'concluída',
+        'canceled' => 'cancelada',
+        default    => $request->status
+    };
+
+    $url = route('orders.show', ['order' => $order]);
+    $htmlMessage = "O estado da encomenda <a href='$url'><u>#{$order->id}</u></a> foi atualizado com sucesso para <b>{$statusPt}</b>!";
+
+    return redirect()->back()
+        ->with('alert-type', 'success')
+        ->with('alert-msg', $htmlMessage);
+}
 }
