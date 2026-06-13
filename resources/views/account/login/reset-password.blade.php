@@ -8,7 +8,6 @@
         @csrf
         <input type="hidden" name="token" value="{{ request()->route('token') }}">
 
-        {{-- Bloco do Email (Read-Only) --}}
         <div>
             <label for="email" class="block text-base font-medium text-black mb-1.5">
                 {{ __('Email') }}

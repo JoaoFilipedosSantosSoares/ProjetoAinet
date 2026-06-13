@@ -24,13 +24,8 @@ class OrderController extends Controller implements HasMiddleware
     public static function middleware(): array
     {
         return [
-            // Apenas Funcionários/Admins podem listar todas as encomendas
             new Middleware('can:viewAny,App\Models\Order', only: ['index']),
-
-            // Apenas quem tem permissão pode ver os detalhes de uma encomenda da logística
             new Middleware('can:view,order', only: ['show']),
-
-            // Apenas quem tem permissão (Funcionários) pode alterar o estado no update
             new Middleware('can:update,order', only: ['update']),
         ];
     }
@@ -39,7 +34,6 @@ class OrderController extends Controller implements HasMiddleware
     {
         $user = Auth::user();
 
-        // Capturar todos os filtros
         $filterBySearch = $request->query('search');
         $filterByStatus = $request->query('status');
         $filterByCustomer = $request->query('customer');
@@ -48,19 +42,16 @@ class OrderController extends Controller implements HasMiddleware
 
         $ordersQuery = Order::query();
 
-        // 1. Filtro de Estado (Regra de negócio: Funcionário só vê 'pending')
         if ($user->user_type === 'F') {
             $ordersQuery->where('status', 'pending');
         } elseif (!empty($filterByStatus)) {
             $ordersQuery->where('status', $filterByStatus);
         }
 
-        // 2. Filtro de ID
         if (!empty($filterBySearch)) {
             $ordersQuery->where('id', $filterBySearch);
         }
 
-        // 3. Filtro de Datas (Intervalo)
         if (!empty($dataInicio)) {
             $ordersQuery->whereDate('created_at', '>=', $dataInicio);
         }
@@ -68,7 +59,6 @@ class OrderController extends Controller implements HasMiddleware
             $ordersQuery->whereDate('created_at', '<=', $dataFim);
         }
 
-        // 4. Filtro de Cliente (Apenas para Admin)
         if ($user->user_type === 'A' && !empty($filterByCustomer)) {
             $ordersQuery->whereHas('customer.user', function ($query) use ($filterByCustomer) {
                 $query->where('name', 'like', "%{$filterByCustomer}%")
@@ -98,33 +88,25 @@ class OrderController extends Controller implements HasMiddleware
 
     public function downloadReceipt(Order $order): RedirectResponse|StreamedResponse
     {
-        // 2. MUDANÇA AQUI: Substitui $this->authorize() por Gate::authorize()
         Gate::authorize('view', $order);
 
-        // 3. Verifica se a encomenda tem um recibo associado na base de dados
         if (empty($order->receipt_url)) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', 'Esta encomenda ainda não possui um recibo disponível.');
         }
 
-        // 4. Define o caminho correto dentro do storage privado
         $filePath = 'pdf_receipts/' . $order->receipt_url;
 
-        // 5. Verifica se o ficheiro físico existe mesmo no disco privado
         if (!Storage::exists($filePath)) {
             return redirect()->back()
                 ->with('alert-type', 'danger')
                 ->with('alert-msg', 'O ficheiro do recibo não foi encontrado no servidor.');
         }
 
-        // 6. Faz o download seguro do ficheiro privado
         return Storage::download($filePath, "recibo-encomenda-{$order->id}.pdf");
     }
 
-    /**
-     * Prepara os dados do checkout calculando os preços e totais antes de renderizar a View.
-     */
     public function checkout()
     {
         $user = Auth::user();
@@ -141,7 +123,6 @@ class OrderController extends Controller implements HasMiddleware
         $priceRules = Price::first();
         $grandTotal = 0;
 
-        // Calcula os preços de forma idêntica ao storeCheckout para manter integridade total
         foreach ($cartItems as $id => &$item) {
             $isCatalog = (bool) ($item['isCatalogImage'] ?? false);
             $qty = (int) ($item['quantity'] ?? 1);
@@ -156,14 +137,13 @@ class OrderController extends Controller implements HasMiddleware
                 }
             }
 
-            // Injeta os valores calculados diretamente no array do item para a View consumir de forma limpa
             $item['unit_price'] = $unitPrice;
             $item['sub_total'] = $unitPrice * $qty;
 
 
             $grandTotal += $item['sub_total'];
         }
-        unset($item); // Quebra a referência por segurança do PHP
+        unset($item);
 
         return view('orders.checkout', compact('cartItems', 'grandTotal', 'priceRules'));
     }
@@ -181,11 +161,9 @@ class OrderController extends Controller implements HasMiddleware
             return redirect()->route('cart.index')->with('error', 'O seu carrinho está vazio.');
         }
 
-        // 1. VALIDAÇÃO ESTRETA CONFORME O ENUNCIADO
         $request->validate([
             'address' => 'required|string|max:255',
             'nif' => 'nullable|digits:9',
-            // Aceita exatamente "Visa", "PayPal" ou "MB WAY" (sensível a maiúsculas)
             'payment_type' => 'required|in:Visa,PayPal,MB WAY',
             'notes' => 'nullable|string|max:1000',
             'payment_ref' => [
@@ -199,13 +177,11 @@ class OrderController extends Controller implements HasMiddleware
                             }
                             break;
                         case 'MB WAY':
-                            // 9 dígitos e OBRIGATORIAMENTE iniciado por 9
                             if (!preg_match('/^9[0-9]{8}$/', $value)) {
                                 $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos e começar com 9.');
                             }
                             break;
                         case 'PayPal':
-                            // E-mail válido
                             if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
                                 $fail('O formato do e-mail PayPal é inválido.');
                             }
@@ -246,7 +222,6 @@ class OrderController extends Controller implements HasMiddleware
             ];
         }
 
-        // VALIDAÇÃO EXTRA DO VALOR SEGUNDO O ENUNCIADO (0.01 até 999999.99)
         if ($grandTotal < 0.01 || $grandTotal > 999999.99) {
             return redirect()->back()
                 ->withInput()
@@ -254,7 +229,6 @@ class OrderController extends Controller implements HasMiddleware
         }
 
         try {
-            // Limpa espaços que o utilizador possa ter digitado na referência
             $cleanReference = str_replace(' ', '', $request->payment_ref);
 
             $response = Http::withOptions([
@@ -264,12 +238,12 @@ class OrderController extends Controller implements HasMiddleware
                     CURLOPT_SSL_VERIFYHOST => 0
                 ],
             ])->post('https://ainet-payments-api.vercel.app/api/payments', [
-                'type' => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
-                'reference' => $cleanReference,        // Chave EXATA do enunciado
-                'value' => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
+                'type' => $request->payment_type, 
+                'reference' => $cleanReference,
+                'value' => (float) number_format($grandTotal, 2, '.', ''),
             ]);
 
-            // Se a API responder com erro (status code diferente de 2xx)
+         
             if ($response->failed()) {
                 $apiError = $response->json()['message'] ?? 'Validation failed';
                 return redirect()->back()
@@ -282,10 +256,8 @@ class OrderController extends Controller implements HasMiddleware
                 ->withErrors(['payment_ref' => 'Não foi possível contactar a plataforma externa de pagamentos. Tente novamente mais tarde.']);
         }
 
-        // 4. GRAVAÇÃO NA BASE DE DADOS (TRANSAÇÃO ATÓMICA)
         $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave) {
 
-            // Como a API deu OK, salvamos como 'paid' (ou 'pending' se a tua BD exigir)
             $newOrder = Order::create([
                 'status' => 'pending',
                 'customer_id' => $user->customer->id ?? null,
@@ -298,7 +270,6 @@ class OrderController extends Controller implements HasMiddleware
                 'payment_ref' => $request->payment_ref,
             ]);
 
-            // Associa os itens à encomenda
             foreach ($itemsToSave as $itemData) {
                 $itemData['order_id'] = $newOrder->id;
                 Order_item::create($itemData);
@@ -307,7 +278,6 @@ class OrderController extends Controller implements HasMiddleware
             return $newOrder;
         });
 
-        // 5. LIMPAR CARRINHO E REDIRECIONAR
         session()->forget('cart');
 
         return redirect()->route('account.index')

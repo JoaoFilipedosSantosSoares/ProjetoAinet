@@ -18,14 +18,12 @@
         <form method="GET" action="{{ route('orders.index') }}"
             class="mb-6 flex flex-wrap gap-4 bg-white p-4 rounded-2xl border border-zinc-200 shadow-sm items-end">
 
-            {{-- ID ENCOMENDA --}}
             <div class="flex flex-col gap-1.5 w-full sm:w-40 md:w-48">
                 <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider">ID Encomenda</label>
                 <input name="search" type="text" value="{{ request('search') }}" placeholder="Ex: 1420"
                     class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm" />
             </div>
 
-            {{-- ESTADO --}}
             <div class="flex flex-col gap-1.5 w-full sm:w-32">
                 <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Estado</label>
                 <select name="status" class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm">
@@ -36,7 +34,6 @@
                 </select>
             </div>
 
-            {{-- DATA (INÍCIO - FIM) --}}
             <div class="flex flex-col gap-1.5 w-full sm:w-64">
                 <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Data (Início - Fim)</label>
                 <div class="flex gap-2">
@@ -47,14 +44,12 @@
                 </div>
             </div>
 
-            {{-- CLIENTE --}}
             <div class="flex flex-col gap-1.5 flex-grow min-w-[200px] px-7">
                 <label class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Cliente</label>
                 <input name="customer" type="text" value="{{ request('customer') }}" placeholder="Nome ou e-mail..."
                     class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm" />
             </div>
 
-            {{-- BOTÕES --}}
             <div class="flex gap-2 shrink-0">
                 <button type="submit"
                     class="rounded-xl bg-zinc-950 px-6 py-2.5 text-sm font-semibold text-white">Filtrar</button>

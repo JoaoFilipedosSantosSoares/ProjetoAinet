@@ -2,14 +2,12 @@
 @component('layouts.main-content')
 <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8 space-y-8">
     
-    {{-- CABEÇALHO & FILTROS COMBINADOS --}}
     <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 border-b border-zinc-200 pb-5">
         <div>
             <h1 class="text-2xl font-bold tracking-tight text-zinc-900">Painel de Estatísticas</h1>
             <p class="text-sm text-zinc-500">Monitorização de desempenho, médias temporais e rankings do negócio.</p>
         </div>
         
-        {{-- Formulário com Filtro de Ano e Limite de Linhas --}}
         <form method="GET" action="{{ route('staff.estatisticas') }}" class="flex flex-wrap items-center gap-4">
             <div class="flex items-center gap-2">
                 <label class="text-xs font-bold text-zinc-400 uppercase tracking-wider">Ano:</label>
@@ -34,7 +32,6 @@
         </form>
     </div>
 
-    {{-- BLOCO 1: CARDS DE MÉTRICAS GLOBAIS --}}
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
             <p class="text-xs font-bold uppercase tracking-wider text-zinc-400">Volume de Vendas</p>
@@ -61,7 +58,6 @@
         </div>
     </div>
 
-    {{-- BLOCO 2: GRÁFICO DE EVOLUÇÃO MENSAL --}}
     <div class="w-full block clear-both lg:col-span-3 xl:col-span-3 mt-8">
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm w-full">
             <div class="mb-4">
@@ -75,7 +71,6 @@
         </div>
     </div>
 
-    {{-- BLOCO 3: TABELA DE MÉDIAS PERIÓDICAS (Semanal, Mensal, Anual) --}}
     <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div class="mb-4">
             <h3 class="text-base font-bold text-zinc-900">Análise de Médias Periódicas</h3>
@@ -91,19 +86,16 @@
                     </tr>
                 </thead>
                 <tbody class="divide-y divide-zinc-100 bg-white font-medium">
-                    {{-- Média Anual --}}
                     <tr class="hover:bg-zinc-50/50">
                         <td class="px-4 py-3.5 text-zinc-900 font-bold">Média Anual (Global)</td>
                         <td class="px-4 py-3.5 text-right text-zinc-900 font-bold">{{ number_format($vendasTotais, 2, ',', '.') }} €</td>
                         <td class="px-4 py-3.5 text-right text-zinc-900 font-bold">{{ number_format($totalTshirtsVendidas, 0) }} un.</td>
                     </tr>
-                    {{-- Média Mensal --}}
                     <tr class="hover:bg-zinc-50/50">
                         <td class="px-4 py-3.5 text-zinc-700">Média Mensal</td>
                         <td class="px-4 py-3.5 text-right font-semibold text-zinc-900">{{ number_format($mediaMensalFaturacao, 2, ',', '.') }} €</td>
                         <td class="px-4 py-3.5 text-right text-zinc-600">{{ number_format($mediaMensalQuantidade, 1, ',', '.') }} un.</td>
                     </tr>
-                    {{-- Média Semanal --}}
                     <tr class="hover:bg-zinc-50/50">
                         <td class="px-4 py-3.5 text-zinc-700">Média Semanal</td>
                         <td class="px-4 py-3.5 text-right font-semibold text-zinc-900">{{ number_format($mediaSemanalFaturacao, 2, ',', '.') }} €</td>
@@ -114,7 +106,6 @@
         </div>
     </div>
 
-    {{-- BLOCO 4: RANKINGS DINÂMICOS (Com base no Limite Escolhido) --}}
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
         
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col h-[800px]">
@@ -210,14 +201,11 @@
     const dadosFaturacao = @json($dadosGrafico);
     const dadosEncomendas = @json($dadosEncomendas);
 
-    // --- LÓGICA JAVASCRIPT PARA DETETAR O MÁXIMO E O MÍNIMO ---
     const maxLucro = Math.max(...dadosFaturacao);
     
-    // filtrar os meses com 0 para não pintar de vermelho um mês sem vendas
     const mesesComVendas = dadosFaturacao.filter(valor => valor > 0);
     const minLucro = mesesComVendas.length > 0 ? Math.min(...mesesComVendas) : 0;
 
-    // Criar um array de cores dinâmico para os 12 meses
     const coresBarras = dadosFaturacao.map(valor => {
         if (valor === maxLucro && maxLucro > 0) {
             return '#22c55e'; 
@@ -227,7 +215,6 @@
         }
         return '#18181b';     
     });
-    // -----------------------------------------------------------
 
     const ctx = document.getElementById('lucrosChart').getContext('2d');
     new Chart(ctx, {
@@ -237,7 +224,7 @@
             datasets: [{
                 label: 'Faturação Mensal (€)',
                 data: dadosFaturacao,
-                backgroundColor: coresBarras, // <--- Array cores de barras
+                backgroundColor: coresBarras,
                 borderRadius: 6,
                 borderWidth: 0,
                 categoryPercentage: 0.8,
@@ -250,7 +237,6 @@
             plugins: {
                 tooltip: {
                     callbacks: {
-                        // Personalização do texto do tooltip
                         label: function(context) {
                             let valorFaturacao = context.raw.toLocaleString('pt-PT', { style: 'currency', currency: 'EUR' });
                             let numEncomendas = dadosEncomendas[context.dataIndex];

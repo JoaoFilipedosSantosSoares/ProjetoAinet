@@ -27,20 +27,18 @@ class AccountController extends Controller implements HasMiddleware
     {
         $user = Auth::user();
         $orders = null;
-        $cancelledOrders = collect(); // Coleção vazia por defeito
+        $cancelledOrders = collect(); 
 
         if ($user->user_type === 'C') {
             $customerId = $user->customer?->id;
 
             if ($customerId) {
-                // 1. Encomendas Concluídas/Fechadas
                 $orders = Order::where('customer_id', $customerId)
                     ->where('status', 'closed')
                     ->orderBy('id', 'desc')
                     ->paginate(10)
                     ->withQueryString();
 
-                // 2. Encomendas Canceladas (não paginadas, ou paginadas se preferires)
                 $cancelledOrders = Order::where('customer_id', $customerId)
                     ->where('status', 'canceled')
                     ->orderBy('id', 'desc')

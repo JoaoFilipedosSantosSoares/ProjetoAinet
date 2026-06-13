@@ -17,14 +17,11 @@
         <form method="POST" action="{{ route('orders.storeCheckout') }}" class="grid gap-8 lg:grid-cols-3">
             @csrf
 
-            {{-- BLOCO ESQUERDO: DADOS DO FORMULÁRIO --}}
             <div class="lg:col-span-2 space-y-6">
 
-                {{-- Secção 1: Dados de Envio e Faturação --}}
                 <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-5">
                     <h2 class="text-xl font-bold text-zinc-900 border-b border-zinc-100 pb-3">Dados de Entrega & Faturação</h2>
 
-                    {{-- Endereço de Entrega --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="address" class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Endereço de Entrega</label>
                         <input type="text" id="address" name="address" required
@@ -33,7 +30,6 @@
                             class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
                     </div>
 
-                    {{-- NIF --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="nif" class="text-xs font-bold text-zinc-700 uppercase tracking-wider">NIF (Número de Contribuinte)</label>
                         <input type="text" id="nif" name="nif" maxlength="9" pattern="[0-9]{9}"
@@ -42,7 +38,6 @@
                             class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
                     </div>
 
-                    {{-- Notas Adicionais --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="notes" class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Notas / Observações da Encomenda</label>
                         <textarea id="notes" name="notes" rows="3"
@@ -51,11 +46,9 @@
                     </div>
                 </div>
 
-                {{-- Secção 2: Dados de Pagamento Simulado --}}
                 <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-5">
                     <h2 class="text-xl font-bold text-zinc-900 border-b border-zinc-100 pb-3">Método de Pagamento Simulado</h2>
 
-                    {{-- Tipo de Pagamento --}}
                     <div class="grid gap-4 sm:grid-cols-3">
                         @php
                             $selectedPaymentType = old('payment_type', auth()->user()->customer->default_payment_type ?? 'VISA');
@@ -89,7 +82,6 @@
                         </label>
                     </div>
 
-                    {{-- Referência do Pagamento --}}
                     <div class="flex flex-col gap-1.5">
                         <label for="payment_ref" class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Referência / Dados de Pagamento</label>
                         <input type="text" id="payment_ref_input" name="payment_ref" required
@@ -103,12 +95,10 @@
                 </div>
             </div>
 
-            {{-- BLOCO DIREITO: RESUMO DOS ARTIGOS E SUBMISSÃO --}}
             <div class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm space-y-4">
                     <h3 class="text-lg font-bold text-zinc-900 border-b border-zinc-100 pb-2">Resumo dos Artigos</h3>
 
-                    {{-- Lista dos Itens vindos diretos do Controller --}}
                     <div class="max-h-64 overflow-y-auto divide-y divide-zinc-100 pr-1">
                         @foreach($cartItems as $id => $item)
                             <div class="flex justify-between items-center py-3 text-sm">
@@ -121,7 +111,6 @@
                         @endforeach
                     </div>
 
-                    {{-- Totais Financeiros --}}
                     <div class="border-t border-zinc-100 pt-4 space-y-2 text-sm text-zinc-600">
                         <div class="flex justify-between">
                             <span>Subtotal</span>

@@ -28,9 +28,7 @@
 
     </div>
 
-    {{-- Campos de Edição --}}
     <div class="space-y-4">
-        {{-- Nome --}}
         <div>
             <label for="name" class="block text-sm font-medium text-black mb-1.5">Nome Completo</label>
             <flux:input
@@ -45,7 +43,6 @@
         </div>
 
 
-        {{-- Cargo --}}
         <div>
             <label for="user_type" class="block text-sm font-medium text-black mb-1.5">Cargo</label>
             <select
@@ -60,7 +57,6 @@
             @error('user_type') <p class="mt-1 text-sm text-red-600">{{ $message }}</p> @enderror
         </div>
 
-        {{-- Género --}}
         <div>
             <label for="gender" class="block text-sm font-medium text-black mb-1.5">Género</label>
             <select
@@ -76,7 +72,6 @@
         </div>
     </div>
 
-    {{-- Botões de Ação --}}
     <div class="pt-4 border-t border-zinc-200 flex flex-col gap-2">
         <button type="submit" class="w-full flex justify-center items-center rounded-md bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
             Gravar Alterações

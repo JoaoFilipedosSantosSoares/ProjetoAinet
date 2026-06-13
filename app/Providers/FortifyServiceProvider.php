@@ -27,7 +27,7 @@ class FortifyServiceProvider extends ServiceProvider
      */
     public function register(): void
     {
-        //
+        
     }
 
     /**
@@ -71,9 +71,7 @@ class FortifyServiceProvider extends ServiceProvider
 
                 if ($user && Hash::check($request->password, $user->password)) {
 
-                    // VERIFICAÇÃO DO BLOQUEIO
                     if ($user->blocked == 1) {
-                        // Atira o erro diretamente para a caixinha do email no formulário
                         throw ValidationException::withMessages([
                             'email' => ['A sua conta encontra-se bloqueada. Contacte o administrador.'],
                         ]);

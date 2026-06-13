@@ -35,7 +35,6 @@ class StaffController extends Controller
             ->paginate(10)
             ->withQueryString();
 
-        // RETORNO: Encaminha para a view correta de listagem de staff
         return view('staff.index', compact('users', 'filterByType', 'filterBySearch'));
     }
 

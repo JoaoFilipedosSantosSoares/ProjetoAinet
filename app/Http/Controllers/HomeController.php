@@ -9,7 +9,6 @@ class HomeController extends Controller
 {
     public function index()
     {
-        // Vai buscar 4 imagens aleatórias do catálogo (onde não pertencem a nenhum cliente)
         $featuredImages = Tshirt_image::whereNull('customer_id')
             ->inRandomOrder()
             ->take(4)

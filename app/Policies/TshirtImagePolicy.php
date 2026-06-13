@@ -14,20 +14,16 @@ class TshirtImagePolicy
             return true;
         }
 
-        return null; // Continua para as regras abaixo se não for Admin
+        return null;
     }
 
-    /**
-     * Determine whether the user can view any models.
-     */
+ 
     public function viewAny(User $user): bool
     {
         return false;
     }
 
-    /**
-     * Determine whether the user can view the model.
-     */
+
     public function view(User $user, Tshirt_Image $tshirtImage): bool
     {
         return false;

@@ -17,19 +17,16 @@ class Customer extends Model
 {
     use SoftDeletes;
 
-    //Relação User-Customer
     public function user(): BelongsTo
     {
         return $this->belongsTo(User::class, 'id', 'id');
     }
 
-    //Relação Order-Customer
     public function orders(): HasMany
     {
         return $this->hasMany(Order::class);
     }
 
-    //Relação Tshirts_images-Customer
     public function tshirt_images(): HasMany
     {
         return $this->hasMany(Tshirt_image::class, 'customer_id', 'id');

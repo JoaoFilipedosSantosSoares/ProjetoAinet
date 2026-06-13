@@ -20,10 +20,9 @@ class CatalogController extends Controller
         if ($request->filled('search')) {
             $searchTerm = '%' . $request->search . '%';
 
-            // Agrupamos a pesquisa com uma função anónima para não interferir com o filtro da categoria
             $query->where(function ($q) use ($searchTerm) {
                 $q->where('name', 'like', $searchTerm)
-                    ->orWhere('description', 'like', $searchTerm); // Adicionada a pesquisa por descrição
+                    ->orWhere('description', 'like', $searchTerm);
             });
         }
 
@@ -59,10 +58,8 @@ class CatalogController extends Controller
         $selectedColorCode = $request->query('color');
         $selectedColor = $colors->where('code', $selectedColorCode)->first() ?? $colors->first();
 
-        // 1. Ir buscar os preços globais à base de dados
         $priceConfig = Price::first();
 
-        // 2. Extrair os valores exatos para o CATÁLOGO
         $basePrice = $priceConfig ? (float) $priceConfig->unit_price_catalog : 10.00;
         $discountPrice = $priceConfig ? (float) $priceConfig->unit_price_catalog_discount : 8.50;
         $qtyTrigger = $priceConfig ? (int) $priceConfig->qty_discount : 10;

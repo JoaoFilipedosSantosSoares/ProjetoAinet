@@ -15,7 +15,6 @@ class Color extends Model
 {
     use SoftDeletes;
 
-    //Relação Color-orderItems
     public function order_items(): HasMany
     {
         return $this->hasMany(Order_item::class, 'color_code', 'code');

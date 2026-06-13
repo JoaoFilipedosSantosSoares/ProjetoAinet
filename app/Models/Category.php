@@ -15,7 +15,6 @@ class Category extends Model
 {
     use SoftDeletes;
 
-    //Relação Category-Tshirt_Images
     public function tshirt_images(): HasMany
     {
         return $this->hasMany(Tshirt_image::class, 'category_id', 'id');

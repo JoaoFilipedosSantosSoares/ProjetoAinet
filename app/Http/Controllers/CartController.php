@@ -19,12 +19,9 @@ public static function middleware(): array
         new Middleware(function (Request $request, Closure $next) {
             $user = $request->user();
 
-            // Verifica se o user está autenticado E se tem cargo restrito
             if ($user && in_array($user->user_type, ['F', 'A'])) {
                 abort(Response::HTTP_FORBIDDEN);
             }
-
-            // Permite o acesso para clientes (autenticados que não sejam staff) e anónimos
             return $next($request);
         }),
     ];
@@ -91,7 +88,6 @@ public static function middleware(): array
 
         $newQty = (int)$request->input('quantity', $cart[$itemId]['quantity']);
 
-        // Se a quantidade for alterada para 0 ou menos, remove automaticamente
         if ($newQty <= 0) {
             unset($cart[$itemId]);
             session()->put('cart', $cart);
