@@ -151,7 +151,7 @@
                                         #{{ $order->id }}
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
-                                        {{ date('d/m/Y H:i', strtotime($order->date ?? $order->created_at)) }}
+                                        {{ date('d/m/Y', strtotime($order->date ?? $order->created_at)) }}
                                     </td>
                                     <td class="whitespace-nowrap px-6 py-4">
                                         <span class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-2.5 py-0.5 text-xs font-medium text-green-700">

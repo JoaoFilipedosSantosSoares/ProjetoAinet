@@ -17,7 +17,7 @@
         <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm mb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
                 <h1 class="text-2xl font-bold text-zinc-900">Encomenda #{{ $order->id }}</h1>
-                <p class="text-sm text-zinc-500">Realizada em: {{ date('d/m/Y H:i', strtotime($order->date ?? $order->created_at)) }}</p>
+                <p class="text-sm text-zinc-500">Realizada em: {{ date('d/m/Y', strtotime($order->date ?? $order->created_at)) }}</p>
             </div>
             <div>
                 <span class="inline-flex items-center rounded-full border border-green-200 bg-green-50 px-3 py-1 text-xs font-bold text-green-700 uppercase tracking-wider">
@@ -28,7 +28,6 @@
 
         <div class="grid gap-6 md:grid-cols-3 items-start">
 
-            {{-- LISTA DE ITENS DA ENCOMENDA (LADO ESQUERDO) --}}
             <div class="md:col-span-2 space-y-4">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
                     <div class="border-b border-zinc-200 p-6">
@@ -44,8 +43,13 @@
                                     <img src="{{ asset('storage/tshirt_base/' . ($item->color_code ?? $item->color) . '.jpg') }}"
                                         alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain" onerror="this.src='/img/tshirt.png'" />
 
+                                    @if($item->tshirt_image->customer_id)
+                                    <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
+                                        alt="{{ $item->tshirt_image->name }}" class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
+                                    @else
                                     <img src="{{ asset('storage/tshirt_images/' . ($item->tshirt_image->image_url ?? 'default.png')) }}"
                                         alt="Estampa" class="relative z-10 h-[55%] w-[55%] object-contain pointer-events-none" />
+                                    @endif
                                 </div>
 
                                 <div>

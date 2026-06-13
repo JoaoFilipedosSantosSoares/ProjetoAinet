@@ -36,7 +36,7 @@ class AccountController extends Controller implements HasMiddleware
                 // 2. Filtra pelas encomendas fechadas desse cliente
                 $orders = Order::where('customer_id', $customerId)
                     ->where('status', 'closed') // <-- Adicionado o filtro 'closed'
-                    ->orderBy('date', 'desc')   // Mantém a ordenação por data
+                    ->orderBy('id', 'desc')   // Mantém a ordenação por data
                     ->paginate(10)
                     ->withQueryString();
             } else {
