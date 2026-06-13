@@ -123,7 +123,6 @@
                             €</span>
                     </div>
 
-                    @can('admin')
                         @if($order->receipt_url)
                         <div class="pt-2">
                             <a href="{{ route('orders.receipt', $order) }}"
@@ -140,7 +139,6 @@
                             O recibo estará disponível assim que for processado pela nossa equipa.
                         </div>
                         @endif
-                    @endcan
 
                 </div>
             </div>

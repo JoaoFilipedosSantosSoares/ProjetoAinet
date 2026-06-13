@@ -78,6 +78,7 @@
                 </div>
             @endif
 
+            @can('admin')
             @if($order->receipt_url)
                 <a href="{{ route('orders.receipt', $order) }}"
                     class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none">
@@ -92,6 +93,7 @@
                     Nenhum recibo PDF associado a esta encomenda.
                 </div>
             @endif
+            @endcan
 
             @if(in_array($order->status, ['pending']))
                 <form action="{{ route('orders.update', $order) }}" method="POST" class="space-y-3 rounded-3xl">
