@@ -34,14 +34,33 @@ class OrderController extends Controller implements HasMiddleware
 
     public function index(Request $request): View
     {
+        $user = Auth::user();
         $filterBySearch = $request->query('search');
+        $filterByStatus = $request->query('status');
+        $filterByCustomer = $request->query('customer');
 
         $ordersQuery = Order::query();
 
-        $ordersQuery->where('status', '=', 'pending');
+        if ($user->user_type === 'F') {
+            $ordersQuery->where('status', '=', 'pending');
+        } else {
+            // Se for Admin (A), pode filtrar por qualquer estado selecionado
+            if (!empty($filterByStatus)) {
+                $ordersQuery->where('status', '=', $filterByStatus);
+            }
+        }
 
-        if ($filterBySearch !== null) {
+        // Filtro por ID (comum a ambos)
+        if (!empty($filterBySearch)) {
             $ordersQuery->where('id', '=', $filterBySearch);
+        }
+
+        // Filtro por Cliente (Apenas para Admin - Pesquisa por Nome ou Email do User)
+        if ($user->user_type === 'A' && !empty($filterByCustomer)) {
+            $ordersQuery->whereHas('customer.user', function ($query) use ($filterByCustomer) {
+                $query->where('name', 'like', "%{$filterByCustomer}%")
+                    ->orWhere('email', 'like', "%{$filterByCustomer}%");
+            });
         }
 
         $orders = $ordersQuery
@@ -50,7 +69,7 @@ class OrderController extends Controller implements HasMiddleware
             ->paginate(20)
             ->withQueryString();
 
-        return view('orders.index', compact('orders', 'filterBySearch'));
+        return view('orders.index', compact('orders', 'filterBySearch', 'filterByStatus', 'filterByCustomer'));
     }
 
     public function show(Order $order): View
@@ -60,25 +79,24 @@ class OrderController extends Controller implements HasMiddleware
         return view('orders.show', compact('order'));
     }
 
-    public function updateStatus(Request $request, Order $order): RedirectResponse
-    {
-        $request->validate([
-            'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
-        ]);
+    // public function updateStatus(Request $request, Order $order): RedirectResponse
+    // {
+    //     $request->validate([
+    //         'status' => 'required|in:pendente,pago,em processamento,enviado,cancelado'
+    //     ]);
 
-        if (in_array($order->status, ['cancelado', 'enviado'])) {
-            return redirect()->back()->with('error', 'Não é possível alterar o estado de uma encomenda finalizada.');
-        }
+    //     if (in_array($order->status, ['cancelado', 'enviado'])) {
+    //         return redirect()->back()->with('error', 'Não é possível alterar o estado de uma encomenda finalizada.');
+    //     }
 
-        $order->update(['status' => $request->status]);
-        return redirect()->back()->with('success', 'Estado atualizado.');
-    }
+    //     $order->update(['status' => $request->status]);
+    //     return redirect()->back()->with('success', 'Estado atualizado.');
+    // }
 
     public function checkout()
     {
         $user = Auth::user();
 
-        // Requisito: Apenas Clientes. Administradores (A) e Funcionários (E) não têm acesso.
         if (in_array($user->user_type, ['A', 'E'])) {
             return redirect()->route('cart.index')->with('error', 'Administradores e funcionários não podem efetuar compras.');
         }
@@ -106,31 +124,32 @@ class OrderController extends Controller implements HasMiddleware
             return redirect()->route('cart.index')->with('error', 'O seu carrinho está vazio.');
         }
 
-        // Validação estrita dos dados obrigatórios de faturação/envio e pagamento
+        // 1. VALIDAÇÃO ESTRETA CONFORME O ENUNCIADO
         $request->validate([
             'address' => 'required|string|max:255',
             'nif' => 'nullable|digits:9',
-            'payment_type' => 'required|in:VISA,MB WAY,PAYPAL',
+            // Aceita exatamente "Visa", "PayPal" ou "MB WAY" (sensível a maiúsculas)
+            'payment_type' => 'required|in:Visa,PayPal,MB WAY',
             'notes' => 'nullable|string|max:1000',
             'payment_ref' => [
                 'required',
                 'string',
                 function ($attribute, $value, $fail) use ($request) {
                     switch ($request->payment_type) {
-                        case 'VISA':
-                            // Verifica se são exatamente 16 dígitos e começam com 4
+                        case 'Visa':
+                            // 16 dígitos e começa por 4
                             if (!preg_match('/^4[0-9]{15}$/', $value)) {
                                 $fail('O número do cartão Visa deve conter exatamente 16 dígitos e começar com 4.');
                             }
                             break;
                         case 'MB WAY':
-                            // Verifica se são exatamente 9 dígitos
-                            if (!preg_match('/^[0-9]{9}$/', $value)) {
-                                $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos.');
+                            // 9 dígitos e OBRIGATORIAMENTE iniciado por 9
+                            if (!preg_match('/^9[0-9]{8}$/', $value)) {
+                                $fail('O número de telemóvel MB WAY deve conter exatamente 9 dígitos e começar com 9.');
                             }
                             break;
-                        case 'PAYPAL':
-                            // Verifica formato de email
+                        case 'PayPal':
+                            // E-mail válido
                             if (!filter_var($value, FILTER_VALIDATE_EMAIL)) {
                                 $fail('O formato do e-mail PayPal é inválido.');
                             }
@@ -144,12 +163,11 @@ class OrderController extends Controller implements HasMiddleware
         $grandTotal = 0;
         $itemsToSave = [];
 
-        // Replicar integralmente a informação para garantir a imutabilidade histórica
+        // 2. CÁLCULO DOS TOTAIS NO SERVIDOR
         foreach ($cartItems as $id => $item) {
             $isCatalog = (bool) $item['isCatalogImage'];
             $qty = (int) $item['quantity'];
 
-            // Determinar o preço unitário do momento exato da compra
             if (!$priceRules) {
                 $unitPrice = $isCatalog ? ($qty >= 5 ? 20.00 : 25.00) : ($qty >= 5 ? 40.00 : 50.00);
             } else {
@@ -173,44 +191,59 @@ class OrderController extends Controller implements HasMiddleware
             ];
         }
 
-        // Simulação do Pagamento
-        $paymentSuccess = true;
-        if (strlen($request->payment_ref) < 3) {
-            $paymentSuccess = false;
-        }
-
-        if (!$paymentSuccess) {
+        // VALIDAÇÃO EXTRA DO VALOR SEGUNDO O ENUNCIADO (0.01 até 999999.99)
+        if ($grandTotal < 0.01 || $grandTotal > 999999.99) {
             return redirect()->back()
                 ->withInput()
-                ->withErrors(['payment_ref' => 'O pagamento simulado foi recusado pela entidade emissora. Verifique os dados inseridos.']);
+                ->withErrors(['payment_ref' => 'O valor total da encomenda excede os limites permitidos para pagamento.']);
         }
 
-        // Mapeamento ortográfico EXATO exigido pela tua Base de Dados (CHECK constraint)
-        $formPaymentType = $request->payment_type;
-        $dbPaymentType = match ($formPaymentType) {
-            'VISA' => 'Visa',
-            'MB WAY' => 'MB WAY',
-            'PAYPAL' => 'PayPal',
-            default => $formPaymentType
-        };
+        try {
+            // Limpa espaços que o utilizador possa ter digitado na referência
+            $cleanReference = str_replace(' ', '', $request->payment_ref);
 
-        // Gravação na Base de Dados dentro de uma transação atómica
-        $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave, $dbPaymentType) {
+            $response = Http::withOptions([
+                'verify' => false,
+                'curl'   => [
+                    CURLOPT_SSL_VERIFYPEER => false,
+                    CURLOPT_SSL_VERIFYHOST => 0
+                ],
+            ])->post('https://ainet-payments-api.vercel.app/api/payments', [
+                'type'      => $request->payment_type, // "Visa", "MB WAY" ou "PayPal"
+                'reference' => $cleanReference,        // Chave EXATA do enunciado
+                'value'     => (float) number_format($grandTotal, 2, '.', ''), // Número com até 2 casas decimais
+            ]);
 
-            // Regista a Encomenda no estado correto esperado pelo Modelo e BD ('pending')
+            // Se a API responder com erro (status code diferente de 2xx)
+            if ($response->failed()) {
+                $apiError = $response->json()['message'] ?? 'Validation failed';
+                return redirect()->back()
+                    ->withInput()
+                    ->withErrors(['payment_ref' => "<b>Erro de Pagamento:</b> {$apiError}"]);
+            }
+        } catch (\Exception $e) {
+            return redirect()->back()
+                ->withInput()
+                ->withErrors(['payment_ref' => 'Não foi possível contactar a plataforma externa de pagamentos. Tente novamente mais tarde.']);
+        }
+
+        // 4. GRAVAÇÃO NA BASE DE DADOS (TRANSAÇÃO ATÓMICA)
+        $order = DB::transaction(function () use ($user, $request, $grandTotal, $itemsToSave) {
+
+            // Como a API deu OK, salvamos como 'paid' (ou 'pending' se a tua BD exigir)
             $newOrder = Order::create([
-                'status' => 'pending', // <--- Alterado de volta para 'pending' para passar no CHECK constraint
+                'status' => 'pending',
                 'customer_id' => $user->customer->id ?? null,
                 'date' => now()->toDateString(),
                 'total_price' => $grandTotal,
                 'notes' => $request->notes,
                 'nif' => $request->nif,
                 'address' => $request->address,
-                'payment_type' => $dbPaymentType,
+                'payment_type' => $request->payment_type, // Salva o texto exato validado
                 'payment_ref' => $request->payment_ref,
             ]);
 
-            // Associa as linhas imutáveis à encomenda gerada
+            // Associa os itens à encomenda
             foreach ($itemsToSave as $itemData) {
                 $itemData['order_id'] = $newOrder->id;
                 Order_item::create($itemData);
@@ -219,13 +252,12 @@ class OrderController extends Controller implements HasMiddleware
             return $newOrder;
         });
 
-        // Limpa o carrinho de compras da sessão do utilizador
+        // 5. LIMPAR CARRINHO E REDIRECIONAR
         session()->forget('cart');
 
-        // Redireciona para o teu histórico de encomendas com as chaves padrão de sessão
-        return redirect()->route('home')
-            ->with('alert-type', 'success')
-            ->with('alert-msg', "Encomenda <b>#{$order->id}</b> registada com sucesso!");
+        return redirect()->route('account.index')
+            ->with('status', 'order-placed-success')
+            ->with('order_id', $order->id);
     }
 
 
@@ -306,38 +338,50 @@ class OrderController extends Controller implements HasMiddleware
 
     public function update(Request $request, Order $order): RedirectResponse
     {
-        // Valida usando os estados literais em inglês aceites pelo CHECK constraint da BD
+        // dd($request->all());
+        // 1. Validação estrita
+        // 1. Validação adaptada para o campo 'notes' que vem do teu HTML
         $request->validate([
-            'status' => 'required|in:pending,paid,closed,canceled'
+            'status' => 'required|in:closed,canceled,pending,paid',
+            'reason_for_cancellation'  => 'nullable|string|max:1000',
         ]);
 
-        // Regra de negócio: impede alterar se já estiver cancelada ('canceled') ou fechada ('closed')
-        if (in_array($order->status, ['canceled', 'closed'])) {
+        // 2. Proteção para garantir que apenas Administradores anulam encomendas
+        if ($request->status === 'canceled' && Auth::user()->user_type !== 'A') {
             return redirect()->back()
-                ->with('alert-type', 'warning')
-                ->with('alert-msg', "Não é possível alterar o estado da encomenda <b>#{$order->id}</b> porque ela já se encontra finalizada.");
+                ->with('alert-type', 'error')
+                ->with('alert-msg', 'Apenas administradores podem anular encomendas.');
         }
 
-        DB::transaction(function () use ($request, $order) {
-            $order->update([
-                'status' => $request->status // Irá gravar 'closed' corretamente na base de dados
-            ]);
-        });
+        // 3. Preparar os dados para o update
+        $updateData = [
+            'status' => $request->status,
+        ];
 
-        // Mapeamento apenas para a mensagem visual de sucesso ficar bonita em português
-        $statusPt = match ($request->status) {
-            'pending'  => 'pendente',
-            'paid'     => 'paga',
-            'closed'   => 'concluída',
-            'canceled' => 'cancelada',
-            default    => $request->status
-        };
+        // Se for um cancelamento, fazemos a gestão do texto na coluna 'reason_for_cancellation'
+        if ($request->status === 'canceled') {
+            $currentReason = $order->reason_for_cancellation;
 
-        $url = route('orders.show', ['order' => $order]);
-        $htmlMessage = "O estado da encomenda <a href='$url'><u>#{$order->id}</u></a> foi atualizado com sucesso para <b>{$statusPt}</b>!";
+            // Lemos o $request->reason_for_cancellation porque é aí que o teu form está a injetar o "teste"
+            if (!empty($request->reason_for_cancellation)) {
+                $timestamp = now()->format('d/m/Y H:i');
+                $break = !empty($currentReason) ? "\n\n" : "";
 
-        return redirect()->back()
+                // Concatena o novo motivo na coluna certa da BD
+                $updateData['reason_for_cancellation'] = $currentReason . $break . "[Cancelado em {$timestamp}] " . $request->reason_for_cancellation;
+            }
+        }
+
+        // 4. Atualiza os dados na Base de Dados
+        $order->update($updateData);
+
+        // 5. Mensagens de feedback
+        $message = $request->status === 'canceled'
+            ? "Encomenda <b>#{$order->id}</b> foi anulada com sucesso."
+            : "Encomenda <b>#{$order->id}</b> marcada como concluída!";
+
+        return redirect()->route('orders.index')
             ->with('alert-type', 'success')
-            ->with('alert-msg', $htmlMessage);
+            ->with('alert-msg', $message);
     }
 }

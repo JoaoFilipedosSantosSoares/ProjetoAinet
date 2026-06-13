@@ -17,12 +17,26 @@
         </div>
 
         <div class="space-y-6">
+            {{-- Alertas de Sucesso do Laravel Fortify / Custom --}}
             @if (session('status') === 'profile-information-updated')
             <div class="mb-4 rounded-2xl bg-green-50 p-4 text-sm font-medium text-green-800 border border-green-200">
                 As tuas informações de perfil foram atualizadas com sucesso!
             </div>
             @endif
 
+            @if (session('status') === 'password-updated')
+            <div class="mb-4 rounded-2xl bg-green-50 p-4 text-sm font-medium text-green-800 border border-green-200">
+                A tua palavra-passe foi alterada com sucesso!
+            </div>
+            @endif
+            
+            @if (session('status') === 'order-placed-success')
+            <div class="mb-4 rounded-2xl bg-emerald-50 p-4 text-sm font-medium text-emerald-800 border border-emerald-200">
+                Encomenda <b>#{{ session('order_id') }}</b> processada e paga com sucesso!
+            </div>
+            @endif
+
+            {{-- SECÇÃO 1: INFORMAÇÕES PESSOAIS --}}
             <section id="profile-panel" class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -32,7 +46,7 @@
                         </div>
                         <div class="flex flex-wrap gap-2">
                             <button type="submit" form="profile-form" class="rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
-                                Guardar
+                                Guardar Dados
                             </button>
                         </div>
                     </div>
@@ -65,7 +79,6 @@
                         </div>
 
                         <div class="grid gap-6 md:grid-cols-2">
-
                             <x-profile-input
                                 label="Nome Completo"
                                 name="name"
@@ -120,11 +133,63 @@
                                 name="morada"
                                 :value="old('morada', auth()->user()->customer?->address)"
                                 placeholder="Rua, número, código postal, cidade" />
-
                         </div>
                     </form>
                 </div>
             </section>
+
+            {{-- NOVA SECÇÃO 2: SEGURANÇA / MUDAR PASSWORD --}}
+            <section id="password-panel" class="mt-8">
+                <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+                    <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
+                        <div>
+                            <h2 class="text-xl font-semibold text-foreground">Alterar Palavra-passe</h2>
+                            <p class="text-muted-foreground">Garante que a tua conta utiliza uma credencial forte e segura</p>
+                        </div>
+                        <div class="flex flex-wrap gap-2">
+                            <button type="submit" form="password-form" class="rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                                Atualizar Palavra-passe
+                            </button>
+                        </div>
+                    </div>
+
+                    <form id="password-form" action="{{ route('user-password.update') }}" method="POST" class="p-6 space-y-6">
+                        @csrf
+                        @method('PUT')
+
+                        <div class="grid gap-6 md:grid-cols-3">
+                            {{-- Input 1: Password Atual --}}
+                            <div class="space-y-2">
+                                <label for="current_password" class="block text-sm font-medium text-zinc-900">Palavra-passe Atual</label>
+                                <input type="password" id="current_password" name="current_password" required
+                                    class="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
+                                @error('current_password', 'updatePassword')
+                                <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Input 2: Nova Password --}}
+                            <div class="space-y-2">
+                                <label for="password" class="block text-sm font-medium text-zinc-900">Nova Palavra-passe</label>
+                                <input type="password" id="password" name="password" required
+                                    class="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
+                                @error('password', 'updatePassword')
+                                <span class="text-xs text-red-500 mt-1 block">{{ $message }}</span>
+                                @enderror
+                            </div>
+
+                            {{-- Input 3: Confirmar Nova Password --}}
+                            <div class="space-y-2">
+                                <label for="password_confirmation" class="block text-sm font-medium text-zinc-900">Confirmar Nova Palavra-passe</label>
+                                <input type="password" id="password_confirmation" name="password_confirmation" required
+                                    class="w-full rounded-2xl border border-zinc-200 bg-zinc-50 px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </section>
+
+            {{-- SECÇÃO 3: AS MINHAS ENCOMENDAS --}}
             <section id="orders-panel" class="space-y-6 mt-8">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
                     <div class="border-b border-zinc-200 p-6">
@@ -186,7 +251,7 @@
                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M16 11V7a4 4 0 00-8 0v4M5 9h14l1 12H4L5 9z" />
                             </svg>
                         </div>
-                        <h3 class="text-sm font-semibold text-zinc-900">Nenhuma encomenda fechado</h3>
+                        <h3 class="text-sm font-semibold text-zinc-900">Nenhuma encomenda fechada</h3>
                         <p class="mt-1 text-sm text-muted-foreground">Não encontrámos encomendas com o estado fechada na tua conta.</p>
                     </div>
                     @endif

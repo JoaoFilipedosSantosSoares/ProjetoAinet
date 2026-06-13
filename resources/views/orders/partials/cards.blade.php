@@ -1,16 +1,37 @@
 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
     <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
+            @php
+                // Mapeamento de estados para exibição textual bonita em português
+                $statusText = match ($order->status) {
+                    'pending'  => 'Pendente',
+                    'closed'   => 'Concluída',
+                    'canceled' => 'Cancelada',
+                    default    => ucfirst($order->status)
+                };
+
+                // Mapeamento de classes CSS do Tailwind para o badge do estado
+                $badgeClasses = match ($order->status) {
+                    'pending'  => 'bg-amber-100 text-amber-800',
+                    'closed'   => 'bg-emerald-100 text-emerald-800',
+                    'canceled' => 'bg-red-100 text-red-800',
+                    default    => 'bg-zinc-100 text-zinc-800'
+                };
+            @endphp
+
             <p class="text-sm uppercase tracking-[0.2em] text-muted-foreground">
-                {{ $order->status === 'pending' ? 'Pendente' : 'Pedido ' . $order->status }}</p>
+                Pedido: {{ $statusText }}
+            </p>
             <h2 class="text-xl font-semibold text-foreground">Encomenda #{{ $order->id }}</h2>
             <p class="mt-2 text-sm text-muted-foreground">
                 Cliente: {{ $order->customer->user?->name ?? 'Cliente Eliminado' }}
             </p>
         </div>
         <div class="flex flex-wrap items-center gap-2">
-            <span
-                class="inline-flex items-center rounded-full bg-amber-100 px-3 py-1 text-xs font-semibold text-amber-800">Pendente</span>
+            {{-- Badge Dinâmico --}}
+            <span class="inline-flex items-center rounded-full px-3 py-1 text-xs font-semibold {{ $badgeClasses }}">
+                {{ $statusText }}
+            </span>
             <span class="text-sm font-semibold text-zinc-900">€{{ number_format($order->total_price, 2) }}</span>
         </div>
     </div>
@@ -27,8 +48,9 @@
                             <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
                                 alt="T-shirt" class="mb-2 h-32 w-32 rounded-lg object-cover" />
                         @endif
+                        {{-- Correção para garantir que o qty vai buscar o campo correto das tabelas pivot se necessário, alterado para qty conforme o controller --}}
                         <p class="mt-1 text-sm text-muted-foreground">Tamanho: {{ $item->size }} · Quantidade:
-                            {{ $item->quantity }} · P. unitário: {{ $item->unit_price }}€</p>
+                            {{ $item->qty ?? $item->quantity }} · P. unitário: {{ $item->unit_price }}€</p>
                     </div>
                 @endforeach
                 <p class="mt-2 text-sm font-medium text-zinc-900">Sub-total:
@@ -40,22 +62,39 @@
             <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <div class="space-y-2">
                     <p class="text-sm text-muted-foreground">Notas</p>
-                    <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">{{ $order->notes }}</p>
+                    <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">{{ $order->notes ?? 'Sem observações.' }}</p>
                 </div>
             </div>
+            @if ($order->status === 'canceled')
+                <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
+                    <div class="space-y-2">
+                        <p class="text-sm text-muted-foreground">Motivo da Anulação</p>
+                        <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">{{ $order->reason_for_cancellation ?? 'Sem observações.' }}</p>
+                    </div>
+                </div>
+            @endif
 
-            <form action="{{ route('orders.update', $order) }}" method="POST" class="space-y-3 rounded-3xl">
-                @csrf
-                @method('PATCH')
 
-                {{-- Passa o valor 'closed' exigido pela restrição da base de dados --}}
-                <input type="hidden" name="status" value="closed">
+            @if(in_array($order->status, ['pending']))
+                <form action="{{ route('orders.update', $order) }}" method="POST" class="space-y-3 rounded-3xl">
+                    @csrf
+                    @method('PATCH')
 
-                <button type="submit"
-                    class="inline-flex w-full items-center justify-center rounded-2xl bg-[#144226] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0e2f1b]">
-                    Marcar como Concluída
-                </button>
-            </form>
+                    <input type="hidden" name="status" value="closed">
+
+                    <button type="submit"
+                        class="inline-flex w-full items-center justify-center rounded-2xl bg-[#144226] px-5 py-3 text-sm font-semibold text-white transition hover:bg-[#0e2f1b]">
+                        Marcar como Concluída
+                    </button>
+                </form>
+                @if(auth()->user()->user_type === 'A')
+                    <button type="button" onclick="openCancelModal({{ $order->id }})"
+                        class="inline-flex w-full items-center justify-center rounded-2xl border border-red-200 bg-red-50 px-5 py-3 text-sm font-semibold text-red-700 transition hover:bg-red-100 shadow-sm">
+                        Anular / Cancelar Encomenda
+                    </button>
+                @endif
+            @endif
         </div>
     </div>
 </div>
+
