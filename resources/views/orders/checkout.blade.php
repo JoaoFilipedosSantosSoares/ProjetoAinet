@@ -62,9 +62,8 @@
                         @endphp
 
                         <label class="relative flex items-center gap-3 p-4 border border-zinc-200 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition">
-                            <input type="radio" name="payment_type" value="VISA"
-                                class="h-4 w-4 text-[#144226] focus:ring-[#144226]" 
-                                {{ $selectedPaymentType === 'VISA' ? 'checked' : '' }} required />
+                            <input type="radio" name="payment_type" value="Visa"
+                                class="h-4 w-4 text-[#144226] focus:ring-[#144226]" {{ old('payment_type', auth()->user()->customer->default_payment_type) === 'Visa' ? 'checked' : '' }} required />
                             <div class="flex flex-col">
                                 <span class="font-bold text-sm text-zinc-900">Visa</span>
                                 <span class="text-[11px] text-zinc-500">Cartão Crédito</span>
@@ -73,8 +72,7 @@
 
                         <label class="relative flex items-center gap-3 p-4 border border-zinc-200 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition">
                             <input type="radio" name="payment_type" value="MB WAY"
-                                class="h-4 w-4 text-[#144226] focus:ring-[#144226]" 
-                                {{ $selectedPaymentType === 'MB WAY' ? 'checked' : '' }} />
+                                class="h-4 w-4 text-[#144226] focus:ring-[#144226]" {{ old('payment_type', auth()->user()->customer->default_payment_type) === 'MB WAY' ? 'checked' : '' }} />
                             <div class="flex flex-col">
                                 <span class="font-bold text-sm text-zinc-900">MB WAY</span>
                                 <span class="text-[11px] text-zinc-500">Conta Digital</span>
@@ -82,9 +80,8 @@
                         </label>
 
                         <label class="relative flex items-center gap-3 p-4 border border-zinc-200 rounded-2xl cursor-pointer bg-zinc-50 hover:bg-zinc-100 transition">
-                            <input type="radio" name="payment_type" value="PAYPAL"
-                                class="h-4 w-4 text-[#144226] focus:ring-[#144226]" 
-                                {{ $selectedPaymentType === 'PAYPAL' ? 'checked' : '' }} />
+                            <input type="radio" name="payment_type" value="PayPal"
+                                class="h-4 w-4 text-[#144226] focus:ring-[#144226]" {{ old('payment_type', auth()->user()->customer->default_payment_type) === 'PayPal' ? 'checked' : '' }} />
                             <div class="flex flex-col">
                                 <span class="font-bold text-sm text-zinc-900">PayPal</span>
                                 <span class="text-[11px] text-zinc-500">Conta Digital</span>
@@ -96,8 +93,8 @@
                     <div class="flex flex-col gap-1.5">
                         <label for="payment_ref" class="text-xs font-bold text-zinc-700 uppercase tracking-wider">Referência / Dados de Pagamento</label>
                         <input type="text" id="payment_ref_input" name="payment_ref" required
-                            value="{{ old('payment_ref', auth()->user()->customer->default_payment_ref ?? '') }}" 
-                            placeholder="Selecione um método de pagamento acima..."
+                            value="{{ old('payment_ref', auth()->user()->customer->default_payment_ref) }}" 
+                            placeholder="Visa (16 dg. começa por 4) | MB WAY (9 dg. começa por 9) | Email PayPal"
                             class="w-full rounded-xl border border-zinc-200 bg-zinc-50 px-4 py-2.5 text-sm text-zinc-900 outline-none transition focus:border-zinc-400 focus:bg-white" />
                         <p id="payment_help_text" class="text-[11px] text-zinc-400">
                             <b>Formatos aceites:</b> Visa (ex: 4123...), MB WAY (ex: 9123...) ou o e-mail da sua conta PayPal.

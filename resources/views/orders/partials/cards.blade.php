@@ -4,18 +4,18 @@
             @php
                 // Mapeamento de estados para exibição textual bonita em português
                 $statusText = match ($order->status) {
-                    'pending'  => 'Pendente',
-                    'closed'   => 'Concluída',
+                    'pending' => 'Pendente',
+                    'closed' => 'Concluída',
                     'canceled' => 'Cancelada',
-                    default    => ucfirst($order->status)
+                    default => ucfirst($order->status)
                 };
 
                 // Mapeamento de classes CSS do Tailwind para o badge do estado
                 $badgeClasses = match ($order->status) {
-                    'pending'  => 'bg-amber-100 text-amber-800',
-                    'closed'   => 'bg-emerald-100 text-emerald-800',
+                    'pending' => 'bg-amber-100 text-amber-800',
+                    'closed' => 'bg-emerald-100 text-emerald-800',
                     'canceled' => 'bg-red-100 text-red-800',
-                    default    => 'bg-zinc-100 text-zinc-800'
+                    default => 'bg-zinc-100 text-zinc-800'
                 };
             @endphp
 
@@ -48,9 +48,11 @@
                             <img src="{{ route('tshirt_images.show', ['filename' => $item->tshirt_image->image_url]) }}"
                                 alt="T-shirt" class="mb-2 h-32 w-32 rounded-lg object-cover" />
                         @endif
-                        {{-- Correção para garantir que o qty vai buscar o campo correto das tabelas pivot se necessário, alterado para qty conforme o controller --}}
+                        {{-- Correção para garantir que o qty vai buscar o campo correto das tabelas pivot se necessário,
+                        alterado para qty conforme o controller --}}
                         <p class="mt-1 text-sm text-muted-foreground">Tamanho: {{ $item->size }} · Quantidade:
-                            {{ $item->qty ?? $item->quantity }} · P. unitário: {{ $item->unit_price }}€</p>
+                            {{ $item->qty ?? $item->quantity }} · P. unitário: {{ $item->unit_price }}€
+                        </p>
                     </div>
                 @endforeach
                 <p class="mt-2 text-sm font-medium text-zinc-900">Sub-total:
@@ -62,18 +64,34 @@
             <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
                 <div class="space-y-2">
                     <p class="text-sm text-muted-foreground">Notas</p>
-                    <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">{{ $order->notes ?? 'Sem observações.' }}</p>
+                    <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
+                        {{ $order->notes ?? 'Sem observações.' }}</p>
                 </div>
             </div>
             @if ($order->status === 'canceled')
                 <div class="rounded-3xl border border-zinc-200 bg-white p-4 shadow-sm">
                     <div class="space-y-2">
                         <p class="text-sm text-muted-foreground">Motivo da Anulação</p>
-                        <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">{{ $order->reason_for_cancellation ?? 'Sem observações.' }}</p>
+                        <p class="rounded-2xl bg-zinc-50 p-4 text-sm text-zinc-700">
+                            {{ $order->reason_for_cancellation ?? 'Sem observações.' }}</p>
                     </div>
                 </div>
             @endif
 
+            @if($order->receipt_url)
+                <a href="{{ route('orders.receipt', $order) }}"
+                    class="inline-flex w-full items-center justify-center gap-2 rounded-2xl border border-zinc-300 bg-white px-5 py-3 text-sm font-semibold text-zinc-700 shadow-sm transition hover:bg-zinc-50 focus:outline-none">
+                    <svg class="h-4 w-4 text-zinc-500" fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                        <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2"
+                            d="M12 10v6m0 0l-3-3m3 3l3-3m2 8H7a2 2 0 01-2-2V5a2 2 0 012-2h5.586a1 1 0 01.707.293l5.414 5.414a1 1 0 01.293.707V19a2 2 0 01-2 2z" />
+                    </svg>
+                    Descarregar Recibo PDF
+                </a>
+            @else
+                <div class="text-center text-xs text-zinc-400 italic py-2">
+                    Nenhum recibo PDF associado a esta encomenda.
+                </div>
+            @endif
 
             @if(in_array($order->status, ['pending']))
                 <form action="{{ route('orders.update', $order) }}" method="POST" class="space-y-3 rounded-3xl">
@@ -97,4 +115,3 @@
         </div>
     </div>
 </div>
-
