@@ -29,7 +29,7 @@ class CartController extends Controller
         return view('cart.index', compact('cartItems', 'tshirtColors', 'tshirtSizes', 'priceRules'));
     }
 
-    public function add(Request $request)
+    public function store(Request $request)
     {
         $request->validate([
             'tshirt_image_id' => 'required|exists:tshirt_images,id',

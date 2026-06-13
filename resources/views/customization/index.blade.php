@@ -106,10 +106,6 @@
                                         title="{{ $color->name }}" style="background-color: #{{ $color->code }}"></a>
                                 @endforeach
                             </div>
-                            <p id="selected-color-label" class="mt-2 text-sm text-muted-foreground">
-                                {{ $selectedColor->name ?? 'Selecione uma cor' }}
-                            </p>
-                        </div>
 
                         {{-- Formulário auxiliar para recalcular preços no servidor --}}
                         <form method="GET" action="{{ url()->current() }}" class="space-y-6">
@@ -157,7 +153,7 @@
                         </div>
 
                         {{-- 4. FORMULÁRIO DE ENVIO PARA O CARRINHO --}}
-                        <form method="POST" action="{{ route('cart.add') }}">
+                        <form method="POST" action="{{ route('cart.store') }}">
                             @csrf
                             <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id ?? '' }}">
                             <input type="hidden" name="color" value="{{ $selectedColor->code ?? '' }}">
