@@ -48,13 +48,13 @@ class CatalogController extends Controller
 
     public function show(Tshirt_image $tshirt, Request $request)
     {
-        $colours = Color::all();
+        $colors = Color::all();
         $selectedColorCode = $request->query('color');
-        $selectedColor = $colours->where('code', $selectedColorCode)->first() ?? $colours->first();
+        $selectedColor = $colors->where('code', $selectedColorCode)->first() ?? $colors->first();
 
         return view('catalog.show', [
             'tshirt' => $tshirt,
-            'colours' => $colours,
+            'colors' => $colors,
             'selectedColor' => $selectedColor,
         ]);
     }
