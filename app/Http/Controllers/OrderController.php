@@ -401,22 +401,44 @@ class OrderController extends Controller implements HasMiddleware
     protected function generateAndSave(Order $order): bool
     {
         try {
-            $order->load(['customer.user', 'order_items.tshirtImage']);
+            // 1. Vamos buscar os itens e fazemos um JOIN manual com a tabela tshirt_images
+            // para conseguir o campo 'image_url' de cada estampa
+            $items = \DB::table('order_items')
+                ->leftJoin('tshirt_images', 'order_items.tshirt_image_id', '=', 'tshirt_images.id')
+                ->where('order_items.order_id', $order->id)
+                ->select(
+                    'order_items.*',
+                    'tshirt_images.image_url as estampa_file' // Nome do ficheiro da estampa (.png)
+                )
+                ->get();
 
+            // 2. Garante que a pasta privada para os PDFs existe
 
             $fileName = "receipt_{$order->id}.pdf";
 
-            $pdf = Pdf::loadView('orders.invoice', compact('order'));
+            // 3. Caminhos físicos reais no Laragon para o DomPDF ler as imagens
+            $catalogPath = public_path('storage/tshirt_images/');     // Onde estão as estampas
+            $backgroundsPath = public_path('storage/tshirt_base/'); // Onde estão os modelos lison das t-shirts
 
-            Storage::put("private/pdf_receipts/{$fileName}", $pdf->output());
+            // 4. Envia os dados limpos para a View
+            $pdf = Pdf::loadView('orders.invoice', [
+                'order'           => $order,
+                'items'           => $items,
+                'catalogPath'     => $catalogPath,
+                'backgroundsPath' => $backgroundsPath
+            ]);
 
+            // 5. Grava o PDF
+            Storage::put("pdf_receipts/{$fileName}", $pdf->output());
+
+            // 6. Atualiza o status na BD
             $order->update([
                 'receipt_url' => $fileName
             ]);
 
             return true;
         } catch (\Exception $e) {
-            dd("Erro ao renderizar a tua página de PDF customizada: " . $e->getMessage());
+            dd("Erro ao gerar PDF com base de dados: " . $e->getMessage());
             return false;
         }
     }
