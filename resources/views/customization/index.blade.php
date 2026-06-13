@@ -63,7 +63,7 @@
                                         class="h-full w-full object-contain transition group-hover:scale-105" />
                                 </div>
                                 <div class="p-4">
-                                    <h3 class="mt-2 font-semibold text-zinc-900">{{ $image->name }}</h3>
+                                    <h3 class="mt-2 font-semibold text-zinc-900">{{ $image->name}}</h3>
                                 </div>
                             </div>
                         </a>
@@ -97,8 +97,13 @@
                             <span class="absolute z-10 text-xs text-black bg-white/80 px-2 py-1 rounded-md shadow-sm">Introduza uma imagem</span>
                             @endif
                         </div>
-                        <div class="p-4">
-                            <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->name }}</h3>
+                        <div class="p-5 border-t border-zinc-100 bg-zinc-50/30">
+                            <h3 class="font-bold text-base text-zinc-900 tracking-tight">
+                                {{ $tshirt->name }}
+                            </h3>
+                            <p class="mt-1.5 text-s text-zinc-500 leading-relaxed italic">
+                                {{ $tshirt->description ?? 'Sem descrição disponível.' }}
+                            </p>
                         </div>
                     </div>
                 </div>
