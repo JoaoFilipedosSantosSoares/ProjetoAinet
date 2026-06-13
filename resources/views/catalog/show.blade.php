@@ -23,10 +23,12 @@
                             <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->name }}</h3>
                         </div>
                         <div class="p-4">
-                            <p class="text-xs uppercase tracking-widest text-muted-foreground">
+                            <p class="text-xs uppercase tracking-widest black font-bold">
                                 Descrição
                             </p>
-                            <h3 class="mt-2 font-semibold text-zinc-900">{{ $tshirt->description }}</h3>
+                            <p class="mt-2 text-sm text-zinc-600 leading-relaxed italic">
+                                {{ $tshirt->description ?? 'Nenhuma descrição disponível para este artigo.' }}
+                            </p>
                         </div>
                     </div>
                 </div>
