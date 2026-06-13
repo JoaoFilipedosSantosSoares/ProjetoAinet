@@ -112,10 +112,13 @@
                             @forelse($categories as $category)
                                 <tr class="hover:bg-zinc-50 transition">
                                     <td class="px-4 py-3">
-                       
+
                                         @if($category->image_url)
-                                            <img src="{{ asset('storage/' . $category->image_url) }}"
-                                                alt="{{ $category->name }}" class="w-10 h-10 rounded-lg object-cover">
+                                            <div class="h-10 w-10 shrink-0 overflow-hidden rounded-xl border border-zinc-200 bg-white shadow-sm">
+                                                <img src="{{ asset('storage/categories/' . $category->image_url) }}"
+                                                    alt="{{ $category->name ?? 'Imagem Categoria' }}"
+                                                    class="h-full w-full object-cover" />
+                                            </div>
                                         @else
                                             <div
                                                 class="w-10 h-10 rounded-lg bg-zinc-100 flex items-center justify-center text-[10px] text-zinc-400">
@@ -173,8 +176,9 @@
                             <label
                                 class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Código
                                 HEX (Sem #)</label>
-                            <input type="text" name="code" required max="6" placeholder="ex: FFFFFF"
-                                class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none placeholder:text-zinc-400">
+                            <input type="text" name="code" required placeholder="ex: FFFFFF" maxlength="6" pattern="[0-9a-fA-F]{6}" title="Insira um código hexadecimal válido com 6 caracteres (ex: FF0000)" x-on:input="$el.value = $el.value.replace(/[^0-9a-fA-F]/g, '').toUpperCase()"
+    
+    class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none placeholder:text-zinc-400">
                         </div>
 
                         {{-- 2. Nome da Cor --}}
