@@ -13,19 +13,26 @@
                         <div class="p-6">
                             <h2 class="mb-4 text-lg font-semibold">Carrega a tua imagem</h2>
 
-                            <form action="{{ route('customization.upload') }}" method="POST" enctype="multipart/form-data" class="space-y-4">
+                            <form action="{{ route('customization.upload') }}" method="POST"
+                                enctype="multipart/form-data" class="space-y-4">
                                 @csrf
                                 <input type="hidden" name="color" value="{{ request('color') }}">
 
-                                <div class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted p-6">
-                                    <svg class="mb-4 h-12 w-12 text-muted-foreground" viewBox="0 0 24 24" fill="none" aria-hidden="true">
-                                        <path d="M12 3v10" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                        <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
-                                        <path d="M21 21H3" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                                <div
+                                    class="flex flex-col items-center justify-center rounded-3xl border-2 border-dashed border-border bg-muted p-6">
+                                    <svg class="mb-4 h-12 w-12 text-muted-foreground" viewBox="0 0 24 24" fill="none"
+                                        aria-hidden="true">
+                                        <path d="M12 3v10" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M8 7l4-4 4 4" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
+                                        <path d="M21 21H3" stroke="currentColor" stroke-width="1.5"
+                                            stroke-linecap="round" stroke-linejoin="round" />
                                     </svg>
 
                                     <input type="file" name="photo" id="upload-input" accept="image/*"
-                                        class="text-sm text-zinc-500 file:mr-4 file:rounded-2xl file:border-0 file:bg-zinc-950 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white file:transition hover:file:bg-zinc-800" required />
+                                        class="text-sm text-zinc-500 file:mr-4 file:rounded-2xl file:border-0 file:bg-zinc-950 file:px-4 file:py-2.5 file:text-sm file:font-semibold file:text-white file:transition hover:file:bg-zinc-800"
+                                        required />
 
                                     <p class="text-xs text-muted-foreground mt-2">PNG, JPG ou WEBP até 2MB.</p>
                                 </div>
@@ -34,15 +41,13 @@
                                     <label for="description" class="text-xs font-bold uppercase tracking-wider black">
                                         Descrição da T-shirt
                                     </label>
-                                    <textarea
-                                        name="description"
-                                        id="description"
-                                        rows="3"
+                                    <textarea name="description" id="description" rows="3"
                                         placeholder="Escreve aqui uma breve descrição ou detalhes sobre a estampa..."
                                         class="w-full rounded-2xl border border-zinc-200 bg-white p-4 text-sm text-zinc-900 placeholder-zinc-400 focus:border-zinc-950 focus:ring-1 focus:ring-zinc-950 transition outline-none resize-none"></textarea>
                                 </div>
 
-                                <button type="submit" class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
+                                <button type="submit"
+                                    class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-4 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800">
                                     Carregar Imagem e Detalhes
                                 </button>
                             </form>
@@ -53,24 +58,24 @@
                 <div>
                     <div class="mt-8 grid gap-4 sm:grid-cols-2 lg:grid-cols-3" id="product-grid">
                         @forelse ($myImages as $image)
-                        <a
-                            href="{{ route('customization.index', ['tshirt' => $tshirt, 'design' => $image->id, 'color' => request('color')]) }}">
-                            <div class="product-card group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md {{ request('design') == $image->id ? 'ring-2 ring-zinc-950' : '' }}"
-                                data-id="{{ $image->id }}">
-                                <div class="relative aspect-square overflow-hidden bg-zinc-100">
-                                    <img src="{{ route('tshirt_images.show', ['filename' => $image->image_url]) }}"
-                                        alt="{{ $image->name }}"
-                                        class="h-full w-full object-contain transition group-hover:scale-105" />
+                            <a
+                                href="{{ route('customization.index', ['tshirt' => $tshirt, 'design' => $image->id, 'color' => request('color')]) }}">
+                                <div class="product-card group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md {{ request('design') == $image->id ? 'ring-2 ring-zinc-950' : '' }}"
+                                    data-id="{{ $image->id }}">
+                                    <div class="relative aspect-square overflow-hidden bg-zinc-100">
+                                        <img src="{{ route('tshirt_images.show', ['filename' => $image->image_url]) }}"
+                                            alt="{{ $image->name }}"
+                                            class="h-full w-full object-contain transition group-hover:scale-105" />
+                                    </div>
+                                    <div class="p-4">
+                                        <h3 class="mt-2 font-semibold text-zinc-900">{{ $image->name}}</h3>
+                                    </div>
                                 </div>
-                                <div class="p-4">
-                                    <h3 class="mt-2 font-semibold text-zinc-900">{{ $image->name}}</h3>
-                                </div>
-                            </div>
-                        </a>
+                            </a>
                         @empty
-                        <div class="col-span-full text-center py-12 text-muted-foreground">
-                            Nenhum design encontrado.
-                        </div>
+                            <div class="col-span-full text-center py-12 text-muted-foreground">
+                                Nenhum design encontrado.
+                            </div>
                         @endforelse
                     </div>
 
@@ -90,11 +95,13 @@
                                 src="{{ asset('storage/tshirt_base/' . $selectedColor->code . '.jpg') }}"
                                 alt="T-shirt Base" class="absolute inset-0 h-full w-full object-contain" />
                             @if ($tshirt && $tshirt->image_url)
-                            <img src="{{ route('tshirt_images.show', ['filename' => $tshirt->image_url]) }}"
-                                alt="{{ $tshirt->name }}"
-                                class="relative z-10 h-[40%] w-[40%] object-contain transition group-hover:scale-105" />
+                                <img src="{{ route('tshirt_images.show', ['filename' => $tshirt->image_url]) }}"
+                                    alt="{{ $tshirt->name }}"
+                                    class="relative z-10 h-[40%] w-[40%] object-contain transition group-hover:scale-105" />
                             @else
-                            <span class="absolute z-10 text-xs text-black bg-white/80 px-2 py-1 rounded-md shadow-sm">Introduza uma imagem</span>
+                                <span
+                                    class="absolute z-10 text-xs text-black bg-white/80 px-2 py-1 rounded-md shadow-sm">Introduza
+                                    uma imagem</span>
                             @endif
                         </div>
                         <div class="p-5 border-t border-zinc-100 bg-zinc-50/30">
@@ -108,97 +115,120 @@
                     </div>
                 </div>
 
-                <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
-                    <div class="p-6 space-y-6">
+                <div class="p-6">
+    <h2 class="mb-6 text-lg font-semibold">Configurar Produto</h2>
 
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-zinc-900">Cor da T-Shirt</label>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($colours as $color)
-                                <a href="{{ route('customization.index', ['tshirt' => $tshirt, 'color' => $color->code, 'design' => request('design'), 'quantity' => $quantity]) }}"
-                                    class="color-option h-10 w-10 rounded-full border-2 transition-all duration-200 {{ ($selectedColor->code ?? '') === $color->code ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2' : 'border-border' }}"
-                                    title="{{ $color->name }}" style="background-color: #{{ $color->code }}"></a>
-                                @endforeach
-                            </div>
+    {{-- 
+        Movemos o x-data para o topo para que tanto a seleção de cores 
+        como o formulário partilhem as mesmas variáveis reativas 
+    --}}
+    <div x-data="{ 
+        quantity: 1,
+        basePrice: {{ $basePrice }},
+        discountPrice: {{ $unitPrice }},
+        qtyTrigger: {{ $priceRules ? $priceRules->qty_discount : 5 }},
+        selectedColorCode: '{{ $selectedColor->code ?? 'white' }}',
+        selectedColorName: '{{ $selectedColor->name ?? 'Branco' }}'
+    }">
 
-                            <form method="GET" action="{{ url()->current() }}" class="space-y-6">
-                                <input type="hidden" name="color" value="{{ $selectedColor->code ?? '' }}">
-                                <input type="hidden" name="design" value="{{ request('design') }}">
+        {{-- SELEÇÃO DE COR DA T-SHIRT COM ALPINE.JS (SEM LINKS PARA RECARREGAR) --}}
+        <div class="mb-6">
+            <label class="mb-2 block text-sm font-medium text-zinc-900">
+                Cor da T-Shirt: <span class="text-zinc-500 font-normal" x-text="selectedColorName"></span>
+            </label>
+            <div class="flex flex-wrap gap-2">
+                @foreach ($colors as $color)
+                    <button type="button"
+                        {{-- Ao clicar, atualiza o código e o nome da cor localmente no Alpine --}}
+                        @click="selectedColorCode = '{{ $color->code }}'; selectedColorName = '{{ $color->name }}'; document.getElementById('tshirt-base-preview').src = '{{ asset('storage/tshirt_base/' . $color->code . '.jpg') }}'"
+                        class="h-10 w-10 rounded-full border-2 transition-all duration-200 focus:outline-none"
+                        :class="selectedColorCode === '{{ $color->code }}' ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2 scale-105' : 'border-border'"
+                        title="{{ $color->name }}" 
+                        style="background-color: #{{ $color->code }}">
+                    </button>
+                @endforeach
+            </div>
+        </div>
 
-                                <div>
-                                    <label Lifor="quantity-input" class="mb-2 block text-sm font-medium text-zinc-900">Quantidade</label>
-                                    <div class="flex gap-2">
-                                        <input id="quantity-input" type="number" name="quantity" min="1" value="{{ $quantity }}"
-                                            class="w-24 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+        {{-- FORMULÁRIO --}}
+        <form action="{{ route('cart.store') }}" method="POST" class="space-y-6">
+            @csrf
 
-                                        <button type="submit" class="rounded-2xl border border-zinc-300 bg-zinc-50 px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-100">
-                                            Calcular
-                                        </button>
-                                    </div>
+            {{-- Inputs ocultos preenchidos dinamicamente pelo Alpine.js --}}
+            <input type="hidden" name="tshirt_image_id" value="{{ $tshirt ? $tshirt->id : '' }}">
+            <input type="hidden" name="color" :value="selectedColorCode">
 
-                                    @if($hasDiscount)
-                                    <p class="mt-2 text-sm text-emerald-600 font-medium">
-                                        Desconto de quantidade aplicado!
-                                    </p>
-                                    @endif
-                                </div>
-                            </form>
+            {{-- SELEÇÃO DE TAMANHO --}}
+            <div>
+                <label for="size" class="mb-2 block text-sm font-medium text-zinc-700">Tamanho</label>
+                <select id="size" name="size"
+                    class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400">
+                    <option value="S">S</option>
+                    <option value="M" selected>M</option>
+                    <option value="L">L</option>
+                    <option value="XL">XL</option>
+                </select>
+            </div>
 
-                            {{-- 3. EXIBIÇÃO DOS PREÇOS DINÂMICOS DO PHP --}}
-                            <div class="rounded-3xl bg-muted p-4">
-                                <div class="flex items-center justify-between text-sm text-zinc-600">
-                                    <span>Preço unitário:</span>
-                                    <span class="font-medium">{{ number_format($unitPrice, 2) }}€</span>
-                                </div>
+            {{-- QUANTIDADE --}}
+            <div>
+                <div class="flex items-center justify-between mb-2">
+                    <label for="quantity" class="text-sm font-medium text-zinc-700">Quantidade</label>
+                </div>
+                <div class="flex gap-3">
+                    <input type="number" id="quantity" name="quantity" min="1"
+                        x-model.number="quantity"
+                        class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400" />
+                </div>
+            </div>
 
-                                @if($hasDiscount)
-                                <div class="mt-2 text-sm text-muted-foreground line-through">
-                                    {{ number_format($basePrice, 2) }}€
-                                </div>
-                                @endif
+            {{-- ESPELHO DE PREÇOS REATIVO --}}
+            <div class="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
+                <div class="space-y-2 text-sm text-zinc-600">
 
-                                <div class="mt-3 flex items-center justify-between border-t border-zinc-200 pt-3">
-                                    <span class="font-medium">Total:</span>
-                                    <span class="text-xl font-bold text-[#144226]">{{ number_format($totalPrice, 2) }}€</span>
-                                </div>
-                            </div>
+                    {{-- Preço Unitário dinâmico --}}
+                    <div class="flex justify-between">
+                        <span>Preço Unitário:</span>
+                        <span class="font-medium text-zinc-900"
+                            x-text="(quantity >= qtyTrigger ? discountPrice : basePrice).toFixed(2) + '€'">
+                        </span>
+                    </div>
 
-                            {{-- 4. FORMULÁRIO DE ENVIO PARA O CARRINHO --}}
-                            <form method="POST" action="{{ route('cart.store') }}">
-                                @csrf
-                                <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id ?? '' }}">
-                                <input type="hidden" name="color" value="{{ $selectedColor->code ?? '' }}">
-                                <input type="hidden" name="quantity" value="{{ $quantity }}">
+                    {{-- Aviso de desconto por quantidade --}}
+                    <div class="flex justify-between text-xs text-emerald-600 font-medium"
+                        x-show="quantity >= qtyTrigger" x-cloak>
+                        <span>Desconto de quantidade:</span>
+                        <span>Aplicado (Preço especial <span x-text="discountPrice.toFixed(2)"></span>€)</span>
+                    </div>
 
-                                <div class="mb-4">
-                                    <label for="size-select" class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
-                                    <select id="size-select" name="size"
-                                        class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
-                                        <option value="S">S</option>
-                                        <option value="M" selected>M</option>
-                                        <option value="L">L</option>
-                                        <option value="XL">XL</option>
-                                    </select>
-                                </div>
-
-                                <div class="space-y-3">
-                                    <button type="submit"
-                                        class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-                                        {{ ($tshirt && $tshirt->image_url) ? '' : 'disabled' }}>
-                                        Adicionar ao Carrinho
-                                    </button>
-
-                                    @if(session('success'))
-                                    <p class="text-center text-sm font-medium text-emerald-600">
-                                        {{ session('success') }}
-                                    </p>
-                                    @endif
-                                </div>
-                            </form>
-
-                        </div>
+                    {{-- Preço Total --}}
+                    <div class="flex justify-between border-t border-zinc-200 pt-2 text-zinc-900 font-semibold mt-3">
+                        <span class="font-medium">Total:</span>
+                        <span class="text-xl font-bold text-[#144226]"
+                            x-text="((quantity >= qtyTrigger ? discountPrice : basePrice) * (quantity || 1)).toFixed(2) + '€'">
+                        </span>
                     </div>
                 </div>
+            </div>
+
+            {{-- BOTÃO DE SUBMISSÃO PARA O CARRINHO --}}
+            <div class="space-y-3 pt-4">
+                <button type="submit"
+                    class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                    {{ ($tshirt && $tshirt->image_url) ? '' : 'disabled' }}>
+                    Adicionar ao Carrinho
+                </button>
+
+                @if(session('success'))
+                    <p class="text-center text-sm font-medium text-emerald-600">
+                        {{ session('success') }}
+                    </p>
+                @endif
+            </div>
+        </form>
+
+    </div>
+</div>
             </div>
         </div>
 </main>

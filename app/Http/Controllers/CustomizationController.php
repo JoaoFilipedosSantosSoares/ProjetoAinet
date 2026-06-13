@@ -42,9 +42,9 @@ class CustomizationController extends Controller implements HasMiddleware
         $myImages = $myImages->paginate(12)->withQueryString();
 
         // 2. Gestão das Cores
-        $colours = Color::all();
+        $colors = Color::all();
         $selectedColorCode = $request->query('color');
-        $selectedColor = $colours->where('code', $selectedColorCode)->first() ?? $colours->first();
+        $selectedColor = $colors->where('code', $selectedColorCode)->first() ?? $colors->first();
 
         // 3. Verificar se veio um design selecionado por link
         $selectedDesignId = $request->query('design');
@@ -81,7 +81,7 @@ class CustomizationController extends Controller implements HasMiddleware
 
         return view('customization.index', compact(
             'myImages',
-            'colours',
+            'colors',
             'selectedColor',
             'tshirt',
             'priceRules',
