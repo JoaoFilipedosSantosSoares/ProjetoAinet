@@ -7,7 +7,6 @@
 <form action="{{ route('staff.store') }}" method="POST" class="space-y-4">
     @csrf
 
-    {{-- Nome Completo --}}
     <div>
         <label for="name" class="block text-base font-medium text-black mb-1.5">
             {{ __('Nome Completo') }}
@@ -29,7 +28,6 @@
         @enderror
     </div>
 
-    {{-- Email --}}
     <div>
         <label for="email" class="block text-base font-medium text-black mb-1.5">
             {{ __('Email') }}
@@ -51,7 +49,6 @@
         @enderror
     </div>
 
-    {{-- Password --}}
     <div>
         <label for="password" class="block text-base font-medium text-black mb-1.5">
             {{ __('Password') }}
@@ -73,7 +70,6 @@
         @enderror
     </div>
 
-    {{-- Cargo / Tipo de Utilizador --}}
     <div>
         <label for="user_type" class="block text-base font-medium text-black mb-1.5">
             {{ __('Cargo / Tipo de Utilizador') }}
@@ -95,7 +91,6 @@
         @enderror
     </div>
 
-    {{-- CAMPO REINTEGRADO: Género --}}
     <div>
         <label for="gender" class="block text-base font-medium text-black mb-1.5">
             {{ __('Género') }}

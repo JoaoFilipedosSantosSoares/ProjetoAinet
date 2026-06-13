@@ -7,7 +7,6 @@
         </a>
     </div>
 
-    {{-- TÍTULO DINÂMICO --}}
     <div class="mb-8 border-b border-zinc-200 pb-4">
         <h1 class="text-2xl font-bold tracking-tight text-zinc-900 sm:text-3xl">
             {{ $tshirtImage->exists ? 'Editar Imagem do Catálogo' : 'Adicionar Nova Imagem ao Catálogo' }}
@@ -17,10 +16,8 @@
         </p>
     </div>
 
-    {{-- GRELHA: Se estiver a editar, divide em colunas para mostrar a imagem atual --}}
     <div class="grid gap-8 {{ $tshirtImage->exists ? 'md:grid-cols-3' : 'grid-cols-1' }}">
         
-        {{-- MOSTRA A IMAGEM ATUAL APENAS SE ESTIVER EM MODO EDIÇÃO --}}
         @if($tshirtImage->exists)
         <div class="md:col-span-1 space-y-4">
             <div class="block text-xs font-semibold uppercase tracking-wider text-zinc-700">Design Atual</div>
@@ -31,7 +28,6 @@
         </div>
         @endif
 
-        {{-- FORMULÁRIO COM SELEÇÃO DE ROTA DINÂNICA --}}
         <div class="{{ $tshirtImage->exists ? 'md:col-span-2' : 'max-w-3xl mx-auto w-full' }} rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
             
             <form method="POST" 
@@ -40,19 +36,16 @@
                   class="space-y-6">
                 
                 @csrf
-                {{-- DIRETIVA DINÂMICA: Se existir, injeta o método PUT --}}
                 @if($tshirtImage->exists)
                     @method('PUT')
                 @endif
 
-                {{-- Campo: Nome --}}
                 <div>
                     <label for="name" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Nome do Design *</label>
                     <input type="text" name="name" id="name" required value="{{ old('name', $tshirtImage->name) }}" placeholder="Ex: Caveira Rock, Sunset Vibes..."
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
                 </div>
 
-                {{-- Campo: Categoria --}}
                 <div>
                     <label for="category_id" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Categoria *</label>
                     <select name="category_id" id="category_id" required
@@ -66,14 +59,12 @@
                     </select>
                 </div>
 
-                {{-- Campo: Descrição --}}
                 <div>
                     <label for="description" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Descrição (Opcional)</label>
                     <textarea name="description" id="description" rows="3" placeholder="Breve texto sobre a estampa..."
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">{{ old('description', $tshirtImage->description) }}</textarea>
                 </div>
 
-                {{-- Campo: Imagem (Obrigatório na criação, opcional na edição) --}}
                 <div>
                     <label for="image_file" class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">
                         {{ $tshirtImage->exists ? 'Substituir Imagem (Deixar vazio para manter a atual)' : 'Ficheiro da Imagem (Máx: 2MB) *' }}
@@ -82,7 +73,6 @@
                         class="w-full text-sm text-zinc-500 file:mr-4 file:py-2 file:px-4 file:rounded-xl file:border-0 file:text-sm file:font-semibold file:bg-zinc-100 file:text-zinc-700 hover:file:bg-zinc-200 file:cursor-pointer">
                 </div>
 
-                {{-- Botões --}}
                 <div class="flex justify-end gap-3 border-t border-zinc-100 pt-6">
                     <a href="{{ route('staff.gestao') }}" class="rounded-xl border border-zinc-300 bg-white px-4 py-2.5 text-sm font-semibold text-zinc-700 hover:bg-zinc-50 transition">
                         Cancelar

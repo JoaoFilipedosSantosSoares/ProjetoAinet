@@ -8,19 +8,16 @@
                 <p class="text-sm text-muted-foreground">Altera o nome ou a descrição da estampa selecionada.</p>
             </div>
 
-            {{-- PREVIEW DA IMAGEM QUE ESTÁ A SER EDITADA --}}
             <div class="mb-6 flex justify-center rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
                 <img src="{{ route('tshirt_images.show', ['filename' => $image->image_url]) }}" 
                      alt="{{ $image->name }}" 
                      class="max-h-48 object-contain rounded-lg">
             </div>
 
-            {{-- FORMULÁRIO DE ATUALIZAÇÃO --}}
             <form action="{{ route('customization.update', $image->id) }}" method="POST" class="space-y-5">
                 @csrf
                 @method('PUT')
 
-                {{-- CAMPO: NOME --}}
                 <div class="space-y-1.5">
                     <label for="name" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
                         Nome do Design
@@ -32,7 +29,6 @@
                     @enderror
                 </div>
 
-                {{-- CAMPO: DESCRIÇÃO --}}
                 <div class="space-y-1.5">
                     <label for="description" class="text-xs font-bold uppercase tracking-wider text-zinc-700">
                         Descrição / Detalhes
@@ -44,7 +40,6 @@
                     @enderror
                 </div>
 
-                {{-- BOTÕES DE SUBMISSÃO E CANCELAMENTO --}}
                 <div class="flex gap-3 pt-2">
                     <a href="{{ route('customization.index', ['design' => $image->id]) }}" 
                        class="inline-flex flex-1 justify-center rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm font-semibold text-zinc-700 transition hover:bg-zinc-50">

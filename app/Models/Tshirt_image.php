@@ -15,19 +15,16 @@ class Tshirt_image extends Model
 {
     use SoftDeletes;
 
-    //Relação Tshirts_images-Customer
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class, 'customer_id', 'id');
     }
 
-    //Relação Tshirt_Images-Order_Items
     public function order_items(): HasMany
     {
         return $this->hasMany(Order_Item::class, 'tshirt_image_id', 'id');
     }
 
-    //Relação Category-Tshirt_image
     public function category(): BelongsTo
     {
         return $this->belongsTo(Category::class, 'category_id', 'id');

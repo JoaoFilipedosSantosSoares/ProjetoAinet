@@ -12,13 +12,9 @@ class DashboardController extends Controller
 {
     public function index(Request $request)
     {
-        // 1. Capturar Filtros da Query String (com valores padrão)
         $anoSelecionado = $request->get('ano', date('Y'));
-        $limite = (int) $request->get('limite', 5); // Padrão: 5 linhas
+        $limite = (int) $request->get('limite', 5);
 
-        // ==========================================
-        // BLOCO 1: MÉTRICAS GLOBAIS
-        // ==========================================
         $vendasTotais = Order::whereYear('date', $anoSelecionado)->sum('total_price');
         $totalEncomendas = Order::whereYear('date', $anoSelecionado)->count();
         $mediaPrecoEncomenda = $totalEncomendas > 0 ? $vendasTotais / $totalEncomendas : 0;
@@ -28,11 +24,6 @@ class DashboardController extends Controller
             ->whereYear('orders.date', $anoSelecionado)
             ->sum('order_items.qty');
 
-        // ==========================================
-        // NOVO BLOCO: ANÁLISE DE MÉDIAS TEMPORAIS (SQLite)
-        // ==========================================
-        
-        // A. Médias Mensais (Faturação total / número de meses com vendas)
         $mesesComVendas = Order::whereYear('date', $anoSelecionado)
             ->selectRaw("strftime('%m', date) as mes")
             ->groupBy('mes')
@@ -43,7 +34,6 @@ class DashboardController extends Controller
         $mediaMensalFaturacao = $vendasTotais / $mesesDivisor;
         $mediaMensalQuantidade = $totalTshirtsVendidas / $mesesDivisor;
 
-        // B. Médias Semanais (Faturação total / número de semanas com vendas)
         $semanasComVendas = Order::whereYear('date', $anoSelecionado)
             ->selectRaw("strftime('%W', date) as semana")
             ->groupBy('semana')
@@ -54,11 +44,6 @@ class DashboardController extends Controller
         $mediaSemanalFaturacao = $vendasTotais / $semanasDivisor;
         $mediaSemanalQuantidade = $totalTshirtsVendidas / $semanasDivisor;
 
-        // ==========================================
-        // BLOCO 2: TOP RANKINGS
-        // ==========================================
-        
-        // 1. Categorias Mais Rentáveis
         $topCategorias = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('tshirt_images', 'order_items.tshirt_image_id', '=', 'tshirt_images.id') 
@@ -71,10 +56,9 @@ class DashboardController extends Controller
             )
             ->groupBy('categories.id', 'categories.name')
             ->orderBy('total_revenue', 'desc')
-            ->take($limite) // <--- DINÂMICO
+            ->take($limite) 
             ->get();
 
-        // 2. Estampas Mais Vendidas
         $topEstampas = DB::table('order_items')
             ->join('orders', 'order_items.order_id', '=', 'orders.id')
             ->join('tshirt_images', 'order_items.tshirt_image_id', '=', 'tshirt_images.id')
@@ -85,10 +69,9 @@ class DashboardController extends Controller
             )
             ->groupBy('tshirt_images.id', 'tshirt_images.name')
             ->orderBy('total_qty', 'desc')
-            ->take($limite) // <--- DINÂMICO
+            ->take($limite) 
             ->get();
 
-        // 3. Melhores Clientes
         $topClientes = DB::table('orders')
             ->join('customers', 'orders.customer_id', '=', 'customers.id')
             ->join('users', 'customers.id', '=', 'users.id') 
@@ -101,10 +84,9 @@ class DashboardController extends Controller
             )
             ->groupBy('users.id', 'users.name', 'users.email')
             ->orderBy('total_spent', 'desc')
-            ->take($limite) // <--- DINÂMICO
+            ->take($limite) 
             ->get();
 
-        // Lista de anos para o filtro do topo
         $anosDisponiveis = Order::selectRaw("strftime('%Y', date) as ano")
             ->groupBy('ano')
             ->orderBy('ano', 'desc')
@@ -117,28 +99,23 @@ class DashboardController extends Controller
 
         $lucrosMeses = array_fill(1, 12, 0);
 
-        // Query para ir buscar a faturação agrupada por mês
         $faturacaoPorMes = Order::whereYear('date', $anoSelecionado)
             ->selectRaw("strftime('%m', date) as mes, SUM(total_price) as total")
             ->groupBy('mes')
             ->get();
 
-        // Preencher o array com os valores reais onde houve vendas
         foreach ($faturacaoPorMes as $dados) {
             $mesId = (int)$dados->mes;
             $lucrosMeses[$mesId] = (float)$dados->total;
         }
 
-        // Transformar o array numa lista simples de 12 números para passar para o JS
         $dadosGrafico = array_values($lucrosMeses);
 
-        // Obter contagem de encomendas agrupadas por mês
         $contagemPorMes = Order::whereYear('date', $anoSelecionado)
             ->selectRaw("strftime('%m', date) as mes, COUNT(id) as total_encomendas")
             ->groupBy('mes')
             ->get();
 
-        // Inicializar array com zeros
         $encomendasMeses = array_fill(1, 12, 0);
 
         foreach ($contagemPorMes as $dados) {

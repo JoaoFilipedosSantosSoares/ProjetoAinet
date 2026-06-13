@@ -47,13 +47,9 @@
                 </div>
             </div>
 
-            {{-- COLUNA DA DIREITA: Opções de Compra --}}
             <div class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     
-                    {{-- 
-                        O Alpine.js AGORA LÊ OS VALORES DIRETOS DA BASE DE DADOS 
-                    --}}
                     <div class="p-6 space-y-6" x-data="{
                         quantity: 1,
                         basePrice: {{ $basePrice }},
@@ -63,7 +59,6 @@
                         selectedColorName: '{{ $selectedColor->name ?? ($colors->first()->name ?? '') }}'
                     }">
 
-                        {{-- SELEÇÃO DE CORES COM ALPINE.JS --}}
                         <div>
                             <label class="mb-2 block text-sm font-medium text-zinc-900">
                                 Cor da T-Shirt: <span class="text-zinc-500 font-normal" x-text="selectedColorName"></span>
@@ -80,13 +75,11 @@
                             </div>
                         </div>
 
-                        {{-- FORMULÁRIO ÚNICO POST PARA A SESSÃO DO CARRINHO --}}
                         <form action="{{ route('cart.store') }}" method="POST" class="space-y-6">
                             @csrf
                             <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id }}">
                             <input type="hidden" name="color" :value="selectedColorCode">
 
-                            {{-- SELEÇÃO DE TAMANHO --}}
                             <div>
                                 <label for="size-select" class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
                                 <select id="size-select" name="size" class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
@@ -97,7 +90,6 @@
                                 </select>
                             </div>
 
-                            {{-- QUANTIDADE --}}
                             <div>
                                 <label for="quantity-input" class="mb-2 block text-sm font-medium text-zinc-900">Quantidade</label>
                                 <input id="quantity-input" name="quantity" type="number" min="1" 
@@ -109,7 +101,6 @@
                                 </p>
                             </div>
 
-                            {{-- ESPELHO DE PREÇOS COMPLETO E REATIVO --}}
                             <div class="rounded-3xl bg-muted p-4 space-y-2 text-sm text-zinc-600">
                                 <div class="flex items-center justify-between">
                                     <span>Preço Unitário:</span>
@@ -132,7 +123,6 @@
                                 </div>
                             </div>
 
-                            {{-- BOTÃO DE SUBMISSÃO PARA O CARRINHO --}}
                             <div class="space-y-3">
                                 <button type="submit"
                                     class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"

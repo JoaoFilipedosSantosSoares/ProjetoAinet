@@ -8,10 +8,8 @@
 
         <div class="mx-auto grid max-w-5xl gap-8 lg:grid-cols-2">
             
-            {{-- COLUNA ESQUERDA: CARREGAMENTO E SELEÇÃO DE IMAGENS --}}
             <div class="space-y-6">
                 
-                {{-- CARD 1: FORMULÁRIO DE UPLOAD --}}
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="p-6">
                         <h2 class="mb-4 text-lg font-semibold">Carrega a tua imagem</h2>
@@ -52,7 +50,6 @@
                     </div>
                 </div>
 
-                {{-- CARD 2: GRELHA DOS DESIGNS DO UTILIZADOR --}}
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm p-6">
                     <h2 class="text-lg font-semibold mb-4">Os Teus Designs Disponíveis</h2>
                     
@@ -106,7 +103,6 @@
                 </div>
             </div>
 
-            {{-- COLUNA DIREITA: PREVIEW E CONFIGURADOR --}}
             <div class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="product-card group cursor-pointer overflow-hidden rounded-2xl bg-white shadow-sm transition hover:shadow-md">
@@ -138,7 +134,6 @@
                         selectedColorName: '{{ $selectedColor->name ?? 'Branco' }}'
                     }">
 
-                        {{-- SELEÇÃO DE COR --}}
                         <div class="mb-6">
                             <label class="mb-2 block text-sm font-medium text-zinc-900">
                                 Cor da T-Shirt: <span class="text-zinc-500 font-normal" x-text="selectedColorName"></span>
@@ -176,7 +171,6 @@
                                     class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-zinc-400" />
                             </div>
 
-                            {{-- ESPELHO DE PREÇOS REATIVO --}}
                             <div class="rounded-2xl bg-zinc-50 p-4 border border-zinc-100">
                                 <div class="space-y-2 text-sm text-zinc-600">
                                     <div class="flex justify-between">

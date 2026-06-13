@@ -1,14 +1,12 @@
 @component('layouts.main-content')
 <div class="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
 
-    {{-- Cabeçalho da Página --}}
     <div class="mb-8">
         <h1 class="text-3xl font-bold tracking-tight text-zinc-900 md:text-4xl">Configurações do Sistema</h1>
         <p class="mt-2 text-sm text-zinc-600">Administração global do Catálogo, Cores, Categorias e Regras de Preços da
             FunShirt.</p>
     </div>
 
-    {{-- Bloco Superior: Configuração de Preços de Referência e Descontos --}}
     <div class="mb-12 rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm">
         <div class="border-b border-zinc-200 pb-4 mb-6">
             <h2 class="text-lg font-bold text-zinc-900">Preços e Descontos por Quantidade</h2>
@@ -20,10 +18,8 @@
             @csrf
             @method('PUT')
 
-            {{-- Aumentámos o gap para dar espaço entre linhas --}}
             <div class="grid gap-6 md:grid-cols-3">
 
-                {{-- Linha 1 --}}
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Unit.
                         Catálogo (€)</label>
@@ -47,7 +43,6 @@
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
                 </div>
 
-                {{-- Linha 2 --}}
                 <div>
                     <label class="block text-xs font-semibold uppercase tracking-wider text-zinc-700 mb-2">Preço Desc.
                         Catálogo (€)</label>
@@ -64,7 +59,6 @@
                         class="w-full rounded-xl border border-zinc-300 bg-white px-4 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none">
                 </div>
 
-                {{-- Botão alinhado na 3ª coluna --}}
                 <div class="flex items-end justify-end">
                     <button type="submit"
                         class="w-full rounded-xl bg-zinc-950 px-6 py-2.5 text-sm font-semibold text-white hover:bg-zinc-800 transition shadow-sm">
@@ -75,10 +69,8 @@
         </form>
     </div>
 
-    {{-- 1. Categorias | 2. Cores --}}
     <div class="mb-12 grid gap-8 lg:grid-cols-2">
 
-        {{-- SECÇÃO: CATEGORIAS --}}
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col justify-between h-full">
             <div>
                 <div class="flex items-center justify-between border-b border-zinc-200 pb-4 mb-4">
@@ -88,7 +80,6 @@
                     </div>
                 </div>
 
-                {{--Criar Categoria --}}
                 <form method="POST" action="{{ route('staff.gestao.storeCategory') }}" enctype="multipart/form-data"
                     class="mb-4 space-y-2">
                     @csrf
@@ -101,7 +92,6 @@
                         </button>
                     </div>
 
-                    {{-- Input de imagem opcional --}}
                     <input type="file" name="category_image" accept="image/*"
                         class="w-full text-xs text-zinc-500 file:mr-4 file:py-1 file:px-3 file:rounded-lg file:border-0 file:text-xs file:font-semibold file:bg-zinc-100 hover:file:bg-zinc-200 cursor-pointer">
                 </form>
@@ -131,7 +121,6 @@
                                             class="inline-flex h-7 px-2 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition shadow-sm mr-1">
                                             Editar
                                         </button>
-                                        {{-- Eliminar Categoria --}}
                                         <form method="POST" action="{{ route('staff.gestao.destroyCategory', $category) }}"
                                             class="inline" onsubmit="return confirm('Eliminar esta categoria?');">
                                             @csrf
@@ -154,7 +143,6 @@
             </div>
         </div>
 
-        {{-- SECÇÃO: CORES --}}
         <div class="rounded-2xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col justify-between">
             <div>
                 <div class="flex items-center justify-between border-b border-zinc-200 pb-4 mb-4">
@@ -164,14 +152,12 @@
                     </div>
                 </div>
 
-                {{-- Criar Cor --}}
                 <form method="POST" action="{{ route('staff.gestao.storeColor') }}" enctype="multipart/form-data"
                     class="mb-6 space-y-4">
                     @csrf
 
                     <div class="grid grid-cols-1 sm:grid-cols-3 gap-4">
 
-                        {{-- 1. Código HEX --}}
                         <div>
                             <label
                                 class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Código
@@ -181,7 +167,6 @@
     class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none placeholder:text-zinc-400">
                         </div>
 
-                        {{-- 2. Nome da Cor --}}
                         <div>
                             <label
                                 class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">Nome
@@ -190,7 +175,6 @@
                                 class="w-full h-10 rounded-xl border border-zinc-300 bg-white px-3 py-2 text-sm text-zinc-900 focus:border-zinc-950 focus:outline-none placeholder:text-zinc-400">
                         </div>
 
-                        {{-- 3. T-shirt Base --}}
                         <div>
                             <label
                                 class="block text-[11px] font-bold uppercase tracking-wider text-zinc-500 mb-1.5">T-shirt
@@ -233,7 +217,6 @@
                                             class="inline-flex h-7 px-2.5 items-center justify-center rounded-lg border border-zinc-200 bg-zinc-50 text-xs font-semibold text-zinc-700 hover:bg-zinc-100 transition shadow-sm mr-1">
                                             Editar
                                         </button>
-                                        {{-- Eliminar Cor --}}
                                         <form method="POST" action="{{ route('staff.gestao.destroyColor', $color) }}"
                                             class="inline" onsubmit="return confirm('Eliminar esta cor?');">
                                             @csrf
@@ -258,7 +241,6 @@
 
     </div>
 
-    {{-- CATÁLOGO DE IMAGENS OFICIAIS --}}
     <div class="mb-4 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
             <h2 class="text-xl font-bold text-zinc-900">Catálogo Oficial de Designs</h2>
@@ -266,7 +248,6 @@
             </p>
         </div>
         <div>
-            {{-- Criar nova imagem --}}
             <a href="{{ route('staff.gestao.create') }}">
                 <button type="button"
                     class="inline-flex items-center justify-center rounded-xl bg-zinc-950 px-4 py-2.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm">
@@ -276,7 +257,6 @@
         </div>
     </div>
 
-    {{-- Filtragem e Pesquisa do Catálogo --}}
     <form method="GET" action="{{ route('staff.gestao') }}"
         class="mb-6 flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between bg-zinc-50 p-4 rounded-2xl border border-zinc-200">
         <div class="flex flex-1 flex-col gap-4 sm:flex-row sm:items-center">
@@ -313,7 +293,6 @@
         </div>
     </form>
 
-    {{-- Tabela do Catálogo --}}
     <div class="overflow-hidden rounded-2xl border border-zinc-200 bg-white shadow-sm">
         <div class="overflow-x-auto">
             <table class="w-full border-collapse text-left text-sm text-zinc-500">
@@ -352,7 +331,6 @@
 
                             <td class="whitespace-nowrap px-6 py-4 text-right text-sm font-medium">
                                 <div class="flex items-center justify-end gap-2">
-                                    {{-- Editar Imagem --}}
                                     <a href="{{ route('staff.gestao.edit', $image) }}">
                                         <button type="button"
                                             class="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-zinc-200 bg-white transition hover:bg-zinc-100 shadow-sm"
@@ -361,7 +339,6 @@
                                         </button>
                                     </a>
 
-                                    {{-- Eliminar Imagem do Catálogo --}}
                                     <form method="POST" action="{{ route('staff.gestao.destroy', $image) }}" class="inline"
                                         onsubmit="return confirm('Eliminar estampa?');">
                                         @csrf
@@ -480,7 +457,6 @@
         document.getElementById('edit_color_code').value = code;
         document.getElementById('edit_color_name').value = name;
 
-        // Define dinamicamente o URL da rota com o código da cor correspondente
         let form = document.getElementById('editColorForm');
         form.action = `/staff/gestao/cores/${code.toLowerCase()}`;
 
@@ -494,7 +470,6 @@
     function openCategoryModal(id, name) {
         document.getElementById('edit_category_name').value = name;
 
-        // Define dinamicamente o URL da rota com o ID da categoria correspondente
         let form = document.getElementById('editCategoryForm');
         form.action = `/staff/gestao/categorias/${id}`;
 

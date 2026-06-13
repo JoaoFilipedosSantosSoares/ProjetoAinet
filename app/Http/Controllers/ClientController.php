@@ -78,25 +78,19 @@ class ClientController extends Controller
 
     public function myOrders(Request $request): View
     {
-        // 1. Vai buscar o perfil de cliente do utilizador logado
         $customerRecord = $request->user()?->customer;
 
-        // 2. Se o utilizador não tiver perfil de cliente (ex: for um Admin),
-        // ou se não tiver encomendas, envia uma paginação vazia para a view
         if (!$customerRecord) {
             $orders = new \Illuminate\Pagination\LengthAwarePaginator([], 0, 20);
             return view('orders.my', compact('orders'));
         }
 
-        // 3. Procura as encomendas que pertencem a este customer_id
-        // Fazemos paginação de 20 por página e mantemos os filtros no URL (Query String)
         $orders = Order::where('customer_id', $customerRecord->id)
             ->where('status', 'closed')
-            ->orderBy('created_at', 'desc') // As mais recentes primeiro
+            ->orderBy('created_at', 'desc') 
             ->paginate(20)
             ->withQueryString();
 
-        // 4. Retorna a view (ajusta o caminho se a tua view tiver outro nome)
         return view('orders.my', compact('orders'));
     }
 }

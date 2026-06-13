@@ -2,7 +2,6 @@
     <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
         <div>
             @php
-                // Mapeamento de estados para exibição textual bonita em português
                 $statusText = match ($order->status) {
                     'pending' => 'Pendente',
                     'closed' => 'Concluída',
@@ -10,7 +9,6 @@
                     default => ucfirst($order->status)
                 };
 
-                // Mapeamento de classes CSS do Tailwind para o badge do estado
                 $badgeClasses = match ($order->status) {
                     'pending' => 'bg-amber-100 text-amber-800',
                     'closed' => 'bg-emerald-100 text-emerald-800',

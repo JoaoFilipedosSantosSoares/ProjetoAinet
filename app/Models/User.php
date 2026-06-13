@@ -27,7 +27,6 @@ class User extends Authenticatable implements MustVerifyEmail
         ];
     }
 
-    //Relação Customer-user
     public function customer(): HasOne
     {
         return $this->hasOne(Customer::class, 'id', 'id');
@@ -62,7 +61,7 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->blocked;
     }
 
-    public function getPhotoFullUrlAttribute() // fazer aquela cena do storage para qguardar as imagens das pessoas
+    public function getPhotoFullUrlAttribute()
     {
         if ($this->photo_url && Storage::disk('public')->exists("photos/{$this->photo_url}")) {
             return asset("storage/photos/{$this->photo_url}");

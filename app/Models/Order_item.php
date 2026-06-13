@@ -28,19 +28,16 @@ class Order_item extends Model
         'sub_total' => 'decimal:2'
     ];
 
-    //Relação Order-Order_item
     public function order(): BelongsTo
     {
         return $this->belongsTo(Order::class, 'order_id', 'id');
     }
 
-    //Relação Tshirt_Images-Order_Items
     public function tshirt_image(): BelongsTo
     {
         return $this->belongsTo(Tshirt_Image::class, 'tshirt_image_id', 'id');
     }
 
-    //Relação Color-Order_Items
     public function color(): BelongsTo
     {
         return $this->belongsTo(Color::class, 'color_code', 'code');

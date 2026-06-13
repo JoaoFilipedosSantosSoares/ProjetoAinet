@@ -29,13 +29,11 @@ class Order extends Model
         'total_price' => 'decimal:2',
     ];
 
-    //Relação Order-Customer
     public function customer(): BelongsTo
     {
         return $this->belongsTo(Customer::class);
     }
 
-    //Relação Order-Order_item
     public function order_items(): HasMany
     {
         return $this->hasMany(Order_item::class, 'order_id', 'id');

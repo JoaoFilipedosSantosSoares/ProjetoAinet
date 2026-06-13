@@ -3,7 +3,6 @@
 <main class="min-h-screen bg-background py-12">
     <div class="container mx-auto px-4 max-w-4xl">
 
-        {{-- Botão de Voltar --}}
         <div class="mb-6">
             <a href="{{ route('account.index') }}"
                 class="text-sm font-semibold text-zinc-600 hover:text-zinc-900 transition flex items-center gap-2">
@@ -15,7 +14,6 @@
             </a>
         </div>
 
-        {{-- Cabeçalho do Detalhe --}}
         <div
             class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm mb-6 flex flex-col sm:flex-row justify-between sm:items-center gap-4">
             <div>
@@ -124,7 +122,6 @@
                             €</span>
                     </div>
 
-                    {{-- BOTÃO DE DESCARREGAR RECIBO (Apenas aparece se existir o URL na BD) --}}
                     @if($order->receipt_url)
                         <div class="pt-2">
                             <a href="{{ route('orders.receipt', $order) }}"

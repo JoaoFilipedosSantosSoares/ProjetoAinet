@@ -31,32 +31,23 @@ class UserPolicy
         return $user->user_type === 'A';
     }
 
-    /**
-     * Determine whether the user can update the model.
-     */
+  
     public function update(User $user, User $model): bool
     {
         return $user->user_type === 'A';
     }
 
-    /**
-     * Determine whether the user can delete the model.
-     */
+   
     public function delete(User $user, User $model): bool
     {
-        // 1. Tem de ser Administrador
         if ($user->user_type !== 'A') {
             return false;
         }
 
-        // 2. O ID do Admin logado ($user->id) NÃO PODE SER IGUAL 
-        // ao ID do utilizador alvo que está a ser apagado ($model->id)
         return $user->id !== $model->id;
     }
 
-    /**
-     * Determine whether the user can restore the model.
-     */
+    
     public function restore(User $user, User $model): bool
     {
         return false;

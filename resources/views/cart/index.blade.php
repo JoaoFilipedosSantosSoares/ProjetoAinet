@@ -3,7 +3,6 @@
         $userIsAuthenticated = auth()->check();
         $grandTotal = 0;
 
-        // Função anónima para calcular o preço com base no objeto de regras vindo do Model Prices
         $calculateItemPrice = function($isCatalog, $quantity, $rules) {
             if (!$rules) {
                 if ($quantity >= 5) {
@@ -44,12 +43,10 @@
             @else
                 <div class="grid gap-8 lg:grid-cols-3">
                     
-                    {{-- TABELA DE ITENS (LADO ESQUERDO) --}}
                     <div class="lg:col-span-2 space-y-4">
                         <div class="flex justify-between items-center mb-2">
                             <span class="text-sm font-medium text-zinc-500">{{ count($cartItems) }} item(ns) no total</span>
                             
-                            {{-- OPERAÇÃO DE LIMPEZA TOTAL --}}
                             <form method="POST" action="{{ route('cart.clear') }}">
                                 @csrf
                                 <button type="submit" class="text-sm font-semibold text-red-600 hover:text-red-700 transition flex items-center gap-1">
@@ -67,19 +64,14 @@
                                 $hasDiscountApplied = $priceRules && ($item['quantity'] >= $priceRules->qty_discount);
                             @endphp
 
-                            {{-- FORMULÁRIO DE ATUALIZAÇÃO INDIVIDUAL DA LINHA --}}
                             <form method="POST" action="{{ route('cart.update', ['itemId' => $id]) }}" class="relative rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm flex flex-col md:flex-row gap-6 items-start md:items-center justify-between transition hover:shadow-md">
                                 @csrf
 
-                                {{-- Bloco da Imagem Grande Reposto e Nome do Item --}}
                                 <div class="flex items-center gap-6 w-full md:w-auto">
                                     
-                                    {{-- Quadrado da T-shirt destacado (Tamanho Grande) --}}
                                     <div class="relative aspect-square h-32 w-32 shrink-0 overflow-hidden rounded-2xl bg-zinc-100 border border-zinc-200 flex items-center justify-center p-2 shadow-inner">
-                                        {{-- T-shirt de Base --}}
                                         <img src="{{ asset('storage/tshirt_base/' . $item['color'] . '.jpg') }}" class="absolute inset-0 h-full w-full object-contain" onerror="this.src='/img/tshirt.png'" />
                                         
-                                        {{-- Estampa sobreposta (Condição de Catálogo vs Personalizado usando a tua rota específica) --}}
                                         @if($item['isCatalogImage'])
                                             <img src="{{ asset('storage/tshirt_images/' . $item['imageUrl']) }}" class="absolute h-16 w-16 object-contain pointer-events-none" />
                                         @else
@@ -103,10 +95,8 @@
                                     </div>
                                 </div>
 
-                                {{-- CONFIGURADORES INDIVIDUAIS (Cor, Tamanho, Quantidade) --}}
                                 <div class="flex flex-wrap items-center gap-4 w-full md:w-auto justify-between md:justify-end border-t md:border-t-0 pt-4 md:pt-0 border-zinc-100">
                                     
-                                    {{-- Seletor de Cor --}}
                                     <div class="flex flex-col gap-1">
                                         <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Cor</span>
                                         <select name="color" class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400 transition">
@@ -118,7 +108,6 @@
                                         </select>
                                     </div>
 
-                                    {{-- Seletor de Tamanho --}}
                                     <div class="flex flex-col gap-1">
                                         <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Tam</span>
                                         <select name="size" class="rounded-xl border border-zinc-200 bg-zinc-50 px-3 py-2 text-xs font-semibold text-zinc-800 outline-none focus:border-zinc-400 transition">
@@ -130,16 +119,13 @@
                                         </select>
                                     </div>
 
-                                    {{-- Input de Quantidade (0 ou menos remove automaticamente) --}}
                                     <div class="flex flex-col gap-1">
                                         <span class="text-[10px] uppercase font-bold tracking-wider text-zinc-400">Qty</span>
                                         <input type="number" name="quantity" min="0" value="{{ $item['quantity'] }}" 
                                             class="w-16 rounded-xl border border-zinc-200 bg-zinc-50 px-2 py-2 text-xs font-bold text-zinc-900 outline-none text-center focus:border-zinc-400 transition" />
                                     </div>
 
-                                    {{-- Ações da Linha --}}
                                     <div class="flex items-center gap-1.5 pt-4">
-                                        {{-- Botão Guardar/Atualizar --}}
                                         <button type="submit" title="Guardar Alterações" class="rounded-xl bg-zinc-100 p-2 text-zinc-700 transition hover:bg-zinc-200 hover:text-zinc-950">
                                             <svg class="h-4 w-4" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                                                 <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/>
@@ -147,7 +133,6 @@
                                         </button>
                             </form>
 
-                                        {{-- Botão Eliminar Direto --}}
                                         <form method="POST" action="{{ route('cart.remove', ['itemId' => $id]) }}">
                                             @csrf
                                             <button type="submit" title="Remover Item" class="rounded-xl bg-red-50 p-2 text-red-600 transition hover:bg-red-100">
@@ -161,7 +146,6 @@
                         @endforeach
                     </div>
 
-                    {{-- RESUMO FINANCEIRO (LADO DIREITO) --}}
                     <div class="space-y-6">
                         <div class="rounded-3xl border border-zinc-200 bg-white p-6 shadow-sm">
                             <h2 class="text-lg font-semibold text-zinc-900 mb-4">Resumo do Pedido</h2>
@@ -183,14 +167,11 @@
                                     <span class="text-2xl font-bold text-[#144226]">{{ number_format($grandTotal, 2) }}€</span>
                                 </div>
 
-                                {{-- VERIFICAÇÃO SE ESTÁ AUTENTICADO --}}
                                 @if ($userIsAuthenticated)
-                                    {{-- Corrigido: Botão agora direciona para a vista de Checkout para preenchimento de NIF, Endereço e Pagamento --}}
                                     <a href="{{ route('orders.checkout') }}" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-[#144226] px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-[#0e2f1b] shadow-sm text-center">
                                         Proceder para o Checkout
                                     </a>
                                 @else
-                                    {{-- Corrigido: Redirecionamento aponta para o /checkout para cumprir o requisito de prosseguir com o carrinho --}}
                                     <div class="space-y-3">
                                         <a href="/login?redirect=/checkout" class="inline-flex w-full items-center justify-center gap-2 rounded-2xl bg-zinc-950 px-5 py-3.5 text-sm font-semibold text-white transition hover:bg-zinc-800 shadow-sm text-center">
                                             Entrar para Finalizar Compra

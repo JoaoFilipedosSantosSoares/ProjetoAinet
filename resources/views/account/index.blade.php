@@ -17,7 +17,6 @@
         </div>
 
         <div class="space-y-6">
-            {{-- Alertas de Sucesso do Laravel Fortify / Custom --}}
             @if (session('status') === 'profile-information-updated')
             <div class="mb-4 rounded-2xl bg-green-50 p-4 text-sm font-medium text-green-800 border border-green-200">
                 As tuas informações de perfil foram atualizadas com sucesso!
@@ -36,7 +35,6 @@
             </div>
             @endif
 
-            {{-- SECÇÃO 1: INFORMAÇÕES PESSOAIS --}}
             <section id="profile-panel" class="space-y-6">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -138,7 +136,6 @@
                 </div>
             </section>
 
-            {{-- NOVA SECÇÃO 2: SEGURANÇA / MUDAR PASSWORD --}}
             <section id="password-panel" class="mt-8">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
                     <div class="flex flex-col gap-4 border-b border-zinc-200 p-6 sm:flex-row sm:items-center sm:justify-between">
@@ -158,7 +155,6 @@
                         @method('PUT')
 
                         <div class="grid gap-6 md:grid-cols-3">
-                            {{-- Input 1: Password Atual --}}
                             <div class="space-y-2">
                                 <label for="current_password" class="block text-sm font-medium text-zinc-900">Palavra-passe Atual</label>
                                 <input type="password" id="current_password" name="current_password" required
@@ -168,7 +164,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Input 2: Nova Password --}}
                             <div class="space-y-2">
                                 <label for="password" class="block text-sm font-medium text-zinc-900">Nova Palavra-passe</label>
                                 <input type="password" id="password" name="password" required
@@ -178,7 +173,6 @@
                                 @enderror
                             </div>
 
-                            {{-- Input 3: Confirmar Nova Password --}}
                             <div class="space-y-2">
                                 <label for="password_confirmation" class="block text-sm font-medium text-zinc-900">Confirmar Nova Palavra-passe</label>
                                 <input type="password" id="password_confirmation" name="password_confirmation" required
@@ -189,7 +183,6 @@
                 </div>
             </section>
 
-            {{-- SECÇÃO 3: AS MINHAS ENCOMENDAS --}}
             <section id="orders-panel" class="space-y-6 mt-8">
                 <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm overflow-hidden">
                     <div class="border-b border-zinc-200 p-6">
