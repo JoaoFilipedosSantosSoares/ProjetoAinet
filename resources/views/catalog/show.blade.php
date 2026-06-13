@@ -33,74 +33,118 @@
             </div>
 
             {{-- COLUNA DA DIREITA: Opções de Compra --}}
-            <div class="space-y-6">
-                <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
-                    <div class="p-6 space-y-6">
+<div class="space-y-6">
+    <div class="rounded-3xl border border-zinc-200 bg-white shadow-sm">
+        
+        {{-- 
+            Inicializamos o Alpine.js englobando tanto a escolha de cores 
+            como o formulário para partilharem o mesmo estado reativo.
+        --}}
+        <div class="p-6 space-y-6" x-data="{
+            quantity: 1,
+            basePrice: {{ $basePrice ?? 25.00 }},
+            discountPrice: {{ $discountPrice ?? 20.00 }},
+            qtyTrigger: {{ $qtyTrigger ?? 5 }},
+            selectedColorCode: '{{ $selectedColor->code ?? ($colors->first()->code ?? '') }}',
+            selectedColorName: '{{ $selectedColor->name ?? ($colors->first()->name ?? '') }}'
+        }">
 
-                        {{-- Seleção de Cores através de links diretos (atualiza o preview da t-shirt) --}}
-                        <div>
-                            <label class="mb-2 block text-sm font-medium text-zinc-900">Cor da T-Shirt</label>
-                            <div class="flex flex-wrap gap-2">
-                                @foreach ($colours as $color)
-                                <a href="{{ route('catalog.show', ['tshirt' => $tshirt, 'color' => $color->code]) }}"
-                                    class="color-option h-10 w-10 rounded-full border-2 transition-all duration-200 {{ ($selectedColor->code ?? '') === $color->code ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2' : 'border-border' }}"
-                                    title="{{ $color->name }}"
-                                    style="background-color: #{{ $color->code }}"></a>
-                                @endforeach
-                            </div>
-                            <p class="mt-2 text-sm text-muted-foreground">{{ $selectedColor->name ?? 'Selecione uma cor' }}</p>
-                        </div>
-
-                        {{-- FORMULÁRIO ÚNICO POST PARA A SESSÃO DO CARRINHO --}}
-                        <form action="{{ route('cart.store') }}" method="POST" class="space-y-6">
-                            @csrf
-                            <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id }}">
-                            <input type="hidden" name="color" value="{{ $selectedColor->code }}">
-
-                            <div>
-                                <label for="size-select" class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
-                                <select id="size-select" name="size" class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
-                                    <option value="S">S</option>
-                                    <option value="M" selected>M</option>
-                                    <option value="L">L</option>
-                                    <option value="XL">XL</option>
-                                </select>
-                            </div>
-
-                            <div>
-                                <label for="quantity-input" class="mb-2 block text-sm font-medium text-zinc-900">Quantidade</label>
-                                <input id="quantity-input" name="quantity" type="number" min="1" value="1"
-                                    class="w-24 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
-                                <p class="mt-2 text-xs text-muted-foreground">Desconto automático aplicado a partir de 5 unidades.</p>
-                            </div>
-
-                            <div class="rounded-3xl bg-muted p-4">
-                                <div class="flex items-center justify-between text-sm text-zinc-600">
-                                    <span>Preço base unitário:</span>
-                                    <span class="font-medium">25.00€</span>
-                                </div>
-                            </div>
-
-                            <div class="space-y-3">
-                                <button type="submit"
-                                    class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
-                                    {{ (isset($tshirt) && $tshirt->image_url) ? '' : 'disabled' }}
-                                    {{ auth()->check() && (auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A') ? 'disabled' : '' }}>
-                                    Adicionar ao Carrinho
-                                </button>
-
-                                @auth
-                                @if(auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A')
-                                <p class="text-center text-xs text-red-500 mt-1">
-                                    Contas de funcionários/admins não podem efetuar compras.
-                                </p>
-                                @endif
-                                @endauth
-                            </div>
-                        </form>
-                    </div>
+            {{-- SELEÇÃO DE CORES COM ALPINE.JS (SEM LINKS DE RECARREGAMENTO) --}}
+            <div>
+                <label class="mb-2 block text-sm font-medium text-zinc-900">
+                    Cor da T-Shirt: <span class="text-zinc-500 font-normal" x-text="selectedColorName"></span>
+                </label>
+                <div class="flex flex-wrap gap-2">
+                    @foreach ($colors as $color)
+                        <button type="button"
+                            {{-- Ao clicar, atualiza o estado local do Alpine e muda o preview da t-shirt base instantaneamente --}}
+                            @click="selectedColorCode = '{{ $color->code }}'; selectedColorName = '{{ $color->name }}'; document.getElementById('tshirt-base-preview').src = '{{ asset('storage/tshirt_base/' . $color->code . '.jpg') }}'"
+                            class="h-10 w-10 rounded-full border-2 transition-all duration-200 focus:outline-none"
+                            :class="selectedColorCode === '{{ $color->code }}' ? 'border-zinc-950 ring-2 ring-zinc-950 ring-offset-2 scale-105' : 'border-border'"
+                            title="{{ $color->name }}"
+                            style="background-color: #{{ $color->code }}"></button>
+                    @endforeach
                 </div>
             </div>
+
+            {{-- FORMULÁRIO ÚNICO POST PARA A SESSÃO DO CARRINHO --}}
+            <form action="{{ route('cart.store') }}" method="POST" class="space-y-6">
+                @csrf
+                {{-- Inputs ocultos controlados e atualizados pelo Alpine.js --}}
+                <input type="hidden" name="tshirt_image_id" value="{{ $tshirt->id }}">
+                <input type="hidden" name="color" :value="selectedColorCode">
+
+                {{-- SELEÇÃO DE TAMANHO --}}
+                <div>
+                    <label for="size-select" class="mb-2 block text-sm font-medium text-zinc-900">Tamanho</label>
+                    <select id="size-select" name="size" class="w-full rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20">
+                        <option value="S">S</option>
+                        <option value="M" selected>M</option>
+                        <option value="L">L</option>
+                        <option value="XL">XL</option>
+                    </select>
+                </div>
+
+                {{-- QUANTIDADE LIGADA AO ALPINE --}}
+                <div>
+                    <label for="quantity-input" class="mb-2 block text-sm font-medium text-zinc-900">Quantidade</label>
+                    <input id="quantity-input" name="quantity" type="number" min="1" 
+                        x-model.number="quantity"
+                        class="w-24 rounded-2xl border border-zinc-200 bg-white px-4 py-3 text-sm text-zinc-900 outline-none transition focus:border-primary focus:ring-2 focus:ring-primary/20" />
+                    
+                    {{-- O aviso adapta-se dinamicamente ao gatilho que vier da BD (qtyTrigger) --}}
+                    <p class="mt-2 text-xs text-muted-foreground">
+                        Desconto automático aplicado a partir de <span x-text="qtyTrigger"></span> unidades.
+                    </p>
+                </div>
+
+                {{-- ESPELHO DE PREÇOS COMPLETO E REATIVO --}}
+                <div class="rounded-3xl bg-muted p-4 space-y-2 text-sm text-zinc-600">
+                    {{-- Preço Unitário Dinâmico --}}
+                    <div class="flex items-center justify-between">
+                        <span>Preço Unitário:</span>
+                        <span class="font-medium text-zinc-900" 
+                              x-text="(quantity >= qtyTrigger ? discountPrice : basePrice).toFixed(2) + '€'">
+                        </span>
+                    </div>
+
+                    {{-- Alerta visual de Desconto Ativo --}}
+                    <div class="flex items-center justify-between text-xs text-emerald-600 font-medium" 
+                         x-show="quantity >= qtyTrigger" x-cloak>
+                        <span>Desconto de quantidade:</span>
+                        <span>Aplicado! (Especial <span x-text="discountPrice.toFixed(2)"></span>€)</span>
+                    </div>
+
+                    {{-- Preço Total calculado em tempo real --}}
+                    <div class="flex items-center justify-between border-t border-zinc-200 pt-2 text-zinc-900 font-semibold mt-1">
+                        <span>Total:</span>
+                        <span class="text-xl font-bold text-[#144226]" 
+                              x-text="((quantity >= qtyTrigger ? discountPrice : basePrice) * (quantity || 1)).toFixed(2) + '€'">
+                        </span>
+                    </div>
+                </div>
+
+                {{-- BOTÃO DE SUBMISSÃO PARA O CARRINHO --}}
+                <div class="space-y-3">
+                    <button type="submit"
+                        class="inline-flex w-full justify-center rounded-2xl bg-zinc-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-zinc-800 disabled:cursor-not-allowed disabled:opacity-50"
+                        {{ (isset($tshirt) && $tshirt->image_url) ? '' : 'disabled' }}
+                        {{ auth()->check() && (auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A') ? 'disabled' : '' }}>
+                        Adicionar ao Carrinho
+                    </button>
+
+                    @auth
+                    @if(auth()->user()->user_type === 'F' || auth()->user()->user_type === 'A')
+                    <p class="text-center text-xs text-red-500 mt-1">
+                        Contas de funcionários/admins não podem efetuar compras.
+                    </p>
+                    @endif
+                    @endauth
+                </div>
+            </form>
+        </div>
+    </div>
+</div>
         </div>
     </div>
 </main>
