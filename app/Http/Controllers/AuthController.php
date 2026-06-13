@@ -46,7 +46,7 @@ class AuthController extends Controller
 
         if (Auth::attempt($credentials)) {
             $request->session()->regenerate();
-            return redirect()->intended(route('cart.index'))
+            return redirect()->intended(route('home'))
                 ->with('success', 'Sessão iniciada! O teu carrinho está à tua espera.');
         }
 
